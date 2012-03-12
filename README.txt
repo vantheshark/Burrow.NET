@@ -4,7 +4,7 @@ http://burrow.codeplex.com/
 
 1. INTRODUCTION
 
-This project is created based on the idea of EasyNetQ, since Mike Hadlow used MIT licence, I hope he doesn't mind when I use his source code in this project. Again, Codeplex doesn't like WTFPL, so I have to choose MIT because it's the simplest one.
+This project is created based on the idea of EasyNetQ, since Mike Hadlow used MIT licence, I hope he doesn't mind when I use his source code in this project.
 
 I was so lucky to have 2 chances to work with RabbitMQ in my 2 recent projects. EasyNetQ is the library I looked into at first place. Honestly, It's a good implementation, the author covered all problems he got with RabbitMQ and I learnt from that as well. However, I created this project for below reasons:
 
@@ -17,6 +17,7 @@ I was so lucky to have 2 chances to work with RabbitMQ in my 2 recent projects. 
 Alright, to publish a message, you just need something like:
 var tunnel = TunnelFactory.Create();
 
+
 tunnel.Publish(new OrderDetail
 {	
 	Name = "IPad 3",
@@ -24,13 +25,16 @@ tunnel.Publish(new OrderDetail
 	Amount = 1	
 });
 
+
 To subscribe:
+
 
 var tunnel = TunnelFactory.Create();
 tunnel.SubscribeAsync<OrderDetail>("SubscribtionKey", msg =>
 {
 	// Process message here
 });
+
 
 Ofcourse you're gonna need a connection string to RabbitMQ server, exchange and queue defined to make it work. Please go to document page for more details how to run the test project.
 
