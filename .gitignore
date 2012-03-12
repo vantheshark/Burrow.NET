@@ -7,3 +7,4 @@
 /src/Burrow.Publisher/obj
 /.hg
 /.hgignore
+*.suo
