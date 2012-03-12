@@ -5,3 +5,5 @@
 /src/Burrow.Subscriber/obj
 /src/Burrow.Publisher/bin
 /src/Burrow.Publisher/obj
+/.hg
+/.hgignore
