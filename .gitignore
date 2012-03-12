@@ -5,6 +5,9 @@
 /src/Burrow.Subscriber/obj
 /src/Burrow.Publisher/bin
 /src/Burrow.Publisher/obj
+/src/_ReSharper.*
+/src/*.pdb*
 /.hg
 /.hgignore
 *.suo
+*.nupkg

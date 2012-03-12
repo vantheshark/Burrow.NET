@@ -13,11 +13,11 @@ namespace Burrow.Internal
             return typeof (T).Name;
         }
 
-        public string FindQueueName<T>(string subscribtionName)
+        public string FindQueueName<T>(string subscriptionName)
         {
-            return string.IsNullOrEmpty(subscribtionName)
+            return string.IsNullOrEmpty(subscriptionName)
                 ? string.Format("Burrow.Queue.{0}", typeof (T).Name)
-                : string.Format("Burrow.Queue.{0}.{1}", subscribtionName, typeof (T).Name);
+                : string.Format("Burrow.Queue.{0}.{1}", subscriptionName, typeof (T).Name);
         }
     }
 }

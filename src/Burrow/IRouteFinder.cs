@@ -17,11 +17,11 @@
         string FindRoutingKey<T>();
 
         /// <summary>
-        /// Find the queue name based on the message type and subscribtion name
+        /// Find the queue name based on the message type and subscription name
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="subscribtionName"></param>
+        /// <param name="subscriptionName"></param>
         /// <returns></returns>
-        string FindQueueName<T>(string subscribtionName);
+        string FindQueueName<T>(string subscriptionName);
     }
 }

@@ -216,16 +216,16 @@ namespace Burrow
         public void Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage)
         {
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
-            CreateSubscribtion<T>(subscriptionName, createConsumer);
+            CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
         public void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage)
         {
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
-            CreateSubscribtion<T>(subscriptionName, createConsumer);
+            CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
-        private void CreateSubscribtion<T>(string subscriptionName, Func<IModel, string, IBasicConsumer> createConsumer)
+        private void CreateSubscription<T>(string subscriptionName, Func<IModel, string, IBasicConsumer> createConsumer)
         {
             Action subscription = () =>
                                       {
