@@ -1,9 +1,9 @@
 ![Burrow](http://i43.tinypic.com/66bsw7.png)
 
-Burrow.NET, Release 1.0.x (since March 12, 2012)
+Burrow.NET, Release 1.0.x (since Mar 12, 2012)
 -----------------------------------------------------------------------
-https://github.com/vanthoainguyen/Burrow.NET
-http://burrow.codeplex.com/
+* https://github.com/vanthoainguyen/Burrow.NET    
+* http://burrow.codeplex.com/
 
 
 ##1. INTRODUCTION
@@ -12,16 +12,16 @@ This project is created based on the idea of **EasyNetQ**, since **Mike Hadlow**
 
 I was so lucky to have 2 chances to work with RabbitMQ in my 2 recent projects. EasyNetQ is the library I looked into at first place. Honestly, It's a good implementation, the author covered many problems he got with RabbitMQ and I learnt from that as well. However, I created this project for below reasons:
 
-	* I need an easier way to define Exchange names and Queue names since I don't like the IConvention in EasyNetQ.
-	* I need Fanout Exchange and I don't need the library to create Exchange/Server automatically which EasyNetQ is doing. Indeed, EasyNetQ creates Exchange type Direct everytime a message is published. Not sure if it could affect performance or not but It will throw exception because there is an existing Exchange with same name but different type defined manually. And furthur more, there is no way to override that behavior. Hmmm OCP problem :D
-	* I want the messages to be consumed parallel. EasyNetQ has a method that looks like it consumes the messages asynchornous but sadly it consume one by one.
-	* I need more flexibilities to inject behaviors for logging, error handling, object serializing, etc
-	* And I want to be busy.
+* I need an easier way to define Exchange names and Queue names since I don't like the IConvention in EasyNetQ.
+* I want to use Fanout Exchange and I don't need the library so smart to create Exchange/Server automatically which EasyNetQ is doing. Indeed, EasyNetQ creates Exchange type Direct everytime a message is published. Not sure if it could affect performance or not but It will throw exception because there is an existing Exchange with same name but different type defined manually. And furthur more, there is no way to override that behavior. Hmmm OCP problem :D
+* I want the messages to be consumed parallel. EasyNetQ has a method that looks like it consumes the messages asynchornous but sadly it consume one by one.
+* I need more flexibilities to inject behaviors for logging, error handling, object serializing, etc
+* And I want to be busy :D
 
 Alright, to publish a message, you just need something like:
-var tunnel = TunnelFactory.Create();
 
 ```clj
+var tunnel = TunnelFactory.Create();
 tunnel.Publish(new OrderDetail
 {	
     Name = "IPad 3",
@@ -40,22 +40,25 @@ tunnel.SubscribeAsync<OrderDetail>("SubscriptionKey", msg =>
 });
 ```
 
-Ofcourse you're gonna need a connection string to RabbitMQ server, exchange and queue defined to make it work. Please go to document page for more details how to run the test project.
+Ofcourse you're gonna need a _connection string_ to RabbitMQ server, _exchange_ and _queue_ defined to make it work. Please go to [document page](https://github.com/vanthoainguyen/Burrow.NET/wiki/Get-started-with-Burrow.NET) for more details how to run the test projects.
 
 ##2. WHERE TO START?
 
 - Install RabbitMQ
-- Create exchange (type direct): Burrow.Exchange
-- Create queue: Burrow.Queue.BurrowTestApp.Bunny
-- Bind above queue to exchange Burrow.Exchange
-- Download source code
+- Create exchange (type **direct*): _Burrow.Exchange_
+- Create queue: _Burrow.Queue.BurrowTestApp.Bunny_
+- Bind above queue to exchange _Burrow.Exchange_
+- Get latest source code
 - Run Burrow.Publisher to publish messages
-- Run Burrow.Subscriber to subscribe messagages asynchronously from queue.
+- Run Burrow.Subscriber to subscribe messagages asynchronously from the queue.
 
-Documentation can be found at github wiki page: https://github.com/vanthoainguyen/Burrow.NET/wiki/Get-started-with-Burrow.NET or at Codeplex project page: http://burrow.codeplex.com/documentation
+##3. DOCUMENT
+
+Documentation can be found at github wiki page: https://github.com/vanthoainguyen/Burrow.NET/wiki/Get-started-with-Burrow.NET    
+Or at Codeplex project page: http://burrow.codeplex.com/documentation
 
 Nuget library is also added at http://nuget.org/packages/Burrow.NET
 
-##3. LICENCE
+##4. LICENCE
 http://sam.zoy.org/wtfpl/COPYING 
 ![Troll](http://i40.tinypic.com/2m4vl2x.jpg) 
