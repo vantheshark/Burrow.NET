@@ -1,6 +1,8 @@
 Burrow.NET, Release 1.0.0 (March 12, 2012)
 -----------------------------------------------------------------------
+https://github.com/vanthoainguyen/Burrow.NET
 http://burrow.codeplex.com/
+
 
 1. INTRODUCTION
 
@@ -48,7 +50,7 @@ Ofcourse you're gonna need a connection string to RabbitMQ server, exchange and 
 - Run Burrow.Publisher to publish messages
 - Run Burrow.Subscriber to subscribe messagages asynchronously from queue.
 
-Documentation can be found in the project page: http://burrow.codeplex.com/
+Documentation can be found in the project page: http://burrow.codeplex.com/documentation or github wiki page: https://github.com/vanthoainguyen/Burrow.NET/wiki/Get-started-with-Burrow.NET
 Nuget library is also added at http://nuget.org/packages/Burrow.NET
 
 3. LICENCE
