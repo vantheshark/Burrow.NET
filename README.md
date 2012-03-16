@@ -21,7 +21,7 @@ I was so lucky to have 2 chances to work with RabbitMQ in my 2 recent projects. 
 Alright, to publish a message, you just need something like:
 
 ```clj
-var tunnel = TunnelFactory.Create();
+var tunnel = RabbitTunnel.Factory.Create();
 tunnel.Publish(new OrderDetail
 {	
     Name = "IPad 3",
@@ -33,7 +33,7 @@ tunnel.Publish(new OrderDetail
 To subscribe:
 
 ```clj
-var tunnel = TunnelFactory.Create();
+var tunnel = RabbitTunnel.Factory.Create();
 tunnel.SubscribeAsync<OrderDetail>("SubscriptionKey", msg =>
 {
     // Process message here
