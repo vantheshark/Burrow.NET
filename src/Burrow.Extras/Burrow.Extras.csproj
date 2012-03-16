@@ -2,21 +2,18 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{31D42BD9-362A-404D-8CF3-866FEE1EEA33}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{143DB227-4AB7-4D4F-AE1A-4C5D2ED40180}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Burrow.Publisher</RootNamespace>
-    <AssemblyName>Burrow.Publisher</AssemblyName>
+    <RootNamespace>Burrow.Extras</RootNamespace>
+    <AssemblyName>Burrow.Extras</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -25,8 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -34,7 +30,19 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Properties\burrow.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.4.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="RabbitMQ.Client, Version=2.7.1.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\RabbitMQ.Client.2.7.1\lib\net30\RabbitMQ.Client.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,24 +52,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\Bunny.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="DependencyInjectionTunnelFactory.cs" />
+    <Compile Include="ExchangeSetupData.cs" />
+    <Compile Include="IBurrowResolver.cs" />
+    <Compile Include="JsonSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueueSetupData.cs" />
+    <Compile Include="RabbitSetup.cs" />
+    <Compile Include="TunnelFactoryExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Burrow.Extras\Burrow.Extras.csproj">
-      <Project>{143DB227-4AB7-4D4F-AE1A-4C5D2ED40180}</Project>
-      <Name>Burrow.Extras</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Burrow\Burrow.csproj">
       <Project>{A638FCE0-EDBA-4C08-BC92-09B40A48A342}</Project>
       <Name>Burrow</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\burrow.pfx" />
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>COPY /Y "$(TargetPath)" "$(SolutionDir)..\nuget\Burrow.Extras\lib\net40\"
+COPY /Y "$(TargetPath)" "$(SolutionDir)..\bin\Burrow.Extras\net40\"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

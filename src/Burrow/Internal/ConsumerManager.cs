@@ -6,11 +6,6 @@ using RabbitMQ.Client.Events;
 
 namespace Burrow.Internal
 {
-    /// <summary>
-    /// This consumer factory starts a thread to handle message delivery from
-    /// a shared queue. It returns a QueueingBasicConsumer with a reference to the 
-    /// queue.
-    /// </summary>
     public class ConsumerManager : IConsumerManager
     {
         private readonly IRabbitWatcher _watcher;

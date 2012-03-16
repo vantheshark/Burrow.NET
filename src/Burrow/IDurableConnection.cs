@@ -9,6 +9,7 @@ namespace Burrow
         event Action Disconnected;
         bool IsConnected { get; }
         ConnectionFactory ConnectionFactory { get; }
+        void Connect();
         IModel CreateChannel();
     }
 }

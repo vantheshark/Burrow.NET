@@ -3,7 +3,7 @@ using System;
 
 namespace Burrow
 {
-    interface IRetryPolicy
+    public interface IRetryPolicy
     {
         /// <summary>
         /// In miliseconds

@@ -8,7 +8,7 @@ namespace Burrow
 
         event Action OnClosed;
 
-        bool IsOpenning { get; }
+        bool IsOpened { get; }
 
         void Publish<T>(T rabbit);
 

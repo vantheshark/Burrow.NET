@@ -4,9 +4,14 @@ using Burrow.Internal;
 
 namespace Burrow
 {
-    public static class TunnelFactory
+    public class TunnelFactory
     {
-        public static ITunnel Create()
+        protected internal TunnelFactory()
+        {
+            RabbitTunnel.Factory = this;
+        }
+
+        public virtual ITunnel Create()
         {
             var rabbitConnectionString = ConfigurationManager.ConnectionStrings["RabbitMQ"];
             if (rabbitConnectionString == null)
@@ -21,12 +26,12 @@ namespace Burrow
             return Create(rabbitConnectionString.ConnectionString);
         }
 
-        public static ITunnel Create(string connectionString)
+        public virtual ITunnel Create(string connectionString)
         {
             return Create(connectionString, new ConsoleWatcher());
         }
 
-        public static ITunnel Create(string connectionString, IRabbitWatcher watcher)
+        public virtual ITunnel Create(string connectionString, IRabbitWatcher watcher)
         {
             var connectionValues = new ConnectionString(connectionString);
 
@@ -37,7 +42,7 @@ namespace Burrow
                           watcher);
         }
 
-        public static ITunnel Create(string hostName, string virtualHost, string username, string password, IRabbitWatcher watcher)
+        public virtual ITunnel Create(string hostName, string virtualHost, string username, string password, IRabbitWatcher watcher)
         {
             var connectionFactory = new RabbitMQ.Client.ConnectionFactory
                                         {
@@ -47,7 +52,7 @@ namespace Burrow
                                             Password = password
                                         };
 
-            var durableConnection = new DurableConnection(new DefaultIRetryPolicy(), watcher, connectionFactory);
+            var durableConnection = new DurableConnection(new DefaultRetryPolicy(), watcher, connectionFactory);
             var errorHandler = new ConsumerErrorHandler(connectionFactory, Global.DefaultSerializer, Global.DefaultWatcher);
             var consumerManager = new ConsumerManager(watcher, errorHandler, Global.DefaultSerializer, Global.DefaultConsumerBatchSize);
 

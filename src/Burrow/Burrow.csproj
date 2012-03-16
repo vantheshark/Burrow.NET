@@ -62,7 +62,7 @@
     <Compile Include="IMessageConverter.cs" />
     <Compile Include="Internal\BurrowError.cs" />
     <Compile Include="Internal\ConsumerErrorHandler.cs" />
-    <Compile Include="Internal\DefaultIRetryPolicy.cs" />
+    <Compile Include="Internal\DefaultRetryPolicy.cs" />
     <Compile Include="Internal\DefaultRouteFinder.cs" />
     <Compile Include="Internal\DurableConnection.cs" />
     <Compile Include="Internal\ConsumerManager.cs" />
@@ -88,8 +88,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>COPY /Y "$(TargetPath)" "$(SolutionDir)..\nuget\lib\net40\"
-COPY /Y "$(TargetPath)" "$(SolutionDir)..\bin\net40\"</PostBuildEvent>
+    <PostBuildEvent>COPY /Y "$(TargetPath)" "$(SolutionDir)..\nuget\Burrow\lib\net40\"
+COPY /Y "$(TargetPath)" "$(SolutionDir)..\bin\Burrow\net40\"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

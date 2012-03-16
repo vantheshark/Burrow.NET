@@ -1,13 +1,11 @@
 
-/src/Burrow/bin
-/src/Burrow/obj
-/src/Burrow.Subscriber/bin
-/src/Burrow.Subscriber/obj
-/src/Burrow.Publisher/bin
-/src/Burrow.Publisher/obj
+bin
+obj
 /src/_ReSharper.*
 /src/*.pdb*
 /.hg
 /.hgignore
 *.suo
+*.user
+*.pdb
 *.nupkg

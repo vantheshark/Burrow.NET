@@ -16,7 +16,6 @@ namespace Burrow.Internal
         private readonly IRabbitWatcher _watcher;
         private readonly object _channelGate = new object();
 
-        private IConnection _connection;
         private bool _errorQueueDeclared;
         private bool _errorQueueBound;
 
@@ -38,14 +37,6 @@ namespace Burrow.Internal
             _connectionFactory = connectionFactory;
             _serializer = serializer;
             _watcher = watcher;
-        }
-
-        private void Connect()
-        {
-            if (_connection == null || !_connection.IsOpen)
-            {
-                _connection = _connectionFactory.CreateConnection();
-            }
         }
 
         private void DeclareErrorQueue(IModel model)
@@ -73,13 +64,13 @@ namespace Burrow.Internal
             }
         }
 
-        private void InitializeErrorExchangeAndQueue(IModel model)
+        protected void InitializeErrorExchangeAndQueue(IModel model)
         {
             DeclareErrorQueue(model);
             DeclareErrorExchangeAndBindToErrorQueue(model);
         }
 
-        private byte[] CreateErrorMessage(BasicDeliverEventArgs devliverArgs, Exception exception)
+        protected virtual byte[] CreateErrorMessage(BasicDeliverEventArgs devliverArgs, Exception exception)
         {
             var messageAsString = Encoding.UTF8.GetString(devliverArgs.Body);
             var error = new BurrowError
@@ -105,25 +96,16 @@ namespace Burrow.Internal
                 "Failed to write error message to error queue";
         }
 
-        private bool _disposed;
         public void Dispose()
         {
-            if (_disposed) return;
-
-            if (_connection != null)
-            {
-                _connection.Dispose();
-            }
-            _disposed = true;
         }
 
-        public void HandleError(BasicDeliverEventArgs deliverEventArgs, Exception exception)
+        public virtual void HandleError(BasicDeliverEventArgs deliverEventArgs, Exception exception)
         {
             try
             {
-                Connect();
-
-                using (var model = _connection.CreateModel())
+                using (var connection = _connectionFactory.CreateConnection())
+                using (var model = connection.CreateModel())
                 {
                     lock (_channelGate)
                     {

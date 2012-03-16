@@ -13,9 +13,9 @@ This project is created based on the idea of **EasyNetQ**, since **Mike Hadlow**
 I was so lucky to have 2 chances to work with RabbitMQ in my 2 recent projects. EasyNetQ is the library I looked into at first place. Honestly, It's a good implementation, the author covered many problems he got with RabbitMQ and I learnt from that as well. However, I created this project for below reasons:
 
 * I need an easier way to define Exchange names and Queue names since I don't like the IConvention in EasyNetQ.
-* I want to use Fanout Exchange and I don't need the library so smart to create Exchange/Server automatically which EasyNetQ is doing. Indeed, EasyNetQ creates Exchange type Direct everytime a message is published. Not sure if it could affect performance or not but It will throw exception because there is an existing Exchange with same name but different type defined manually. And furthur more, there is no way to override that behavior. Hmmm OCP problem :D
+* I want to use Fanout Exchange and I don't need the library so smart to create Exchanges/Queues automatically which EasyNetQ is doing. Indeed, EasyNetQ creates Exchange type Direct everytime a message is published. Not sure if it could affect performance or not but It will throw exception if there is an existing Exchange with same name but different type defined manually. And furthur more, there is no way to override that behavior. Hmmm OCP problem :D
 * I want the messages to be consumed parallel. EasyNetQ has a method that looks like it consumes the messages asynchornous but sadly it consume one by one.
-* I need more flexibilities to inject behaviors for logging, error handling, object serializing, etc
+* I need more flexibilities to inject behaviors for logging, error handling, object serializing, etc.
 * And I want to be busy :D
 
 Alright, to publish a message, you just need something like:

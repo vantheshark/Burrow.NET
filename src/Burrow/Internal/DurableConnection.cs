@@ -4,7 +4,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Burrow.Internal
 {
-    internal class DurableConnection : IDurableConnection
+    public class DurableConnection : IDurableConnection
     {
         private readonly IRetryPolicy _retryPolicy;
         private readonly IRabbitWatcher _watcher;
@@ -27,16 +27,13 @@ namespace Burrow.Internal
             {
                 throw new ArgumentNullException("connectionFactory");
             }
-            
 
             _retryPolicy = retryPolicy;
             _watcher = watcher;
             ConnectionFactory = connectionFactory;
-
-            TryToConnect();
         }
 
-        private void TryToConnect()
+        public void Connect()
         {
             try
             {
@@ -62,7 +59,7 @@ namespace Burrow.Internal
                     _retryPolicy.DelayTime,
                     brokerUnreachableException.Message);
 
-                _retryPolicy.WaitForNextRetry(TryToConnect);
+                _retryPolicy.WaitForNextRetry(Connect);
             }
         }
 
@@ -72,7 +69,7 @@ namespace Burrow.Internal
 
             _watcher.WarnFormat("Disconnected from RabbitMQ Broker");
 
-            _retryPolicy.WaitForNextRetry(TryToConnect);
+            _retryPolicy.WaitForNextRetry(Connect);
         }
 
         public bool IsConnected
@@ -86,8 +83,14 @@ namespace Burrow.Internal
         {
             if (!IsConnected)
             {
-                throw new Exception("Rabbit server is not connected.");
+                Connect();
             }
+            
+            if (!IsConnected)
+            {
+                throw new Exception("Cannot connect to Rabbit server.");
+            }
+            
             var channel = _connection.CreateModel();
             channel.ModelShutdown += ChannelShutdown;
             return channel;

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using Burrow.Extras;
 using Burrow.Publisher.Models;
 
 namespace Burrow.Publisher
@@ -8,34 +11,49 @@ namespace Burrow.Publisher
     {
         static void Main(string[] args)
         {
-            TestPublish(10000);
+            TestPublish(1, 50000 / 1);
         }
 
-        private static void TestPublish(int numberOfRabbitToCreate)
+        private static void TestPublish(int totalThread, int numberOfRabbitToCreatePerThread)
         {
-            var tunnel = TunnelFactory.Create();
+            var tunnel = RabbitTunnel.Factory.Create();
+            tunnel.SetSerializer(new JsonSerializer());
+
+            var tasks = new List<Task>();
             var sw = new Stopwatch();
             sw.Start();
-            uint index;
-            for (index = 0; index < numberOfRabbitToCreate; index++)
+            
+            for (var i = 0; i < totalThread; i++)
             {
-                try
+                tasks.Add(Task.Factory.StartNew(() =>
                 {
-                    tunnel.Publish(new Bunny
+                    uint index;
+                    for (index = 0; index < numberOfRabbitToCreatePerThread; index++)
                     {
-                        Age = index,
-                        Color = "White",
-                        Name = "The Energizer Bunny"
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    break;
-                }
+                        try
+                        {
+                            tunnel.Publish(new Bunny
+                            {
+                                Age = index,
+                                Color = "White",
+                                Name = "The Energizer Bunny"
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                            break;
+                        }
+                    }
+                }));
             }
+
+
+
+            tasks.ForEach(x => x.Wait());
             sw.Stop();
-            Console.WriteLine(string.Format("Publish {0} rabbits in {1}.", index, sw.Elapsed));
+            Console.WriteLine(string.Format("Published {0} \"rabbits\" in {1}.", numberOfRabbitToCreatePerThread * totalThread, sw.Elapsed));
+            Console.ReadKey();
         }
     }
 }

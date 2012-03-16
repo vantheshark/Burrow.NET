@@ -1,8 +1,10 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace Burrow.Internal
 {
+    /// <summary>
+    /// 20% slower than JsonSerializer which can be found in Burrow.Extras package
+    /// </summary>
     public class JavaScriptSerializer : ISerializer
     {
         private readonly System.Web.Script.Serialization.JavaScriptSerializer _serializer;
@@ -17,7 +19,7 @@ namespace Burrow.Internal
         {
             if (message == null)
             {
-                throw new ArgumentNullException("message");
+                return null;
             }
             var result = _serializer.Serialize(message);
             return _encoding.GetBytes(result);
@@ -27,7 +29,7 @@ namespace Burrow.Internal
         {
             if (bytes == null)
             {
-                throw new ArgumentNullException("bytes");
+                return default(T);
             }
             return _serializer.Deserialize<T>(_encoding.GetString(bytes));
         }

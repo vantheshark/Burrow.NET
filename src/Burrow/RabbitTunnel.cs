@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Burrow.Internal;
 using RabbitMQ.Client;
@@ -22,6 +23,7 @@ namespace Burrow
         private readonly ConcurrentBag<Action> _subscribeActions;
         
         private readonly object _tunnelGate = new object();
+        private readonly AutoResetEvent _autoResetEvent = new AutoResetEvent(true);
 
         private ISerializer _serializer;
         private IRouteFinder _routeFinder;
@@ -86,58 +88,72 @@ namespace Burrow
 
             _connection.Connected += OpenTunnel;
             _connection.Disconnected += CloseTunnel;
-
-            CreatePublishChannel();
-
             _subscribeActions = new ConcurrentBag<Action>();
-            
         }
 
         private void CloseTunnel()
         {
-            if (_publishChannel != null)
+            _autoResetEvent.WaitOne();
+            try
             {
-                _publishChannel.BasicAcks -= OnBrokerReceivedMessage;
-                _publishChannel.BasicNacks -= OnBrokerRejectedMessage;
-                _publishChannel.BasicReturn -= OnMessageIsUnrouted;
+                if (_publishChannel != null)
+                {
+                    _publishChannel.BasicAcks -= OnBrokerReceivedMessage;
+                    _publishChannel.BasicNacks -= OnBrokerRejectedMessage;
+                    _publishChannel.BasicReturn -= OnMessageIsUnrouted;
+                }
+
+                _consumerManager.ClearConsumers();
+
+                //NOTE: Sometimes, disposing the channel blocks current thread
+                var task = new Task(() => _createdChannels.ForEach(DisposeChannel));
+                task.ContinueWith(t => _createdChannels.Clear());
+                task.Start();
+
+                if (OnClosed != null)
+                {
+                    OnClosed();
+                }
             }
-            
-            _consumerManager.ClearConsumers();
-            
-            //NOTE: Sometimes, disposing the channel blocks current thread
-            var task = new Task(() => _createdChannels.ForEach(DisposeChannel));
-            task.ContinueWith(t => _createdChannels.Clear());
-            task.Start();
-            
-            if (OnClosed != null)
+            finally
             {
-                OnClosed();
+                _autoResetEvent.Set();
             }
         }
 
         private void OpenTunnel()
         {
-            CreatePublishChannel();
-
-            _watcher.DebugFormat("Re-subscribe to queues");
-            foreach (var subscription in _subscribeActions)
+            _autoResetEvent.WaitOne();
+            try
             {
-                TrySubscribe(subscription);
+                CreatePublishChannel();
+                _watcher.DebugFormat("Re-subscribe to queues");
+                foreach (var subscription in _subscribeActions)
+                {
+                    TrySubscribe(subscription);
+                }
+                if (OnOpened != null)
+                {
+                    OnOpened();
+                }
             }
-            if (OnOpened != null)
+            finally
             {
-                OnOpened();
+                _autoResetEvent.Set();
             }
         }
 
         private void CreatePublishChannel()
         {
-            _publishChannel = _connection.CreateChannel();
-            _createdChannels.Add(_publishChannel);
+            if (_publishChannel == null || !_publishChannel.IsOpen)
+            {
+                _publishChannel = _connection.CreateChannel();
+                _createdChannels.Add(_publishChannel);
 
-            _publishChannel.BasicAcks += OnBrokerReceivedMessage;
-            _publishChannel.BasicNacks += OnBrokerRejectedMessage;
-            _publishChannel.BasicReturn += OnMessageIsUnrouted;
+                _publishChannel.BasicAcks += OnBrokerReceivedMessage;
+                _publishChannel.BasicNacks += OnBrokerRejectedMessage;
+                _publishChannel.BasicReturn += OnMessageIsUnrouted;
+            }
         }
 
         /// <summary>
@@ -172,7 +188,7 @@ namespace Burrow
         {
         }
 
-        public bool IsOpenning
+        public bool IsOpened
         {
             get
             {
@@ -185,13 +201,21 @@ namespace Burrow
             Publish(rabbit, _routeFinder.FindRoutingKey<T>());
         }
 
-        public void Publish<T>(T rabbit, string routingKey)
+        public virtual void Publish<T>(T rabbit, string routingKey)
         {
-            if (_publishChannel == null || !_publishChannel.IsOpen)
+            lock (_tunnelGate)
             {
-                throw new Exception("Publish failed. No channel to rabbit server established.");
+                if (!IsOpened)
+                {
+                    _connection.Connect();
+                }
+                //NOTE: After connect, the _publishChannel will be created synchronously
+                if (_publishChannel == null || !_publishChannel.IsOpen)
+                {
+                    throw new Exception("Publish failed. No channel to rabbit server established.");
+                }
             }
-
+            
             try
             {
                 byte[] msgBody = _serializer.Serialize(rabbit);
@@ -215,12 +239,28 @@ namespace Burrow
 
         public void Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage)
         {
+            lock (_tunnelGate)
+            {
+                if (!IsOpened)
+                {
+                    _connection.Connect();
+                }
+            }
+
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
             CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
         public void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage)
         {
+            lock (_tunnelGate)
+            {
+                if (!IsOpened)
+                {
+                    _connection.Connect();
+                }
+            }
+
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
             CreateSubscription<T>(subscriptionName, createConsumer);
         }
@@ -228,21 +268,20 @@ namespace Burrow
         private void CreateSubscription<T>(string subscriptionName, Func<IModel, string, IBasicConsumer> createConsumer)
         {
             Action subscription = () =>
-                                      {
-                                          var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
-                                          var consumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
+            {
+                var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
+                var consumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
 
-                                          var channel = _connection.CreateChannel();
-                                          channel.BasicQos(0, Global.DefaultConsumerBatchSize, false);
+                var channel = _connection.CreateChannel();
+                channel.BasicQos(0, Global.DefaultConsumerBatchSize, false);
 
-                                          _createdChannels.Add(channel);
-                                          var consumer = createConsumer(channel, consumerTag);
+                _createdChannels.Add(channel);
+                var consumer = createConsumer(channel, consumerTag);
 
-                                          //NOTE: The message will still be on the Unacknowledged list until it's processed and the method
-                                          //      DoAck is call.
-                                          channel.BasicConsume(queueName, false /* noAck, must be false */, consumerTag,
-                                                               consumer);
-                                      };
+                //NOTE: The message will still be on the Unacknowledged list until it's processed and the method
+                //      DoAck is call.
+                channel.BasicConsume(queueName, false /* noAck, must be false */, consumerTag, consumer);
+            };
 
             _subscribeActions.Add(subscription);
             TrySubscribe(subscription);
@@ -318,6 +357,12 @@ namespace Burrow
                     _watcher.Error(ex);
                 }
             }
+        }
+
+        public static TunnelFactory Factory;
+        static RabbitTunnel()
+        {
+            new TunnelFactory();
         }
     }
 }

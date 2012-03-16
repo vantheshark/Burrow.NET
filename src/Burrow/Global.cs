@@ -18,9 +18,9 @@ namespace Burrow
         public static ushort DefaultConsumerBatchSize = 256;
         
         /// <summary>
-        /// Set to true will save the message to disk when it's published, defalt is false.
-        /// That's mean the messages will be removed when the server is restarted.
-        /// This value is used by the TunnelFactory when it create a RabbitTunnel
+        /// Set to true will save the message to disk when it's published, default is false.
+        /// If its value is false, the messages will be removed when the server is restarted.
+        /// This value is used by the default TunnelFactory when it create a RabbitTunnel
         /// </summary>
         public static bool SetDefaultPersistentMode;
     }
