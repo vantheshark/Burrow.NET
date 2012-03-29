@@ -23,5 +23,8 @@ namespace Burrow
         /// This value is used by the default TunnelFactory when it create a RabbitTunnel
         /// </summary>
         public static bool SetDefaultPersistentMode;
+
+        public static string DefaultErrorQueueName = "Burrow.Queue.Error";
+        public static string DefaultErrorExchangeName = "Burrow.Exchange.Error";
     }
 }

@@ -43,7 +43,15 @@ namespace Burrow.Internal
         public IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
         {
             var action = CreateJobFactory(onReceiveMessage);
-            var consumer = new SequenceConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action);
+            var consumer = new SequenceConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, true);
+            _createdConsumers.Add(consumer);
+            return consumer;
+        }
+
+        public IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, ulong> onReceiveMessage)
+        {
+            var action = CreateJobFactory(onReceiveMessage);
+            var consumer = new SequenceConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, false);
             _createdConsumers.Add(consumer);
             return consumer;
         }
@@ -51,7 +59,15 @@ namespace Burrow.Internal
         public IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
         {
             var action = CreateJobFactory(onReceiveMessage);
-            var consumer = new ParallelConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, BatchSize);
+            var consumer = new ParallelConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, BatchSize, true);
+            _createdConsumers.Add(consumer);
+            return consumer;
+        }
+
+        public IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, ulong> onReceiveMessage)
+        {
+            var action = CreateJobFactory(onReceiveMessage);
+            var consumer = new ParallelConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, BatchSize, false);
             _createdConsumers.Add(consumer);
             return consumer;
         }
@@ -63,6 +79,16 @@ namespace Burrow.Internal
                 CheckMessageType<T>(eventArgs.BasicProperties);
                 var message = _serializer.Deserialize<T>(eventArgs.Body);
                 onReceiveMessage(message);
+            });
+        }
+
+        private Func<BasicDeliverEventArgs, Task> CreateJobFactory<T>(Action<T, ulong> onReceiveMessage)
+        {
+            return eventArgs => Task.Factory.StartNew(() =>
+            {
+                CheckMessageType<T>(eventArgs.BasicProperties);
+                var message = _serializer.Deserialize<T>(eventArgs.Body);
+                onReceiveMessage(message, eventArgs.DeliveryTag);
             });
         }
 

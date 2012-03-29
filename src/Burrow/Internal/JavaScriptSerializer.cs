@@ -3,7 +3,7 @@
 namespace Burrow.Internal
 {
     /// <summary>
-    /// 20% slower than JsonSerializer which can be found in Burrow.Extras package
+    /// Much slower than JsonSerializer which can be found in Burrow.Extras package
     /// </summary>
     public class JavaScriptSerializer : ISerializer
     {

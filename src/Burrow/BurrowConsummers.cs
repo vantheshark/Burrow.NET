@@ -108,21 +108,30 @@ namespace Burrow
 
         protected virtual void HandleMessageDelivery(BasicDeliverEventArgs basicDeliverEventArgs)
         {
-            Watcher.DebugFormat("Subscriber received {0}, CorrelationId {1}", basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.BasicProperties.CorrelationId);
-
             try
             {
+                Watcher.DebugFormat("Subscriber received \t{0}\nCorrelationId \t\t{1}\nDeliveryTag \t\t{2}", basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.DeliveryTag);
                 var completionTask = JobFactory(basicDeliverEventArgs);
                 completionTask.ContinueWith(task =>
                 {
-                    if (task.IsFaulted)
+                    try
                     {
-                        var exception = task.Exception;
-                        Watcher.ErrorFormat(BuildErrorLogMessage(basicDeliverEventArgs, exception));
-                        ConsumerErrorHandler.HandleError(basicDeliverEventArgs, exception);
+                        if (task.IsFaulted)
+                        {
+                            var exception = task.Exception;
+                            Watcher.ErrorFormat(BuildErrorLogMessage(basicDeliverEventArgs, exception));
+                            ConsumerErrorHandler.HandleError(basicDeliverEventArgs, exception);
+                        }
+                        DoAck(basicDeliverEventArgs, this);
                     }
-                    DoAck(basicDeliverEventArgs, this);
-                    _pool.Release();
+                    catch(Exception ex)
+                    {
+                        Watcher.Error(ex);
+                    }
+                    finally
+                    {
+                        _pool.Release();
+                    }
                 });
             }
             catch (Exception exception)
@@ -130,10 +139,11 @@ namespace Burrow
                 Watcher.ErrorFormat(BuildErrorLogMessage(basicDeliverEventArgs, exception));
                 ConsumerErrorHandler.HandleError(basicDeliverEventArgs, exception);
                 DoAck(basicDeliverEventArgs, this);
+                _pool.Release(); // Just in case there is problem with the Watcher || the completionTask is null
             }
         }
 
-        protected void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
+        protected virtual void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
         {
             if (_disposed || !subscriptionInfo.Model.IsOpen)
             {
@@ -193,28 +203,50 @@ namespace Burrow
 
     public class ParallelConsumer : BurrowConsummer
     {
+        private readonly bool _autoAck;
+
         public ParallelConsumer(IRabbitWatcher watcher, 
                                 IConsumerErrorHandler consumerErrorHandler, 
                                 ISerializer serializer, 
                                 IModel channel, 
                                 string consumerTag, 
                                 Func<BasicDeliverEventArgs, Task> jobFactory,
-                                int batchSize)
+                                int batchSize, bool autoAck)
             : base(watcher, consumerErrorHandler, serializer, channel, consumerTag, jobFactory, batchSize)
         {
+            _autoAck = autoAck;
+        }
+
+        protected override void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
+        {
+            if (_autoAck)
+            {
+                base.DoAck(basicDeliverEventArgs, subscriptionInfo);
+            }
         }
     }
 
     public class SequenceConsumer : BurrowConsummer
     {
+        private readonly bool _autoAck;
+
         public SequenceConsumer(IRabbitWatcher watcher,
                                 IConsumerErrorHandler consumerErrorHandler,
                                 ISerializer serializer,
                                 IModel channel,
                                 string consumerTag,
-                                Func<BasicDeliverEventArgs, Task> jobFactory)
+                                Func<BasicDeliverEventArgs, Task> jobFactory, bool autoAck)
             : base(watcher, consumerErrorHandler, serializer, channel, consumerTag, jobFactory, 1)
         {
+            _autoAck = autoAck;
+        }
+
+        protected override void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
+        {
+            if (_autoAck)
+            {
+                base.DoAck(basicDeliverEventArgs, subscriptionInfo);
+            }
         }
     }
 }

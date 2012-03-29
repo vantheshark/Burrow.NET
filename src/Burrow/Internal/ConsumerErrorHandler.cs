@@ -8,8 +8,8 @@ namespace Burrow.Internal
 {
     public class ConsumerErrorHandler : IConsumerErrorHandler
     {
-        public const string ErrorQueue = "Burrow.Queue.Error";
-        public const string ErrorExchange = "Burrow.Exchange.Error";
+        private readonly string _errorQueue;
+        private readonly string _errorExchange;
 
         private readonly ConnectionFactory _connectionFactory;
         private readonly ISerializer _serializer;
@@ -37,13 +37,16 @@ namespace Burrow.Internal
             _connectionFactory = connectionFactory;
             _serializer = serializer;
             _watcher = watcher;
+
+            _errorQueue = Global.DefaultErrorQueueName ?? "Burrow.Queue.Error";
+            _errorExchange = Global.DefaultErrorExchangeName ?? "Burrow.Exchange.Error";
         }
 
         private void DeclareErrorQueue(IModel model)
         {
             if (!_errorQueueDeclared)
             {
-                model.QueueDeclare(ErrorQueue,
+                model.QueueDeclare(_errorQueue,
                     durable: true,
                     exclusive: false,
                     autoDelete: false,
@@ -57,8 +60,8 @@ namespace Burrow.Internal
         {
             if (!_errorQueueBound)
             {
-                model.ExchangeDeclare(ErrorExchange, ExchangeType.Direct, durable: true);
-                model.QueueBind(ErrorQueue, ErrorExchange, string.Empty);
+                model.ExchangeDeclare(_errorExchange, ExchangeType.Direct, durable: true);
+                model.QueueBind(_errorQueue, _errorExchange, string.Empty);
 
                 _errorQueueBound = true;
             }
@@ -114,7 +117,7 @@ namespace Burrow.Internal
                     var messageBody = CreateErrorMessage(deliverEventArgs, exception);
                     var properties = model.CreateBasicProperties();
                     properties.SetPersistent(true);
-                    model.BasicPublish(ErrorExchange, string.Empty, properties, messageBody);
+                    model.BasicPublish(_errorExchange, string.Empty, properties, messageBody);
                 }
             }
             catch (BrokerUnreachableException)

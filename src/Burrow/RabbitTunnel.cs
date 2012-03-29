@@ -239,19 +239,33 @@ namespace Burrow
 
         public void Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage)
         {
-            lock (_tunnelGate)
-            {
-                if (!IsOpened)
-                {
-                    _connection.Connect();
-                }
-            }
-
+            TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
             CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
+        public Subscription Subscribe<T>(string subscriptionName, Action<T, ulong> onReceiveMessage)
+        {
+            TryConnectBeforeSubscribing();
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            return CreateSubscription<T>(subscriptionName, createConsumer);
+        }
+
         public void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage)
+        {
+            TryConnectBeforeSubscribing();
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            CreateSubscription<T>(subscriptionName, createConsumer);
+        }
+
+        public Subscription SubscribeAsync<T>(string subscriptionName, Action<T, ulong> onReceiveMessage)
+        {
+            TryConnectBeforeSubscribing();
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            return CreateSubscription<T>(subscriptionName, createConsumer);
+        }
+
+        private void TryConnectBeforeSubscribing()
         {
             lock (_tunnelGate)
             {
@@ -260,31 +274,32 @@ namespace Burrow
                     _connection.Connect();
                 }
             }
-
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
-            CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
-        private void CreateSubscription<T>(string subscriptionName, Func<IModel, string, IBasicConsumer> createConsumer)
+        private Subscription CreateSubscription<T>(string subscriptionName, Func<IModel, string, IBasicConsumer> createConsumer)
         {
-            Action subscription = () =>
+            var subscription = new Subscription{SubscriptionName = subscriptionName};
+            Action subscriptionAction = () =>
             {
-                var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
-                var consumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
+                subscription.QueueName = _routeFinder.FindQueueName<T>(subscriptionName);
+                subscription.ConsumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
 
                 var channel = _connection.CreateChannel();
                 channel.BasicQos(0, Global.DefaultConsumerBatchSize, false);
-
                 _createdChannels.Add(channel);
-                var consumer = createConsumer(channel, consumerTag);
+                
+                subscription.SetChannel(channel);
+
+                var consumer = createConsumer(channel, subscription.ConsumerTag);
 
                 //NOTE: The message will still be on the Unacknowledged list until it's processed and the method
                 //      DoAck is call.
-                channel.BasicConsume(queueName, false /* noAck, must be false */, consumerTag, consumer);
+                channel.BasicConsume(subscription.QueueName, false /* noAck, must be false */, subscription.ConsumerTag, consumer);
             };
 
-            _subscribeActions.Add(subscription);
-            TrySubscribe(subscription);
+            _subscribeActions.Add(subscriptionAction);
+            TrySubscribe(subscriptionAction);
+            return subscription;
         }
 
         private void TrySubscribe(Action subscription)

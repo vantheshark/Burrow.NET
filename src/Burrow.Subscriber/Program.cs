@@ -11,20 +11,53 @@ namespace Burrow.Subscriber
             Console.ReadLine();
 
             var tunnel = RabbitTunnel.Factory.Create();
-            tunnel.SubscribeAsync<Bunny>("BurrowTestApp", bunny =>
+            Global.SetDefaultPersistentMode = true;
+            Global.DefaultConsumerBatchSize = 1000;
+
+            // SubscribeAsync auto Ack
+            tunnel.SubscribeAsync<Bunny>("BurrowTestApp", ProcessMessage);
+
+
+
+
+
+            // SubscribeAsync manual Ack
+            Subscription subscription = null;
+            subscription = tunnel.SubscribeAsync<Bunny>("BurrowTestApp", (bunny, deliveryTag) =>
             {
-                var rand = new Random((int) DateTime.Now.Ticks);
-                var processingTime = rand.Next(1000, 1500);
-                if (bunny.Age % 5 == 0)
+                try
                 {
-                    throw new Exception("This is a test exception to demonstrate how a message is handled once something wrong happens: " + 
-                                        "Got a bad bunny, It should be put to Error Queue ;)");
+                    ProcessMessage(bunny);
                 }
-                System.Threading.Thread.Sleep(processingTime);
-                Console.WriteLine("Got a bunny {0}, feeding it in {1} ms\n", bunny.Name, processingTime);
+                finally
+                {
+                    if (subscription != null)
+                    {
+                        subscription.Ack(deliveryTag);
+                    }
+                }
             });
             
+
+
+
+
             Console.ReadKey();
+        }
+
+
+        private static void ProcessMessage(Bunny bunny)
+        {
+            var rand = new Random((int) DateTime.Now.Ticks);
+            var processingTime = rand.Next(1000, 1500);
+            if (bunny.Age%5 == 0)
+            {
+                throw new Exception(
+                    "This is a test exception to demonstrate how a message is handled once something wrong happens: " +
+                    "Got a bad bunny, It should be put to Error Queue ;)");
+            }
+            System.Threading.Thread.Sleep(processingTime);
+            Console.WriteLine("Got a bunny {0}, feeding it in {1} ms\n", bunny.Name, processingTime);
         }
     }
 }
