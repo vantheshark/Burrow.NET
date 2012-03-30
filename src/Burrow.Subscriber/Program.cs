@@ -11,7 +11,7 @@ namespace Burrow.Subscriber
             Console.ReadLine();
 
             var tunnel = RabbitTunnel.Factory.Create();
-            Global.SetDefaultPersistentMode = true;
+            Global.DefaultPersistentMode = true;
             Global.DefaultConsumerBatchSize = 1000;
 
             // SubscribeAsync auto Ack
@@ -23,7 +23,7 @@ namespace Burrow.Subscriber
 
             // SubscribeAsync manual Ack
             Subscription subscription = null;
-            subscription = tunnel.SubscribeAsync<Bunny>("BurrowTestApp", (bunny, deliveryTag) =>
+            subscription = tunnel.SubscribeAsync<Bunny>("BurrowTestApp", (bunny, subscriptionData) =>
             {
                 try
                 {
@@ -33,7 +33,7 @@ namespace Burrow.Subscriber
                 {
                     if (subscription != null)
                     {
-                        subscription.Ack(deliveryTag);
+                        subscription.Ack(subscriptionData.DeliveryTag);
                     }
                 }
             });

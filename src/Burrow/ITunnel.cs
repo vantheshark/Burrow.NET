@@ -2,7 +2,7 @@
 
 namespace Burrow
 {
-    public interface ITunnel
+    public interface ITunnel : IDisposable
     {
         event Action OnOpened;
 
@@ -29,7 +29,7 @@ namespace Burrow
         /// <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
         /// <param name="onReceiveMessage">A callback method to process received message</param>
         /// <returns>Subscription object which can be used to send Ack or NoAck message to server by the delivery tag received in the callback</returns>
-        Subscription Subscribe<T>(string subscriptionName, Action<T, ulong> onReceiveMessage);
+        Subscription Subscribe<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage);
 
         /// <summary>
         /// Subscribe to queue by using subscriptionName, the message will be automatically acked once the callback executed
@@ -46,7 +46,7 @@ namespace Burrow
         /// <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
         /// <param name="onReceiveMessage">A callback method to process received message</param>
         /// <returns>Subscription object which can be used to send Ack or NoAck message to server by the delivery tag received in the callback</returns>
-        Subscription SubscribeAsync<T>(string subscriptionName, Action<T, ulong> onReceiveMessage);
+        Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage);
 
         void SetRouteFinder(IRouteFinder routeFinder);
 

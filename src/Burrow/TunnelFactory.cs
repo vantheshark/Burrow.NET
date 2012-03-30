@@ -28,7 +28,7 @@ namespace Burrow
 
         public virtual ITunnel Create(string connectionString)
         {
-            return Create(connectionString, new ConsoleWatcher());
+            return Create(connectionString, Global.DefaultWatcher ?? new ConsoleWatcher());
         }
 
         public virtual ITunnel Create(string connectionString, IRabbitWatcher watcher)
@@ -62,7 +62,7 @@ namespace Burrow
                                     durableConnection,
                                     Global.DefaultSerializer,
                                     Global.DefaultCorrelationIdGenerator,
-                                    Global.SetDefaultPersistentMode);
+                                    Global.DefaultPersistentMode);
 
         }
     }

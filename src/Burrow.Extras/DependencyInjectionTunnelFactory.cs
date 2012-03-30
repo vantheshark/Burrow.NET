@@ -52,7 +52,7 @@ namespace Burrow.Extras
                                     durableConnection,
                                     serializer,
                                     _burrowResolver.Resolve<ICorrelationIdGenerator>() ?? Global.DefaultCorrelationIdGenerator,
-                                    Global.SetDefaultPersistentMode);
+                                    Global.DefaultPersistentMode);
         }
     }
 }

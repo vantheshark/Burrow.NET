@@ -74,6 +74,7 @@
     <Compile Include="Internal\SimpleCorrelationIdGenerator.cs" />
     <Compile Include="IRabbitWatcher.cs" />
     <Compile Include="ITunnel.cs" />
+    <Compile Include="MessageDeliverEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RabbitTunnel.cs" />
     <Compile Include="BurrowConsummers.cs" />

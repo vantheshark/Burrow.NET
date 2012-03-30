@@ -22,7 +22,7 @@ namespace Burrow
         /// If its value is false, the messages will be removed when the server is restarted.
         /// This value is used by the default TunnelFactory when it create a RabbitTunnel
         /// </summary>
-        public static bool SetDefaultPersistentMode;
+        public static bool DefaultPersistentMode;
 
         public static string DefaultErrorQueueName = "Burrow.Queue.Error";
         public static string DefaultErrorExchangeName = "Burrow.Exchange.Error";

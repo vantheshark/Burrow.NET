@@ -69,7 +69,10 @@ namespace Burrow.Internal
 
             _watcher.WarnFormat("Disconnected from RabbitMQ Broker");
 
-            _retryPolicy.WaitForNextRetry(Connect);
+            if (reason != null && reason.ReplyText != "Connection disposed by application")
+            {
+                _retryPolicy.WaitForNextRetry(Connect);
+            }
         }
 
         public bool IsConnected
@@ -105,6 +108,7 @@ namespace Burrow.Internal
         {
             try
             {
+                _connection.Close(200, "Connection disposed by application");
                 _connection.Dispose();
             }
             catch (Exception ex)

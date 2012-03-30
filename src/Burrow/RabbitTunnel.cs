@@ -12,7 +12,7 @@ namespace Burrow
     /// <summary>
     /// In RabbitMQ, they call a channel but in the RabbitMQ client, they name it IModel -,-
     /// </summary>
-    public class RabbitTunnel : ITunnel, IDisposable
+    public class RabbitTunnel : ITunnel
     {
         private readonly IConsumerManager _consumerManager;
         private readonly IRabbitWatcher _watcher;
@@ -41,7 +41,7 @@ namespace Burrow
                    connection,
                    Global.DefaultSerializer, 
                    Global.DefaultCorrelationIdGenerator,
-                   Global.SetDefaultPersistentMode)
+                   Global.DefaultPersistentMode)
         {
         }
 
@@ -244,7 +244,7 @@ namespace Burrow
             CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
-        public Subscription Subscribe<T>(string subscriptionName, Action<T, ulong> onReceiveMessage)
+        public Subscription Subscribe<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
@@ -258,7 +258,7 @@ namespace Burrow
             CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
-        public Subscription SubscribeAsync<T>(string subscriptionName, Action<T, ulong> onReceiveMessage)
+        public Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
@@ -278,7 +278,7 @@ namespace Burrow
 
         private Subscription CreateSubscription<T>(string subscriptionName, Func<IModel, string, IBasicConsumer> createConsumer)
         {
-            var subscription = new Subscription{SubscriptionName = subscriptionName};
+            var subscription = new Subscription { SubscriptionName = subscriptionName } ;
             Action subscriptionAction = () =>
             {
                 subscription.QueueName = _routeFinder.FindQueueName<T>(subscriptionName);

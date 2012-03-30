@@ -48,9 +48,9 @@ namespace Burrow.Internal
             return consumer;
         }
 
-        public IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, ulong> onReceiveMessage)
+        public IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
-            var action = CreateJobFactory(onReceiveMessage);
+            var action = CreateJobFactory(subscriptionName, onReceiveMessage);
             var consumer = new SequenceConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, false);
             _createdConsumers.Add(consumer);
             return consumer;
@@ -64,9 +64,9 @@ namespace Burrow.Internal
             return consumer;
         }
 
-        public IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, ulong> onReceiveMessage)
+        public IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
-            var action = CreateJobFactory(onReceiveMessage);
+            var action = CreateJobFactory(subscriptionName, onReceiveMessage);
             var consumer = new ParallelConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, BatchSize, false);
             _createdConsumers.Add(consumer);
             return consumer;
@@ -82,13 +82,18 @@ namespace Burrow.Internal
             });
         }
 
-        private Func<BasicDeliverEventArgs, Task> CreateJobFactory<T>(Action<T, ulong> onReceiveMessage)
+        private Func<BasicDeliverEventArgs, Task> CreateJobFactory<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             return eventArgs => Task.Factory.StartNew(() =>
             {
                 CheckMessageType<T>(eventArgs.BasicProperties);
                 var message = _serializer.Deserialize<T>(eventArgs.Body);
-                onReceiveMessage(message, eventArgs.DeliveryTag);
+                onReceiveMessage(message, new MessageDeliverEventArgs
+                {
+                    ConsumerTag = eventArgs.ConsumerTag,
+                    DeliveryTag = eventArgs.DeliveryTag,
+                    SubscriptionName = subscriptionName,
+                });
             });
         }
 
