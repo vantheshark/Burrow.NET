@@ -40,7 +40,7 @@ namespace Burrow.Extras
             var routeFinder = _routeFinderFactory(_environment, exchange.ExchangeType);
             var queueName = routeFinder.FindQueueName<T>(queue.SubscriptionName);
             var exchangeName = routeFinder.FindExchangeName<T>();
-            var routingKey = routeFinder.FindRoutingKey<T>();
+            var routingKey = queue.RoutingKey ?? routeFinder.FindRoutingKey<T>();
 
             using (var connection = _connectionFactory.CreateConnection())
             using (var model = connection.CreateModel())

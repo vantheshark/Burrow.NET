@@ -15,7 +15,7 @@
     <copyright>Copyright 2012</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP</tags>
     <dependencies>
-		<dependency id="RabbitMQ.Client" version="2.7.1" />
+		<dependency id="RabbitMQ.Client" version="2.8.1" />
     </dependencies>
   </metadata>
 </package>

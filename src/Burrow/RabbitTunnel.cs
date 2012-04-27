@@ -295,6 +295,7 @@ namespace Burrow
                 //NOTE: The message will still be on the Unacknowledged list until it's processed and the method
                 //      DoAck is call.
                 channel.BasicConsume(subscription.QueueName, false /* noAck, must be false */, subscription.ConsumerTag, consumer);
+                _watcher.InfoFormat("Subscribed to: {0} with subscriptionName: {1}", subscription.QueueName, subscription.SubscriptionName);
             };
 
             _subscribeActions.Add(subscriptionAction);

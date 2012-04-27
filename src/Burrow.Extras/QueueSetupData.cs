@@ -12,6 +12,11 @@ namespace Burrow.Extras
 
         public string SubscriptionName { get; set; }
 
+        /// <summary>
+        /// AKA Topic
+        /// </summary>
+        public string RoutingKey { get; set; }
+
         public QueueSetupData()
         {
             Durable = true;
