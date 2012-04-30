@@ -10,6 +10,8 @@ namespace Burrow
         /// </summary>
         int DelayTime { get; }
 
+        bool IsWaiting { get; }
+
         void WaitForNextRetry(Action retryingAction);
 
         void Reset();

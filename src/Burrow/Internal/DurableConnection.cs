@@ -9,7 +9,7 @@ namespace Burrow.Internal
         private readonly IRetryPolicy _retryPolicy;
         private readonly IRabbitWatcher _watcher;
         private IConnection _connection;
-
+        private readonly object _syncConnection = new object();
         public event Action Connected;
         public event Action Disconnected;
 
@@ -37,17 +37,25 @@ namespace Burrow.Internal
         {
             try
             {
-                _watcher.DebugFormat("Trying to connect");
-                _connection = ConnectionFactory.CreateConnection();
-                _connection.ConnectionShutdown += ConnectionShutdown;
-
-                if (Connected != null)
+                lock (_syncConnection)
                 {
-                    Connected();
-                }
+                    if (IsConnected || _retryPolicy.IsWaiting)
+                    {
+                        return;
+                    }
 
-                _retryPolicy.Reset();
-                _watcher.InfoFormat("Connected to RabbitMQ. Broker: '{0}', VHost: '{1}'", ConnectionFactory.HostName, ConnectionFactory.VirtualHost);
+                    _watcher.DebugFormat("Trying to connect to endpoint: {0}:{1}", ConnectionFactory.Endpoint.HostName, ConnectionFactory.Endpoint.Port);
+                    _connection = ConnectionFactory.CreateConnection();
+                    _connection.ConnectionShutdown += ConnectionShutdown;
+
+                    if (Connected != null)
+                    {
+                        Connected();
+                    }
+
+                    _retryPolicy.Reset();
+                    _watcher.InfoFormat("Connected to RabbitMQ. Broker: '{0}:{1}', VHost: '{2}'", ConnectionFactory.Endpoint.HostName, ConnectionFactory.Endpoint.Port, ConnectionFactory.VirtualHost);
+                }
             }
             catch (BrokerUnreachableException brokerUnreachableException)
             {
@@ -77,7 +85,7 @@ namespace Burrow.Internal
 
         public bool IsConnected
         {
-            get { return _connection != null && _connection.IsOpen; }
+            get { lock(_syncConnection){ return _connection != null && _connection.IsOpen;} }
         }
 
         public ConnectionFactory ConnectionFactory { get; protected set; }

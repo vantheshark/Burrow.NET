@@ -27,7 +27,7 @@ namespace Burrow
 
         private ISerializer _serializer;
         private IRouteFinder _routeFinder;
-        private IModel _publishChannel;
+        private IModel _dedicatedPublishingChannel;
         private bool _setPersistent;
         
         public event Action OnOpened;
@@ -96,11 +96,11 @@ namespace Burrow
             _autoResetEvent.WaitOne();
             try
             {
-                if (_publishChannel != null)
+                if (_dedicatedPublishingChannel != null)
                 {
-                    _publishChannel.BasicAcks -= OnBrokerReceivedMessage;
-                    _publishChannel.BasicNacks -= OnBrokerRejectedMessage;
-                    _publishChannel.BasicReturn -= OnMessageIsUnrouted;
+                    _dedicatedPublishingChannel.BasicAcks -= OnBrokerReceivedMessage;
+                    _dedicatedPublishingChannel.BasicNacks -= OnBrokerRejectedMessage;
+                    _dedicatedPublishingChannel.BasicReturn -= OnMessageIsUnrouted;
                 }
 
                 _consumerManager.ClearConsumers();
@@ -145,14 +145,14 @@ namespace Burrow
 
         private void CreatePublishChannel()
         {
-            if (_publishChannel == null || !_publishChannel.IsOpen)
+            if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
             {
-                _publishChannel = _connection.CreateChannel();
-                _createdChannels.Add(_publishChannel);
+                _dedicatedPublishingChannel = _connection.CreateChannel();
+                _createdChannels.Add(_dedicatedPublishingChannel);
 
-                _publishChannel.BasicAcks += OnBrokerReceivedMessage;
-                _publishChannel.BasicNacks += OnBrokerRejectedMessage;
-                _publishChannel.BasicReturn += OnMessageIsUnrouted;
+                _dedicatedPublishingChannel.BasicAcks += OnBrokerReceivedMessage;
+                _dedicatedPublishingChannel.BasicNacks += OnBrokerRejectedMessage;
+                _dedicatedPublishingChannel.BasicReturn += OnMessageIsUnrouted;
             }
         }
 
@@ -209,8 +209,8 @@ namespace Burrow
                 {
                     _connection.Connect();
                 }
-                //NOTE: After connect, the _publishChannel will be created synchronously
-                if (_publishChannel == null || !_publishChannel.IsOpen)
+                //NOTE: After connect, the _dedicatedPublishingChannel will be created synchronously
+                if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
                 {
                     throw new Exception("Publish failed. No channel to rabbit server established.");
                 }
@@ -219,7 +219,7 @@ namespace Burrow
             try
             {
                 byte[] msgBody = _serializer.Serialize(rabbit);
-                IBasicProperties properties = _publishChannel.CreateBasicProperties();
+                IBasicProperties properties = _dedicatedPublishingChannel.CreateBasicProperties();
                 properties.SetPersistent(_setPersistent); // false = Transient
                 properties.Type = Global.DefaultTypeNameSerializer.Serialize(typeof(T));
                 properties.CorrelationId = _correlationIdGenerator.GenerateCorrelationId();
@@ -227,7 +227,7 @@ namespace Burrow
                 var exchangeName = _routeFinder.FindExchangeName<T>();
                 lock (_tunnelGate)
                 {
-                    _publishChannel.BasicPublish(exchangeName, routingKey, properties, msgBody);
+                    _dedicatedPublishingChannel.BasicPublish(exchangeName, routingKey, properties, msgBody);
                 }
                 _watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
             }
