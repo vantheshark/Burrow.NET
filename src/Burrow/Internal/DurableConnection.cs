@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
@@ -6,10 +8,12 @@ namespace Burrow.Internal
 {
     public class DurableConnection : IDurableConnection
     {
+        //One AppDomain should create only 1 connection to server except connect to different virtual hosts
+        internal static volatile Dictionary<string, IConnection> SharedConnections = new Dictionary<string, IConnection>();
+
         private readonly IRetryPolicy _retryPolicy;
         private readonly IRabbitWatcher _watcher;
-        private IConnection _connection;
-        private readonly object _syncConnection = new object();
+        private static readonly object _syncConnection = new object();
         public event Action Connected;
         public event Action Disconnected;
 
@@ -44,17 +48,18 @@ namespace Burrow.Internal
                         return;
                     }
 
-                    _watcher.DebugFormat("Trying to connect to endpoint: {0}:{1}", ConnectionFactory.Endpoint.HostName, ConnectionFactory.Endpoint.Port);
-                    _connection = ConnectionFactory.CreateConnection();
-                    _connection.ConnectionShutdown += ConnectionShutdown;
-
+                    _watcher.DebugFormat("Trying to connect to endpoint: {0}", ConnectionFactory.Endpoint);
+                    var newConnection = ConnectionFactory.CreateConnection();
+                    newConnection.ConnectionShutdown += SharedConnectionShutdown;
+                    //Console.WriteLine(ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost);
+                    SharedConnections.Add(ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost, newConnection);
                     if (Connected != null)
                     {
                         Connected();
                     }
 
                     _retryPolicy.Reset();
-                    _watcher.InfoFormat("Connected to RabbitMQ. Broker: '{0}:{1}', VHost: '{2}'", ConnectionFactory.Endpoint.HostName, ConnectionFactory.Endpoint.Port, ConnectionFactory.VirtualHost);
+                    _watcher.InfoFormat("Connected to RabbitMQ. Broker: '{0}', VHost: '{1}'", ConnectionFactory.Endpoint, ConnectionFactory.VirtualHost);
                 }
             }
             catch (BrokerUnreachableException brokerUnreachableException)
@@ -71,11 +76,20 @@ namespace Burrow.Internal
             }
         }
 
-        private void ConnectionShutdown(IConnection connection, ShutdownEventArgs reason)
+        private void SharedConnectionShutdown(IConnection connection, ShutdownEventArgs reason)
         {
             if (Disconnected != null) Disconnected();
 
             _watcher.WarnFormat("Disconnected from RabbitMQ Broker");
+
+            foreach(var c in SharedConnections)
+            {
+                if (c.Key == ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost)
+                {
+                    SharedConnections.Remove(c.Key);
+                    break;
+                }
+            }
 
             if (reason != null && reason.ReplyText != "Connection disposed by application")
             {
@@ -85,7 +99,13 @@ namespace Burrow.Internal
 
         public bool IsConnected
         {
-            get { lock(_syncConnection){ return _connection != null && _connection.IsOpen;} }
+            get 
+            { 
+                return SharedConnections.Any(c => c.Key == ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost 
+                                               && ConnectionFactory.Endpoint.ToString().Equals(c.Value.Endpoint.ToString())
+                                               && c.Value != null 
+                                               && c.Value.IsOpen); 
+            }
         }
 
         public ConnectionFactory ConnectionFactory { get; protected set; }
@@ -101,8 +121,9 @@ namespace Burrow.Internal
             {
                 throw new Exception("Cannot connect to Rabbit server.");
             }
-            
-            var channel = _connection.CreateModel();
+
+            var connection = SharedConnections[ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost];
+            var channel = connection.CreateModel();
             channel.ModelShutdown += ChannelShutdown;
             return channel;
         }
@@ -116,8 +137,12 @@ namespace Burrow.Internal
         {
             try
             {
-                _connection.Close(200, "Connection disposed by application");
-                _connection.Dispose();
+                SharedConnections.Values.ToList().ForEach(c =>
+                {
+                    c.Close(200, "Connection disposed by application");
+                    c.Dispose();
+                });
+                SharedConnections.Clear();
             }
             catch (Exception ex)
             {

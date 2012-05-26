@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C32F6868-5FEA-4AAF-8185-890AE0529A78}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Burrow.Tests</RootNamespace>
+    <AssemblyName>Burrow.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Properties\burrow.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="NSubstitute">
+      <HintPath>..\packages\NSubstitute.1.4.0.0\lib\NET40\NSubstitute.dll</HintPath>
+    </Reference>
+    <Reference Include="RabbitMQ.Client">
+      <HintPath>..\packages\RabbitMQ.Client.2.8.1\lib\net30\RabbitMQ.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BurrowConsumerTests\BurrowConsumerForTest.cs" />
+    <Compile Include="BurrowConsumerTests\Constructor.cs" />
+    <Compile Include="BurrowConsumerTests\MethodHandleMessageDelivery.cs" />
+    <Compile Include="BurrowConsumerTests\MethodDoAck.cs" />
+    <Compile Include="BurrowConsumerTests\MethodWhenChannelShutdown.cs" />
+    <Compile Include="BurrowConsumerTests\MessageHandlerHandlingComplete.cs" />
+    <Compile Include="BurrowConsumerTests\MethodDispose.cs" />
+    <Compile Include="ConnectionStringTests\Constructor.cs" />
+    <Compile Include="ConnectionStringTests\MethodGetValue.cs" />
+    <Compile Include="ConstantRouteFinderTests\MethodFinds.cs" />
+    <Compile Include="DefaultMessageHandlerFactoryTests\Constructor.cs" />
+    <Compile Include="DefaultMessageHandlerTests\Constructor.cs" />
+    <Compile Include="DefaultMessageHandlerTests\MethodHandleError.cs" />
+    <Compile Include="DefaultMessageHandlerTests\MethodHandleMessage.cs" />
+    <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\RabbitTunnelWithPriorityQueuesSupportForTest.cs" />
+    <Compile Include="Extras\Internal\SharedEventBrokerTests\BroadCastEvent.cs" />
+    <Compile Include="Extras\PriorityQueuesRabbitSetupTests\MethodDestroy.cs" />
+    <Compile Include="Extras\PriorityQueuesRabbitSetupTests\MethodSetupExchangeAndQueueFor.cs" />
+    <Compile Include="Extras\DependencyInjectionTunnelFactoryTests\MethodCreate.cs" />
+    <Compile Include="Extras\ExchangeSetupDataTests\Constructor.cs" />
+    <Compile Include="Extras\HeaderExchangeSetupDataTests\Constructor.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodNack.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodNackAllOutstandingMessages.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodAck.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodAckAllOutstandingMessages.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodAddSubscription.cs" />
+    <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodDispose.cs" />
+    <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodSetEventBroker.cs" />
+    <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodWhenAConsumerGetAMessage.cs" />
+    <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodWhenAConsumerFinishedAMessage.cs" />
+    <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\PriorityBurrowConsumerForTest.cs" />
+    <Compile Include="Extras\Internal\PriorityConsumerManagerTests\MethodResume.cs" />
+    <Compile Include="Extras\Internal\PriorityConsumerManagerTests\MethodCreateAsyncConsumer.cs" />
+    <Compile Include="Extras\Internal\PriorityConsumerManagerTests\MethodCreateConsumer.cs" />
+    <Compile Include="Extras\Internal\PriorityMessageHandlerFactoryTests\MethodCreate.cs" />
+    <Compile Include="Extras\Internal\PriorityMessageHandlerTests\MethodAfterHandlingMessage.cs" />
+    <Compile Include="Extras\Internal\PriorityMessageHandlerTests\MethodBeforeHandlingMessage.cs" />
+    <Compile Include="Extras\Internal\PriorityTunnelFactoryTests\MethodCreate.cs" />
+    <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\Constructor.cs" />
+    <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\MethodSubscribeAsync.cs" />
+    <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\MethodPublish.cs" />
+    <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\MethodSubscribe.cs" />
+    <Compile Include="Extras\JsonSerializerTests\MethodSerialize.cs" />
+    <Compile Include="Extras\PriorityQueueSetupDataTests\Constructor.cs" />
+    <Compile Include="Extras\PriorityQueuesRabbitSetupTests\PriorityQueuesRabbitSetupForTest.cs" />
+    <Compile Include="Extras\RabbitSetupTests\Customer.cs" />
+    <Compile Include="Extras\RabbitSetupTests\MethodDestroy.cs" />
+    <Compile Include="Extras\RabbitSetupTests\MethodSetupExchangeAndQueueFor.cs" />
+    <Compile Include="Extras\RabbitSetupTests\RabbitSetupForTest.cs" />
+    <Compile Include="Extras\TunnelFactoryExtensionsTests\WithPrioritySupport.cs" />
+    <Compile Include="Internal\BasicPropertiesWrapperTests\Constructor.cs" />
+    <Compile Include="Internal\BinarySerializerTests\MethodDeserialize.cs" />
+    <Compile Include="Internal\ConsoleWatcherTests\AllWriteLogMethods.cs" />
+    <Compile Include="Internal\ConsumerErrorHandlerTests\Constructor.cs" />
+    <Compile Include="Internal\ConsumerErrorHandlerTests\MethodHandleError.cs" />
+    <Compile Include="Internal\ConsumerManagerTests\Constructor.cs" />
+    <Compile Include="Internal\ConsumerManagerTests\ConsumerManagerForTest.cs" />
+    <Compile Include="Internal\ConsumerManagerTests\MethodCheckMessageType.cs" />
+    <Compile Include="Internal\ConsumerManagerTests\MethodCreateJobFactory.cs" />
+    <Compile Include="Internal\DefaultRetryPolicyTests\MethodReset.cs" />
+    <Compile Include="Internal\DefaultRetryPolicyTests\MethodWaitForNextRetry.cs" />
+    <Compile Include="Internal\DefaultRouteFinderTests\MethodQueueName.cs" />
+    <Compile Include="Internal\DefaultRouteFinderTests\MethodFindRoutingKey.cs" />
+    <Compile Include="Internal\DefaultRouteFinderTests\MethodFindExchangeName.cs" />
+    <Compile Include="Internal\DurableConnectionTests\Constructor.cs" />
+    <Compile Include="Internal\DurableConnectionTests\MethodCreateChannel.cs" />
+    <Compile Include="Internal\DurableConnectionTests\MethodChannelShutdown.cs" />
+    <Compile Include="Internal\DurableConnectionTests\DurableConnectionTestHelper.cs" />
+    <Compile Include="Internal\DurableConnectionTests\MethodDispose.cs" />
+    <Compile Include="Internal\DurableConnectionTests\MethodSharedConnectionShutdown.cs" />
+    <Compile Include="Internal\InteruptableSemaphoreTests\MethodResume.cs" />
+    <Compile Include="Internal\InteruptableSemaphoreTests\MethodInterupt.cs" />
+    <Compile Include="Internal\JavascriptSerializerTests\MethodDeserialize.cs" />
+    <Compile Include="Internal\JavascriptSerializerTests\MethodSerialize.cs" />
+    <Compile Include="Internal\DurableConnectionTests\MethodConnect.cs" />
+    <Compile Include="Internal\BinarySerializerTests\MethodSerialize.cs" />
+    <Compile Include="Internal\TypeNameSerializerTests\MethodSerialize.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RabbitTunnelTests\Constructor.cs" />
+    <Compile Include="RabbitTunnelTests\MethodCloseTunnel.cs" />
+    <Compile Include="RabbitTunnelTests\MethodDispose.cs" />
+    <Compile Include="RabbitTunnelTests\MethodOpenTunnel.cs" />
+    <Compile Include="RabbitTunnelTests\MethodPublish.cs" />
+    <Compile Include="RabbitTunnelTests\MethodSubscribe.cs" />
+    <Compile Include="RabbitTunnelTests\MethodSubscribeAsync.cs" />
+    <Compile Include="RabbitTunnelTests\MethodTrySubscribe.cs" />
+    <Compile Include="RabbitTunnelTests\RabbitTunnelForTest.cs" />
+    <Compile Include="SubscriptionTests\Constructor.cs" />
+    <Compile Include="TunnelFactoryTests\MethodCreate.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Burrow.Extras\Burrow.Extras.csproj">
+      <Project>{143DB227-4AB7-4D4F-AE1A-4C5D2ED40180}</Project>
+      <Name>Burrow.Extras</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Burrow\Burrow.csproj">
+      <Project>{A638FCE0-EDBA-4C08-BC92-09B40A48A342}</Project>
+      <Name>Burrow</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Properties\burrow.pfx" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

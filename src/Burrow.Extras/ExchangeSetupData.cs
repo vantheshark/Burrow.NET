@@ -1,5 +1,8 @@
-﻿namespace Burrow.Extras
+﻿using System.Diagnostics;
+
+namespace Burrow.Extras
 {
+    [DebuggerStepThrough]
     public class ExchangeSetupData
     {
         public string ExchangeType { get; set; }

@@ -8,20 +8,22 @@ namespace Burrow.Internal
 {
     public class ConsumerManager : IConsumerManager
     {
-        private readonly IRabbitWatcher _watcher;
-        private readonly IConsumerErrorHandler _consumerErrorStrategy;
+        protected readonly IRabbitWatcher _watcher;
+        protected readonly IMessageHandlerFactory _messageHandlerFactory;
         private readonly ISerializer _serializer;
-        private readonly List<BurrowConsummer> _createdConsumers;
+        protected readonly List<BurrowConsumer> _createdConsumers;
 
-        public ConsumerManager(IRabbitWatcher watcher, IConsumerErrorHandler consumerErrorStrategy, ISerializer serializer, int batchSize)
+        public ConsumerManager(IRabbitWatcher watcher, 
+                               IMessageHandlerFactory messageHandlerFactory,
+                               ISerializer serializer, int batchSize)
         {
-            if (consumerErrorStrategy == null)
-            {
-                throw new ArgumentNullException("consumerErrorStrategy");
-            }
             if (watcher == null)
             {
                 throw new ArgumentNullException("watcher");
+            }
+            if (messageHandlerFactory == null)
+            {
+                throw new ArgumentNullException("messageHandlerFactory");
             }
             if (serializer == null)
             {
@@ -29,50 +31,53 @@ namespace Burrow.Internal
             }
             if (batchSize < 1)
             {
-                throw new ArgumentNullException("batchSize", "batchSize must be greter than or equal 1");
+                throw new ArgumentException("batchSize must be greater than or equal 1", "batchSize");
             }
             
             BatchSize = batchSize;
 
             _watcher = watcher;
-            _consumerErrorStrategy = consumerErrorStrategy;
+            _messageHandlerFactory = messageHandlerFactory;
             _serializer = serializer;
-            _createdConsumers = new List<BurrowConsummer>();
+            _createdConsumers = new List<BurrowConsumer>();
         }
 
-        public IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
+        public virtual IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
         {
             var action = CreateJobFactory(onReceiveMessage);
-            var consumer = new SequenceConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, true);
+            var messageHandler = _messageHandlerFactory.Create(action);
+            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, consumerTag, true, 1);
             _createdConsumers.Add(consumer);
             return consumer;
         }
 
-        public IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage)
+        public virtual IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             var action = CreateJobFactory(subscriptionName, onReceiveMessage);
-            var consumer = new SequenceConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, false);
+            var messageHandler = _messageHandlerFactory.Create(action);
+            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, consumerTag, false, 1);
             _createdConsumers.Add(consumer);
             return consumer;
         }
 
-        public IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
+        public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
         {
             var action = CreateJobFactory(onReceiveMessage);
-            var consumer = new ParallelConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, BatchSize, true);
+            var messageHandler = _messageHandlerFactory.Create(action);
+            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, consumerTag, true, BatchSize);
             _createdConsumers.Add(consumer);
             return consumer;
         }
 
-        public IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage)
+        public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             var action = CreateJobFactory(subscriptionName, onReceiveMessage);
-            var consumer = new ParallelConsumer(_watcher, _consumerErrorStrategy, _serializer, channel, consumerTag, action, BatchSize, false);
-            _createdConsumers.Add(consumer);
+            var messageHandler = _messageHandlerFactory.Create(action);
+            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, consumerTag, false, BatchSize);
             return consumer;
         }
 
-        private Func<BasicDeliverEventArgs, Task> CreateJobFactory<T>(Action<T> onReceiveMessage)
+        protected Func<BasicDeliverEventArgs, Task> CreateJobFactory<T>(Action<T> onReceiveMessage)
         {
             return eventArgs => Task.Factory.StartNew(() =>
             {
@@ -82,7 +87,7 @@ namespace Burrow.Internal
             });
         }
 
-        private Func<BasicDeliverEventArgs, Task> CreateJobFactory<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
+        protected Func<BasicDeliverEventArgs, Task> CreateJobFactory<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             return eventArgs => Task.Factory.StartNew(() =>
             {
@@ -104,20 +109,20 @@ namespace Burrow.Internal
             _createdConsumers.Clear();
         }
 
-        public int BatchSize { get; private set; }
+        public int BatchSize { get; protected set; }
 
         private bool _disposed;
         public void Dispose()
         {
             if (!_disposed)
             {
-                _consumerErrorStrategy.Dispose();
                 ClearConsumers();
+                _messageHandlerFactory.Dispose();
             }
             _disposed = true;
         }
 
-        private void CheckMessageType<TMessage>(IBasicProperties properties)
+        protected void CheckMessageType<TMessage>(IBasicProperties properties)
         {
             var typeName = Global.DefaultTypeNameSerializer.Serialize(typeof(TMessage));
             if (properties.Type != typeName)

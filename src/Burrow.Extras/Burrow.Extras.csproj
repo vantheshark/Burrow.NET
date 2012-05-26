@@ -54,9 +54,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HeaderExchangeSetupData.cs" />
+    <Compile Include="ITunnelWithPrioritySupport.cs" />
+    <Compile Include="PriorityQueueSetupData.cs" />
     <Compile Include="DependencyInjectionTunnelFactory.cs" />
     <Compile Include="ExchangeSetupData.cs" />
     <Compile Include="IBurrowResolver.cs" />
+    <Compile Include="Internal\ITunnelWithPriorityQueuesSupport.cs" />
+    <Compile Include="Internal\PriorityMessageHandler.cs" />
+    <Compile Include="Internal\PriorityMessageHandlerFactory.cs" />
+    <Compile Include="Internal\PriorityConsumerManager.cs" />
+    <Compile Include="Internal\PriorityBurrowConsumer.cs" />
+    <Compile Include="PriorityQueuesRabbitSetup.cs" />
+    <Compile Include="Internal\RabbitTunnelWithPriorityQueuesSupport.cs" />
+    <Compile Include="Internal\SharedEventBroker.cs" />
+    <Compile Include="Internal\CompositeSubscription.cs" />
+    <Compile Include="Internal\PriorityTunnelFactory.cs" />
     <Compile Include="JsonSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueueSetupData.cs" />

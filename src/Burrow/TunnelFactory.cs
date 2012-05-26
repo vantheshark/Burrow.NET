@@ -4,11 +4,22 @@ using Burrow.Internal;
 
 namespace Burrow
 {
-    public class TunnelFactory
+    /// <summary>
+    /// This class is responsible for creating ITunnel.
+    /// Any derived of this class will automatically registered itself as the default TunnelFactory in the library ;)
+    /// </summary>
+    public class TunnelFactory : ITunnelFactory
     {
-        protected internal TunnelFactory()
+        public TunnelFactory() : this(true)
         {
-            RabbitTunnel.Factory = this;
+        }
+
+        internal TunnelFactory(bool setAsDefault)
+        {
+            if (setAsDefault)
+            {
+                RabbitTunnel.Factory = this;
+            }
         }
 
         public virtual ITunnel Create()
@@ -44,6 +55,7 @@ namespace Burrow
 
         public virtual ITunnel Create(string hostName, string virtualHost, string username, string password, IRabbitWatcher watcher)
         {
+            var rabbitWatcher = watcher ?? Global.DefaultWatcher;
             var connectionFactory = new RabbitMQ.Client.ConnectionFactory
                                         {
                                             HostName = hostName,
@@ -52,12 +64,13 @@ namespace Burrow
                                             Password = password
                                         };
 
-            var durableConnection = new DurableConnection(new DefaultRetryPolicy(), watcher, connectionFactory);
-            var errorHandler = new ConsumerErrorHandler(connectionFactory, Global.DefaultSerializer, Global.DefaultWatcher);
-            var consumerManager = new ConsumerManager(watcher, errorHandler, Global.DefaultSerializer, Global.DefaultConsumerBatchSize);
+            var durableConnection = new DurableConnection(new DefaultRetryPolicy(), rabbitWatcher, connectionFactory);
+            var errorHandler = new ConsumerErrorHandler(connectionFactory, Global.DefaultSerializer, rabbitWatcher);
+            var msgHandlerFactory = new DefaultMessageHandlerFactory(errorHandler, rabbitWatcher);
+            var consumerManager = new ConsumerManager(rabbitWatcher, msgHandlerFactory, Global.DefaultSerializer, Global.DefaultConsumerBatchSize);
 
-            return new RabbitTunnel(consumerManager, 
-                                    watcher, 
+            return new RabbitTunnel(consumerManager,
+                                    rabbitWatcher, 
                                     new DefaultRouteFinder(), 
                                     durableConnection,
                                     Global.DefaultSerializer,

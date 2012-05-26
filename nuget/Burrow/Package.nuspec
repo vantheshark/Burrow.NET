@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Burrow.NET</id>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <authors>Van Thoai Nguyen</authors>
     <owners>Van Thoai Nguyen</owners>
     <licenseUrl>http://sam.zoy.org/wtfpl/COPYING</licenseUrl>
@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 	<summary>Burrow.NET is a simple .NET client library for RabbitMQ</summary>    
 	<description>Burrow.NET is a simple library created based on some EasyNetQ ideas, it's a thin wrapper of RabbitMQ.Client for .NET. Basically, if you just need to put your message or subscribe messages from RabbitMQ server, you found the right place. With Burrow.NET, you can easily customize almost everything start with exchange and queue name, changing the way to serialize your object, inject custom error handling strategies, etc.</description>
-    <releaseNotes>Fix a bug of creating redundant connections after RabbitMQ server restart.</releaseNotes>
+    <releaseNotes>Ensure only 1 connection for each AppDomain. Support multiple Ack on Subscription object. Write 99% Unit test cover.</releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP</tags>
     <dependencies>

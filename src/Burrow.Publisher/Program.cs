@@ -1,59 +1,56 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using Burrow.Extras;
-using Burrow.Publisher.Models;
 
 namespace Burrow.Publisher
 {
     class Program
     {
+        /// <summary>
+        /// Run this test if you have RabbitMQ installed on localhost, otherwise change the connection string in app.config
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
-            TestPublish(1, 50000 / 1);
-        }
+            Global.DefaultSerializer = new JsonSerializer();
+            PublishingTest.PrintHelp();
 
-        private static void TestPublish(int totalThread, int numberOfRabbitToCreatePerThread)
-        {
-            var tunnel = RabbitTunnel.Factory.Create();
-            tunnel.SetSerializer(new JsonSerializer());
+            #region -- Run this test to create and destroy exchange, queues programatically --
+            RabbitSetupTest.CreateExchangesAndQueues();
+            //Console.Write("Press anykey to destroy them!");
+            //Console.ReadKey();
+            //RabbitSetupTest.DestroyExchangesAndQueues();
 
-            var tasks = new List<Task>();
-            var sw = new Stopwatch();
-            sw.Start();
+
+            //RabbitSetupTest.CreateExchangesAndQueues("EEEEE", "QQQQQ", "RRRRR");
+            //Console.Write("Press anykey to destroy them!");
+            //Console.ReadKey();
+            //RabbitSetupTest.DestroyExchangesAndQueues("EEEEE", "QQQQQ");
+            //RabbitSetupTest.DestroyExchangesAndQueues("Burrow.Exchange.Error", "Burrow.Queue.Error");
+            #endregion
+
+            #region -- Run this test to create and destroy PRIORITY exchange, queues programatically --
+            //PriorityRabbitSetupTest.CreateExchangesAndQueues();
+            //Console.Write("Press anykey to destroy them!");
+            //Console.ReadKey();
+            //PriorityRabbitSetupTest.DestroyExchangesAndQueues();
+            #endregion
             
-            for (var i = 0; i < totalThread; i++)
-            {
-                tasks.Add(Task.Factory.StartNew(() =>
-                {
-                    uint index;
-                    for (index = 0; index < numberOfRabbitToCreatePerThread; index++)
-                    {
-                        try
-                        {
-                            tunnel.Publish(new Bunny
-                            {
-                                Age = index,
-                                Color = "White",
-                                Name = "The Energizer Bunny"
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                            break;
-                        }
-                    }
-                }));
-            }
+            
+            #region -- Run this test to publish normal messages to queue --
+            Console.WriteLine("Press anykey to publish messages ..."); Console.ReadKey();
+            PublishingTest.Publish(2, 1000);
+            #endregion
+
+            #region -- Run this test to publish PRIORITY messages to queue --
+            //Console.WriteLine("Press anykey to publish messages ..."); Console.ReadKey();
+            //PublishingTest.PublishRandomPriorityMessages(3);
+            #endregion
 
 
-
-            tasks.ForEach(x => x.Wait());
-            sw.Stop();
-            Console.WriteLine(string.Format("Published {0} \"rabbits\" in {1}.", numberOfRabbitToCreatePerThread * totalThread, sw.Elapsed));
+            Console.WriteLine("Finished. Press anykey to quit!");
             Console.ReadKey();
         }
+
+        
     }
 }

@@ -14,20 +14,20 @@ namespace Burrow
     /// </summary>
     public class RabbitTunnel : ITunnel
     {
-        private readonly IConsumerManager _consumerManager;
-        private readonly IRabbitWatcher _watcher;
-        private readonly IDurableConnection _connection;
+        protected readonly IConsumerManager _consumerManager;
+        protected readonly IRabbitWatcher _watcher;
+        protected readonly IDurableConnection _connection;
         private readonly ICorrelationIdGenerator _correlationIdGenerator;
-        
-        private readonly List<IModel> _createdChannels = new List<IModel>();
-        private readonly ConcurrentBag<Action> _subscribeActions;
-        
-        private readonly object _tunnelGate = new object();
+
+        protected readonly List<IModel> _createdChannels = new List<IModel>();
+        protected readonly ConcurrentBag<Action> _subscribeActions;
+
+        protected static readonly object _tunnelGate = new object();
         private readonly AutoResetEvent _autoResetEvent = new AutoResetEvent(true);
 
-        private ISerializer _serializer;
-        private IRouteFinder _routeFinder;
-        private IModel _dedicatedPublishingChannel;
+        protected ISerializer _serializer;
+        protected IRouteFinder _routeFinder;
+        protected IModel _dedicatedPublishingChannel;
         private bool _setPersistent;
         
         public event Action OnOpened;
@@ -35,7 +35,13 @@ namespace Burrow
 
         public RabbitTunnel(IRouteFinder routeFinder,
                             IDurableConnection connection)
-            : this(new ConsumerManager(Global.DefaultWatcher, new ConsumerErrorHandler(connection.ConnectionFactory, Global.DefaultSerializer, Global.DefaultWatcher), Global.DefaultSerializer, Global.DefaultConsumerBatchSize),
+            : this(new ConsumerManager(Global.DefaultWatcher, 
+                                       new DefaultMessageHandlerFactory(new ConsumerErrorHandler(connection.ConnectionFactory, 
+                                                                                                 Global.DefaultSerializer, 
+                                                                                                 Global.DefaultWatcher), 
+                                                                            Global.DefaultWatcher), 
+                                       Global.DefaultSerializer, 
+                                       Global.DefaultConsumerBatchSize),
                    Global.DefaultWatcher, 
                    routeFinder, 
                    connection,
@@ -61,17 +67,9 @@ namespace Burrow
             {
                 throw new ArgumentNullException("watcher");
             }
-            if (serializer == null)
-            {
-                throw new ArgumentNullException("serializer");
-            }
             if (connection == null)
             {
                 throw new ArgumentNullException("connection");
-            }
-            if (routeFinder == null)
-            {
-                throw new ArgumentNullException("routeFinder");
             }
             if (correlationIdGenerator == null)
             {
@@ -80,11 +78,12 @@ namespace Burrow
 
             _consumerManager = consumerManager;
             _watcher = watcher;
-            _routeFinder = routeFinder;
             _connection = connection;
-            _serializer = serializer;
             _correlationIdGenerator = correlationIdGenerator;
-            _setPersistent = setPersistent;
+
+            SetRouteFinder(routeFinder);
+            SetSerializer(serializer);
+            SetPersistentMode(setPersistent);
 
             _connection.Connected += OpenTunnel;
             _connection.Disconnected += CloseTunnel;
@@ -219,11 +218,7 @@ namespace Burrow
             try
             {
                 byte[] msgBody = _serializer.Serialize(rabbit);
-                IBasicProperties properties = _dedicatedPublishingChannel.CreateBasicProperties();
-                properties.SetPersistent(_setPersistent); // false = Transient
-                properties.Type = Global.DefaultTypeNameSerializer.Serialize(typeof(T));
-                properties.CorrelationId = _correlationIdGenerator.GenerateCorrelationId();
-
+                IBasicProperties properties = CreateBasicPropertiesForPublish<T>();
                 var exchangeName = _routeFinder.FindExchangeName<T>();
                 lock (_tunnelGate)
                 {
@@ -235,6 +230,15 @@ namespace Burrow
             {
                 throw new Exception(string.Format("Publish failed: '{0}'", ex.Message), ex);
             }
+        }
+
+        protected virtual IBasicProperties CreateBasicPropertiesForPublish<T>()
+        {
+            IBasicProperties properties = _dedicatedPublishingChannel.CreateBasicProperties();
+            properties.SetPersistent(_setPersistent); // false = Transient
+            properties.Type = Global.DefaultTypeNameSerializer.Serialize(typeof(T));
+            properties.CorrelationId = _correlationIdGenerator.GenerateCorrelationId();
+            return properties;
         }
 
         public void Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage)
@@ -265,7 +269,7 @@ namespace Burrow
             return CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
-        private void TryConnectBeforeSubscribing()
+        protected void TryConnectBeforeSubscribing()
         {
             lock (_tunnelGate)
             {
@@ -303,7 +307,7 @@ namespace Burrow
             return subscription;
         }
 
-        private void TrySubscribe(Action subscription)
+        protected void TrySubscribe(Action subscription)
         {
             try
             {
@@ -375,10 +379,13 @@ namespace Burrow
             }
         }
 
-        public static TunnelFactory Factory;
+        public static ITunnelFactory Factory { get; internal set; }
         static RabbitTunnel()
         {
-            new TunnelFactory();
+            if (Factory == null)
+            {
+                new TunnelFactory();
+            }
         }
     }
 }

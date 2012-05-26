@@ -1,5 +1,5 @@
 ﻿using System;
-using Burrow.Publisher.Models;
+using Burrow.Extras;
 
 namespace Burrow.Subscriber
 {
@@ -7,57 +7,32 @@ namespace Burrow.Subscriber
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Click any key to subscribe to queue Burrow.Queue.BurrowTestApp.Bunny");
-            Console.ReadLine();
+            Global.DefaultSerializer = new JsonSerializer();
+            PrintHelp();
 
-            var tunnel = RabbitTunnel.Factory.Create();
-            Global.DefaultPersistentMode = true;
-            Global.DefaultConsumerBatchSize = 1000;
-
-            // SubscribeAsync auto Ack
-            tunnel.SubscribeAsync<Bunny>("BurrowTestApp", ProcessMessage);
+            #region -- Run this test to start subscribe from normal queue --
+            TestSubscribing.Start(); 
+            #endregion
 
 
+            #region -- Run this test to start subscribe from PRIORITY queues --
+            //TestSubscribingFromPriorityQueues.Start();
+            #endregion
 
-
-
-            // SubscribeAsync manual Ack
-            Subscription subscription = null;
-            subscription = tunnel.SubscribeAsync<Bunny>("BurrowTestApp", (bunny, subscriptionData) =>
-            {
-                try
-                {
-                    ProcessMessage(bunny);
-                }
-                finally
-                {
-                    if (subscription != null)
-                    {
-                        subscription.Ack(subscriptionData.DeliveryTag);
-                    }
-                }
-            });
-            
-
-
+            #region -- Run this test to start subscribe from PRIORITY queues async --
+            //TestSubscribingFromPriorityQueues.StartAsync();
+            #endregion
 
 
             Console.ReadKey();
         }
 
-
-        private static void ProcessMessage(Bunny bunny)
+        public static void PrintHelp()
         {
-            var rand = new Random((int) DateTime.Now.Ticks);
-            var processingTime = rand.Next(1000, 1500);
-            if (bunny.Age%5 == 0)
-            {
-                throw new Exception(
-                    "This is a test exception to demonstrate how a message is handled once something wrong happens: " +
-                    "Got a bad bunny, It should be put to Error Queue ;)");
-            }
-            System.Threading.Thread.Sleep(processingTime);
-            Console.WriteLine("Got a bunny {0}, feeding it in {1} ms\n", bunny.Name, processingTime);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Uncomment the test you want to run. Press anykey to continue!!!");
+            Console.ReadKey();
+            Console.ResetColor();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Specialized;
 using RabbitMQ.Client;
 
 namespace Burrow.Internal
@@ -36,6 +37,7 @@ namespace Burrow.Internal
 
             if (basicProperties.IsHeadersPresent())
             {
+                Headers = new HybridDictionary();
                 foreach (DictionaryEntry header in basicProperties.Headers)
                 {
                     Headers.Add(header.Key, header.Value);
