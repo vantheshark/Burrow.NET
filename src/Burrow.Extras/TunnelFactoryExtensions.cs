@@ -11,7 +11,7 @@ namespace Burrow.Extras
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="burrowResolver"></param>
-        public static void RegisterResolver(this ITunnelFactory factory, IBurrowResolver burrowResolver)
+        public static void RegisterResolver(this TunnelFactory factory, IBurrowResolver burrowResolver)
         {
             new DependencyInjectionTunnelFactory(burrowResolver);
 
@@ -21,8 +21,12 @@ namespace Burrow.Extras
             }
         }
 
-        public static ITunnelFactory WithPrioritySupport(this ITunnelFactory factory)
+        public static TunnelFactory WithPrioritySupport(this TunnelFactory factory)
         {
+            if (factory is PriorityTunnelFactory)
+            {
+                return factory;
+            }
             return new PriorityTunnelFactory();
         }
 

@@ -8,7 +8,7 @@ namespace Burrow
     /// This class is responsible for creating ITunnel.
     /// Any derived of this class will automatically registered itself as the default TunnelFactory in the library ;)
     /// </summary>
-    public class TunnelFactory : ITunnelFactory
+    public class TunnelFactory 
     {
         public TunnelFactory() : this(true)
         {
@@ -20,6 +20,11 @@ namespace Burrow
             {
                 RabbitTunnel.Factory = this;
             }
+        }
+
+        public void CloseAllConnections()
+        {
+            DurableConnection.CloseAllConnections();
         }
 
         public virtual ITunnel Create()

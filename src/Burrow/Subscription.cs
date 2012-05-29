@@ -8,15 +8,16 @@ namespace Burrow
     public class Subscription
     {
         private IModel _channel;
-        public string QueueName { get; internal set; }
-        public string SubscriptionName { get; internal set; }
-        public string ConsumerTag { get; internal set; }
+        public virtual string QueueName { get; internal set; }
+        public virtual string SubscriptionName { get; internal set; }
+        public virtual string ConsumerTag { get; internal set; }
 
         internal Subscription()
         {            
         }
 
-        internal Subscription(IModel channel) : this()
+        // Incase someone want to mock this class
+        internal protected Subscription(IModel channel) : this()
         {
             SetChannel(channel);
         }

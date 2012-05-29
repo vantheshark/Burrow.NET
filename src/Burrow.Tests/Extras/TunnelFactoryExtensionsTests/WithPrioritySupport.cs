@@ -24,6 +24,17 @@ namespace Burrow.Tests.Extras.TunnelFactoryExtensionsTests
             Assert.IsInstanceOfType(tunnelFactory, typeof(PriorityTunnelFactory));
         }
 
+        [TestMethod]
+        public void Should_return_same_instance_if_already_a_PriorityTunnelFactory()
+        {
+            // Arrange & Action
+            var factory = new PriorityTunnelFactory();
+            var tunnelFactory = factory.WithPrioritySupport();
+
+            // Assert
+            Assert.AreSame(tunnelFactory, factory);
+        }
+
 
         [TestMethod, ExpectedException(typeof(InvalidCastException), "Current tunnel object is supporting priority queues")]
         public void Should_throw_exception_if_current_factory_is_not_PriorityTunnelFactory()

@@ -370,6 +370,7 @@ namespace Burrow
             task.ContinueWith(t => _createdChannels.Clear());
             task.Start();
 
+            
             if (_connection.IsConnected)
             {
                 _connection.Dispose();
@@ -397,7 +398,7 @@ namespace Burrow
             }
         }
 
-        public static ITunnelFactory Factory { get; internal set; }
+        public static TunnelFactory Factory { get; internal set; }
         static RabbitTunnel()
         {
             if (Factory == null)

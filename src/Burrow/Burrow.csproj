@@ -73,7 +73,6 @@
     <Compile Include="Internal\DurableConnection.cs" />
     <Compile Include="Internal\ConsumerManager.cs" />
     <Compile Include="Internal\JavaScriptSerializer.cs" />
-    <Compile Include="ITunnelFactory.cs" />
     <Compile Include="ITypeNameSerializer.cs" />
     <Compile Include="Internal\TypeNameSerializer.cs" />
     <Compile Include="IRetryPolicy.cs" />

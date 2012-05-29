@@ -11,7 +11,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
     public class MethodDispose : DurableConnectionTestHelper
     {
         [TestMethod]
-        public void Should_close_all_connections()
+        public void Should_NOT_close_any_connection()
         {
             // Arrange
             var retryPolicy = Substitute.For<IRetryPolicy>();
@@ -30,12 +30,12 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             durableConnection.Dispose();
 
             //Assert
-            rmqConnection.Received().Close(200, "Connection disposed by application");
-            rmqConnection.Received().Dispose();
-            Assert.AreEqual(0, DurableConnection.SharedConnections.Count);
+            rmqConnection.DidNotReceive().Close(Arg.Any<ushort>(), Arg.Any<string>());
+            rmqConnection.DidNotReceive().Dispose();
+            Assert.AreEqual(1, DurableConnection.SharedConnections.Count);
         }
 
-        [TestMethod]
+        [TestMethod, Ignore/* Since we don't dispose connections to rabbitmq here*/]
         public void Should_catch_all_exceptions()
         {
             // Arrange

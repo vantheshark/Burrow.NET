@@ -33,7 +33,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
         }
 
         [TestMethod]
-        public void Should_retry_if_connection_is_dropped_by_peer()
+        public void Should_clear_existing_connection_from_shared_connection_list_then_retry_if_connection_is_dropped_by_peer()
         {
             // Arrange
             var retryPolicy = Substitute.For<IRetryPolicy>();
@@ -45,11 +45,13 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             var durableConnection = new DurableConnection(retryPolicy, watcher, connectionFactory);
             durableConnection.Disconnected += () => { };
             durableConnection.Connect();
+            Assert.AreEqual(1, DurableConnection.SharedConnections.Count);
 
             // Action
             rmqConnection.ConnectionShutdown += Raise.Event<ConnectionShutdownEventHandler>(rmqConnection, new ShutdownEventArgs(ShutdownInitiator.Application, 0, "Connection dropped for unknow reason ;)"));
 
             //Assert
+            Assert.AreEqual(0, DurableConnection.SharedConnections.Count);
             retryPolicy.Received().WaitForNextRetry(Arg.Any<Action>());
         }
     }

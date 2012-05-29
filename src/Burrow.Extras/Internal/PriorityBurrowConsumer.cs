@@ -69,8 +69,11 @@ namespace Burrow.Extras.Internal
 
         public override void Dispose()
         {
-            EventBroker.WhenAConsumerFinishedAMessage -= WhenAConsumerFinishedAMessage;
-            EventBroker.WhenAConsumerGetAMessage -= WhenAConsumerGetAMessage;
+            if (EventBroker != null)
+            {
+                EventBroker.WhenAConsumerGetAMessage -= WhenAConsumerGetAMessage;
+                EventBroker.WhenAConsumerFinishedAMessage -= WhenAConsumerFinishedAMessage;
+            }
             _timer.Dispose();
             base.Dispose();
         }

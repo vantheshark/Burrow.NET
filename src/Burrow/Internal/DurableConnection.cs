@@ -135,19 +135,25 @@ namespace Burrow.Internal
 
         public void Dispose()
         {
-            try
+            //Should not dispose connection here since other tunnel might use it
+            //try
+            //{
+            //    CloseAllConnections();
+            //}
+            //catch (Exception ex)
+            //{
+            //    _watcher.Error(ex);
+            //}
+        }
+
+        internal static void CloseAllConnections()
+        {
+            SharedConnections.Values.ToList().ForEach(c =>
             {
-                SharedConnections.Values.ToList().ForEach(c =>
-                {
-                    c.Close(200, "Connection disposed by application");
-                    c.Dispose();
-                });
-                SharedConnections.Clear();
-            }
-            catch (Exception ex)
-            {
-                _watcher.Error(ex);
-            }
+                c.Close(200, "Connection disposed by application");
+                c.Dispose();
+            });
+            SharedConnections.Clear();
         }
     }
 }

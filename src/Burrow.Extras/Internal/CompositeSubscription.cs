@@ -7,11 +7,13 @@ namespace Burrow.Extras.Internal
     {
         private readonly Dictionary<string, Subscription>  _internalCache = new Dictionary<string, Subscription>();
 
-        internal CompositeSubscription()
+        //NOTE: To allow mock this class
+        protected internal CompositeSubscription()
         {            
         }
 
-        internal void AddSubscription(Subscription subscription)
+        //NOTE: To allow call this method out side this library such as mocking
+        protected internal void AddSubscription(Subscription subscription)
         {
             if (subscription == null)
             {

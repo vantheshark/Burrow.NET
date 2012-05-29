@@ -100,6 +100,7 @@
     <Compile Include="Extras\JsonSerializerTests\MethodSerialize.cs" />
     <Compile Include="Extras\PriorityQueueSetupDataTests\Constructor.cs" />
     <Compile Include="Extras\PriorityQueuesRabbitSetupTests\PriorityQueuesRabbitSetupForTest.cs" />
+    <Compile Include="TunnelFactoryTests\MethodCloseAllConnections.cs" />
     <Compile Include="Extras\RabbitSetupTests\Customer.cs" />
     <Compile Include="Extras\RabbitSetupTests\MethodDestroy.cs" />
     <Compile Include="Extras\RabbitSetupTests\MethodSetupExchangeAndQueueFor.cs" />
