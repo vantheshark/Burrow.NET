@@ -14,7 +14,7 @@ namespace Burrow.Tests.Extras.PriorityQueueSetupDataTests
             var data = new PriorityQueueSetupData(3);
 
             // Asert
-            Assert.AreEqual(3, data.MaxPriorityLevel);
+            Assert.AreEqual((uint)3, data.MaxPriorityLevel);
             Assert.IsTrue(data.Durable);
         }
     }

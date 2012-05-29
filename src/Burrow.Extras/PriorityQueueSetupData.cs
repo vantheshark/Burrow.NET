@@ -5,9 +5,9 @@ namespace Burrow.Extras
     [DebuggerStepThrough]
     public class PriorityQueueSetupData : QueueSetupData
     {
-        public int MaxPriorityLevel { get; private set; }
+        public uint MaxPriorityLevel { get; private set; }
 
-        public PriorityQueueSetupData(int maxPriorityLevel)
+        public PriorityQueueSetupData(uint maxPriorityLevel)
         {
             MaxPriorityLevel = maxPriorityLevel;
         }

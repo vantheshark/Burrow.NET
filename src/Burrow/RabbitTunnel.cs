@@ -187,6 +187,10 @@ namespace Burrow
         {
         }
 
+        /// <summary>
+        /// Bear in mind that the connection may be established before somewhere in the application
+        /// Burrow tries to ensure only 1 and 1 connection to server for 1 AppDomain
+        /// </summary>
         public bool IsOpened
         {
             get
@@ -204,15 +208,7 @@ namespace Burrow
         {
             lock (_tunnelGate)
             {
-                if (!IsOpened)
-                {
-                    _connection.Connect();
-                }
-                //NOTE: After connect, the _dedicatedPublishingChannel will be created synchronously
-                if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
-                {
-                    throw new Exception("Publish failed. No channel to rabbit server established.");
-                }
+                EnsurePublishChannelIsCreated();
             }
             
             try
@@ -229,6 +225,28 @@ namespace Burrow
             catch (Exception ex)
             {
                 throw new Exception(string.Format("Publish failed: '{0}'", ex.Message), ex);
+            }
+        }
+
+        protected void EnsurePublishChannelIsCreated()
+        {
+            if (!IsOpened)
+            {
+                // NOTE:  Due to the implementation of IsOpened, the _dedicatedPublishingChannel could be null because the connection is establised by different instance of RabbitTunnel
+                _connection.Connect();
+            }
+
+            // NOTE: After connect, the _dedicatedPublishingChannel will be created synchronously.
+            // If for above reason, this channel has not been created, we can create it here
+            if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
+            {
+                OpenTunnel();
+
+                // If still failed, it's time to throw exception
+                if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
+                {
+                    throw new Exception("No channel to rabbit server established.");
+                }
             }
         }
 

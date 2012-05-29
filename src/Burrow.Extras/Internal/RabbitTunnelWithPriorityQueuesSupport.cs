@@ -45,15 +45,7 @@ namespace Burrow.Extras.Internal
         {
             lock (_tunnelGate)
             {
-                if (!IsOpened)
-                {
-                    _connection.Connect();
-                }
-                //NOTE: After connect, the _dedicatedPublishingChannel will be created synchronously
-                if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
-                {
-                    throw new Exception("Publish failed. No channel to rabbit server established.");
-                }
+                EnsurePublishChannelIsCreated();
             }
             
             try

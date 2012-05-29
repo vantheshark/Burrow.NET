@@ -17,8 +17,12 @@ namespace Burrow.Extras.Internal
         {
             if (consumer is PriorityBurrowConsumer)
             {
-                var borker = (consumer as PriorityBurrowConsumer).EventBroker;
-                borker.TellOthersAPriorityMessageIsHandled(consumer, GetMsgPriority(eventArg));
+                var msgPriority = GetMsgPriority(eventArg);
+                if (msgPriority >= 0)
+                {
+                    var borker = (consumer as PriorityBurrowConsumer).EventBroker;
+                    borker.TellOthersAPriorityMessageIsHandled(consumer, msgPriority);
+                }
             }
         }
 
@@ -26,15 +30,19 @@ namespace Burrow.Extras.Internal
         {
             if (consumer is PriorityBurrowConsumer)
             {
-                var borker = (consumer as PriorityBurrowConsumer).EventBroker;
-                borker.TellOthersAPriorityMessageIsFinished(consumer, GetMsgPriority(eventArg));
+                var msgPriority = GetMsgPriority(eventArg);
+                if (msgPriority >= 0)
+                {
+                    var borker = (consumer as PriorityBurrowConsumer).EventBroker;
+                    borker.TellOthersAPriorityMessageIsFinished(consumer, msgPriority);
+                }
             }
         }
 
         private int GetMsgPriority(BasicDeliverEventArgs eventArg)
         {
-            var priority = 0;
-            if (eventArg.BasicProperties.Headers.Contains("Priority"))
+            var priority = -1;
+            if (eventArg.BasicProperties.Headers != null && eventArg.BasicProperties.Headers.Contains("Priority"))
             {
                 //It's a byte, has to convert to char
                 var enc = new System.Text.UTF8Encoding();

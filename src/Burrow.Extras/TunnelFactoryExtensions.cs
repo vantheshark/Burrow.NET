@@ -30,7 +30,7 @@ namespace Burrow.Extras
         {
             if (!(tunnel is ITunnelWithPrioritySupport))
             {
-                throw new InvalidCastException("Current tunnel object is supporting priority queues");
+                throw new InvalidCastException("Current tunnel object is not supporting priority queues");
             }
             return tunnel as ITunnelWithPrioritySupport;
         }

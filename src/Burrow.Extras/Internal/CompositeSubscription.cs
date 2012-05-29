@@ -25,6 +25,15 @@ namespace Burrow.Extras.Internal
             get { return _internalCache.Count; }
         }
 
+        public Subscription GetByConsumerTag(string consumerTag)
+        {
+            if (_internalCache.ContainsKey(consumerTag))
+            {
+                return _internalCache[consumerTag];
+            }
+            return null;
+        }
+
         #region -- http://www.rabbitmq.com/amqp-0-9-1-reference.html#basic.ack.multiple --
         public void Ack(string consumerTag, ulong deliveryTag)
         {

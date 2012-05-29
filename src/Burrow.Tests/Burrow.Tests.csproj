@@ -68,6 +68,7 @@
     <Compile Include="DefaultMessageHandlerTests\Constructor.cs" />
     <Compile Include="DefaultMessageHandlerTests\MethodHandleError.cs" />
     <Compile Include="DefaultMessageHandlerTests\MethodHandleMessage.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodGetByConsumerTag.cs" />
     <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\RabbitTunnelWithPriorityQueuesSupportForTest.cs" />
     <Compile Include="Extras\Internal\SharedEventBrokerTests\BroadCastEvent.cs" />
     <Compile Include="Extras\PriorityQueuesRabbitSetupTests\MethodDestroy.cs" />
