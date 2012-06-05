@@ -10,7 +10,7 @@ using RabbitMQ.Client.Exceptions;
 namespace Burrow
 {
     /// <summary>
-    /// In RabbitMQ, they call a channel but in the RabbitMQ client, they name it IModel -,-
+    /// This class responsible for publishing msgs and subsribe to queues
     /// </summary>
     public class RabbitTunnel : ITunnel
     {

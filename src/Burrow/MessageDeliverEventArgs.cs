@@ -6,5 +6,6 @@ namespace Burrow
         public string SubscriptionName { get; set; }
         public string ConsumerTag { get; set; }
         public ulong DeliveryTag { get; set; }
+        public uint MessagePriority { get; set; }
     }
 }

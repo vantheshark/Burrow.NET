@@ -10,7 +10,7 @@ namespace Burrow.Internal
     {
         protected readonly IRabbitWatcher _watcher;
         protected readonly IMessageHandlerFactory _messageHandlerFactory;
-        private readonly ISerializer _serializer;
+        protected readonly ISerializer _serializer;
         protected readonly List<BurrowConsumer> _createdConsumers;
 
         public ConsumerManager(IRabbitWatcher watcher, 
@@ -87,7 +87,7 @@ namespace Burrow.Internal
             });
         }
 
-        protected Func<BasicDeliverEventArgs, Task> CreateJobFactory<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
+        protected virtual Func<BasicDeliverEventArgs, Task> CreateJobFactory<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             return eventArgs => Task.Factory.StartNew(() =>
             {
@@ -97,7 +97,7 @@ namespace Burrow.Internal
                 {
                     ConsumerTag = eventArgs.ConsumerTag,
                     DeliveryTag = eventArgs.DeliveryTag,
-                    SubscriptionName = subscriptionName,
+                    SubscriptionName = subscriptionName
                 });
             });
         }

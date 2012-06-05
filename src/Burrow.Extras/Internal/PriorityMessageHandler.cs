@@ -39,7 +39,7 @@ namespace Burrow.Extras.Internal
             }
         }
 
-        private int GetMsgPriority(BasicDeliverEventArgs eventArg)
+        internal static int GetMsgPriority(BasicDeliverEventArgs eventArg)
         {
             var priority = -1;
             if (eventArg.BasicProperties.Headers != null && eventArg.BasicProperties.Headers.Contains("Priority"))
