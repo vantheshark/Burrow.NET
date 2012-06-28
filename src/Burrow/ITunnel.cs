@@ -37,7 +37,8 @@ namespace Burrow
         /// <typeparam name="T"></typeparam>
         /// <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
         /// <param name="onReceiveMessage">A callback method to process received message</param>
-        void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage);
+        /// <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
+        void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize = null);
 
         /// <summary>
         /// Subscribe to queue by using subscriptionName, the message will be not automatically acked
@@ -45,8 +46,9 @@ namespace Burrow
         /// <typeparam name="T"></typeparam>
         /// <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
         /// <param name="onReceiveMessage">A callback method to process received message</param>
+        /// <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
         /// <returns>Subscription object which can be used to send Ack or NoAck message to server by the delivery tag received in the callback</returns>
-        Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage);
+        Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize = null);
 
         void SetRouteFinder(IRouteFinder routeFinder);
 

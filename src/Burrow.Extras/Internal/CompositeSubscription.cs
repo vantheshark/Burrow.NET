@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace Burrow.Extras.Internal
 {
+    /// <summary>
+    /// A composite subscription that contains others child Subscription object
+    /// This is a result of subscribe to priority queues without auto ack, use the instance of this class to ack messages later
+    /// </summary>
     public class CompositeSubscription
     {
         private readonly Dictionary<string, Subscription>  _internalCache = new Dictionary<string, Subscription>();

@@ -17,11 +17,11 @@ namespace Burrow.Tests.Extras.Internal.PriorityConsumerManagerTests
         public void Should_return_PriorityBurrowConsumer_object_when_called()
         {
             // Arrange
-            var consumerManager = new PriorityConsumerManager(watcher, handlerFactory, serializer, 10);
+            var consumerManager = new PriorityConsumerManager(watcher, handlerFactory, serializer);
 
             // Action
-            var consumer1 = consumerManager.CreateAsyncConsumer<string>(channel, "name", "tag", x => { });
-            var consumer2 = consumerManager.CreateAsyncConsumer<string>(channel, "name", "tag", (x,y) => { });
+            var consumer1 = consumerManager.CreateAsyncConsumer<string>(channel, "name", "tag", x => { }, 2);
+            var consumer2 = consumerManager.CreateAsyncConsumer<string>(channel, "name", "tag", (x,y) => { }, 2);
 
             // Assert
             Assert.IsInstanceOfType(consumer1, typeof(PriorityBurrowConsumer));

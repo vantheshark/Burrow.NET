@@ -17,7 +17,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityConsumerManagerTests
         public void Should_return_PriorityBurrowConsumer_object_when_called()
         {
             // Arrange
-            var consumerManager = new PriorityConsumerManager(watcher, handlerFactory, serializer, 10);
+            var consumerManager = new PriorityConsumerManager(watcher, handlerFactory, serializer);
 
             // Action
             var consumer1 = consumerManager.CreateConsumer<string>(channel, "name", "tag", x => { });

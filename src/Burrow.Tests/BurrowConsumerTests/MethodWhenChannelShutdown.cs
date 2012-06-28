@@ -17,7 +17,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             model.IsOpen.Returns(true);
             var msgHandler = Substitute.For<IMessageHandler>();
             var consumer = new BurrowConsumerForTest(model, msgHandler,
-                                                     Substitute.For<IRabbitWatcher>(), "consumerTag", true, 3);
+                                                     Substitute.For<IRabbitWatcher>(), true, 3);
 
             // Action
             model.ModelShutdown += Raise.Event<ModelShutdownEventHandler>(model, new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "Shutdown"));

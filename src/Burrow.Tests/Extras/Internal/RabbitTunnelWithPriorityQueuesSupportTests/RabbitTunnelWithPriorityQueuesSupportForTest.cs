@@ -6,7 +6,7 @@ using RabbitMQ.Client;
 
 namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTests
 {
-    public class RabbitTunnelWithPriorityQueuesSupportForTest : RabbitTunnelWithPriorityQueuesSupport
+    internal class RabbitTunnelWithPriorityQueuesSupportForTest : RabbitTunnelWithPriorityQueuesSupport
     {
         public RabbitTunnelWithPriorityQueuesSupportForTest(IRouteFinder routeFinder, IDurableConnection connection) 
             : base(routeFinder, connection)

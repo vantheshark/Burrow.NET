@@ -13,9 +13,12 @@ namespace Burrow
         /// The higher the number is, the more threads a tunnel will create to consume messages in the queue.
         /// If set to 1, it means the messages will be consumed sequently
         /// This value is used by the TunnelFactory when it create a RabbitTunnel
-        /// This value is also used to call IModel.BasicQos, which eventually sets the maximum amount of messages stay on the Unacknowledged list when they are consumed
+        /// This value is NOLONGER used to call IModel.BasicQos, if you want to do so, use PreFetchSize instead
         /// </summary>
-        public static ushort DefaultConsumerBatchSize = 256;
+        public static ushort DefaultConsumerBatchSize = 4;
+
+        /// This value is also used to call IModel.BasicQos, which eventually sets the maximum amount of messages stay on the Unacknowledged list when they are consumed
+        public static ushort PreFetchSize = 128;
         
         /// <summary>
         /// Set to true will save the message to disk when it's published, default is true.

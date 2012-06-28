@@ -4,10 +4,10 @@ using Burrow.Extras.Internal;
 
 namespace Burrow.Tests.Extras.Internal.PriorityConsumerManagerTests
 {
-    public class PriorityConsumerManagerForTest : PriorityConsumerManager
+    internal class PriorityConsumerManagerForTest : PriorityConsumerManager
     {
-        public PriorityConsumerManagerForTest(IRabbitWatcher watcher, IMessageHandlerFactory messageHandlerFactory, ISerializer serializer, int batchSize) 
-            : base(watcher, messageHandlerFactory, serializer, batchSize)
+        public PriorityConsumerManagerForTest(IRabbitWatcher watcher, IMessageHandlerFactory messageHandlerFactory, ISerializer serializer) 
+            : base(watcher, messageHandlerFactory, serializer)
         {
         }
 

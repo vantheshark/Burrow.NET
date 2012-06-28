@@ -1,0 +1,2 @@
+﻿I borrow the IntervalHeap implementation from C5 project.
+That project does not sign it's assembly so I embedded the whole source code :(

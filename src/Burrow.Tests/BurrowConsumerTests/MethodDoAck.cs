@@ -19,7 +19,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             var model = Substitute.For<IModel>();
             var msgHandler = Substitute.For<IMessageHandler>();
             var consumer = new BurrowConsumerForTest(model, msgHandler,
-                                                     Substitute.For<IRabbitWatcher>(), "consumerTag", true, 3);
+                                                     Substitute.For<IRabbitWatcher>(), true, 3);
 
             // Action
             consumer.DoAckForTest(new BasicDeliverEventArgs(), consumer);
@@ -42,7 +42,7 @@ namespace Burrow.Tests.BurrowConsumerTests
 
             var msgHandler = Substitute.For<IMessageHandler>();
             var watcher = Substitute.For<IRabbitWatcher>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler,watcher, "consumerTag", true, 3);
+            var consumer = new BurrowConsumerForTest(model, msgHandler,watcher, true, 3);
 
             // Action
             consumer.DoAckForTest(new BasicDeliverEventArgs(), consumer);
@@ -64,7 +64,7 @@ namespace Burrow.Tests.BurrowConsumerTests
 
             var msgHandler = Substitute.For<IMessageHandler>();
             var watcher = Substitute.For<IRabbitWatcher>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, "consumerTag", true, 3);
+            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, true, 3);
 
             // Action
             consumer.DoAckForTest(new BasicDeliverEventArgs(), consumer);
@@ -86,7 +86,7 @@ namespace Burrow.Tests.BurrowConsumerTests
 
             var msgHandler = Substitute.For<IMessageHandler>();
             var watcher = Substitute.For<IRabbitWatcher>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, "consumerTag", true, 3);
+            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, true, 3);
 
             // Action
             consumer.DoAckForTest(new BasicDeliverEventArgs(), consumer);

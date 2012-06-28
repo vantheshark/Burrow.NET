@@ -11,29 +11,19 @@ namespace Burrow.Tests.Internal.ConsumerManagerTests
         [TestMethod, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_watcher_is_null()
         {
-            new ConsumerManager(null, NSubstitute.Substitute.For<IMessageHandlerFactory>(),
-                                NSubstitute.Substitute.For<ISerializer>(), 10);
+            new ConsumerManager(null, NSubstitute.Substitute.For<IMessageHandlerFactory>(), NSubstitute.Substitute.For<ISerializer>());
         }
 
         [TestMethod, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_handler_is_null()
         {
-            new ConsumerManager(NSubstitute.Substitute.For<IRabbitWatcher>(), null,
-                                NSubstitute.Substitute.For<ISerializer>(), 10);
+            new ConsumerManager(NSubstitute.Substitute.For<IRabbitWatcher>(), null, NSubstitute.Substitute.For<ISerializer>());
         }
 
         [TestMethod, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_serialier_is_null()
         {
-            new ConsumerManager(NSubstitute.Substitute.For<IRabbitWatcher>(), NSubstitute.Substitute.For<IMessageHandlerFactory>(),
-                                null, 10);
-        }
-
-        [TestMethod, ExpectedException(typeof(ArgumentException))]
-        public void Should_throw_exception_if_batch_size_less_than_1()
-        {
-            new ConsumerManager(NSubstitute.Substitute.For<IRabbitWatcher>(), NSubstitute.Substitute.For<IMessageHandlerFactory>(),
-                                NSubstitute.Substitute.For<ISerializer>(), 0);
+            new ConsumerManager(NSubstitute.Substitute.For<IRabbitWatcher>(), NSubstitute.Substitute.For<IMessageHandlerFactory>(), null);
         }
     }
 }

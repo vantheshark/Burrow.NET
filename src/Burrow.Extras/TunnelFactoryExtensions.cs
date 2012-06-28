@@ -38,5 +38,15 @@ namespace Burrow.Extras
             }
             return tunnel as ITunnelWithPrioritySupport;
         }
+
+        public static ITunnelWithPrioritySupport ChangePriorityQueueSuffixConvention(this ITunnelWithPrioritySupport tunnel, IPriorityQueueSuffix suffix)
+        {
+            if (suffix == null)
+            {
+                throw new ArgumentNullException("suffix");
+            }
+            PriorityQueuesRabbitSetup.GlobalPriorityQueueSuffix = suffix;
+            return tunnel;
+        }
     }
 }

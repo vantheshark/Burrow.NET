@@ -40,8 +40,7 @@ namespace Burrow
                                                                                                  Global.DefaultSerializer, 
                                                                                                  Global.DefaultWatcher), 
                                                                             Global.DefaultWatcher), 
-                                       Global.DefaultSerializer, 
-                                       Global.DefaultConsumerBatchSize),
+                                       Global.DefaultSerializer),
                    Global.DefaultWatcher, 
                    routeFinder, 
                    connection,
@@ -273,17 +272,17 @@ namespace Burrow
             return CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
-        public void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage)
+        public void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage, batchSize);
             CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
-        public Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
+        public Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage, batchSize);
             return CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
@@ -307,7 +306,7 @@ namespace Burrow
                 subscription.ConsumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
 
                 var channel = _connection.CreateChannel();
-                channel.BasicQos(0, Global.DefaultConsumerBatchSize, false);
+                channel.BasicQos(0, Global.PreFetchSize, false);
                 _createdChannels.Add(channel);
                 
                 subscription.SetChannel(channel);

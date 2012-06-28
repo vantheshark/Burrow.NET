@@ -11,16 +11,15 @@ namespace Burrow.Subscriber
             PrintHelp();
 
             #region -- Run this test to start subscribe from normal queue --
-            TestSubscribing.Start(); 
+            //TestSubscribing.Start(); 
             #endregion
-
 
             #region -- Run this test to start subscribe from PRIORITY queues --
             //TestSubscribingFromPriorityQueues.Start();
             #endregion
 
             #region -- Run this test to start subscribe from PRIORITY queues async --
-            //TestSubscribingFromPriorityQueues.StartAsync();
+            TestSubscribingFromPriorityQueues.StartAsync();
             #endregion
 
 

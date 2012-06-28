@@ -8,8 +8,8 @@ namespace Burrow.Tests.Internal.ConsumerManagerTests
 {
     public class ConsumerManagerForTest : ConsumerManager
     {
-        public ConsumerManagerForTest(IRabbitWatcher watcher, IMessageHandlerFactory messageHandlerFactory, ISerializer serializer, int batchSize) 
-            : base(watcher, messageHandlerFactory, serializer, batchSize)
+        public ConsumerManagerForTest(IRabbitWatcher watcher, IMessageHandlerFactory messageHandlerFactory, ISerializer serializer) 
+            : base(watcher, messageHandlerFactory, serializer)
         {
         }
 

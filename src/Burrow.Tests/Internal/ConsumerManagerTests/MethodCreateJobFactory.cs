@@ -15,8 +15,7 @@ namespace Burrow.Tests.Internal.ConsumerManagerTests
         [TestInitialize]
         public void LockTest()
         {
-            consumer = new ConsumerManagerForTest(Substitute.For<IRabbitWatcher>(), Substitute.For<IMessageHandlerFactory>(),
-                                                                      Substitute.For<ISerializer>(), 10);
+            consumer = new ConsumerManagerForTest(Substitute.For<IRabbitWatcher>(), Substitute.For<IMessageHandlerFactory>(), Substitute.For<ISerializer>());
         }
 
         [TestCleanup]

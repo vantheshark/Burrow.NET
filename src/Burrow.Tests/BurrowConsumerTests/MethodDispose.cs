@@ -12,7 +12,7 @@ namespace Burrow.Tests.BurrowConsumerTests
         {
             // Arrange
             var consumer = new BurrowConsumer(NSubstitute.Substitute.For<IModel>(), NSubstitute.Substitute.For<IMessageHandler>(),
-                                              NSubstitute.Substitute.For<IRabbitWatcher>(), "consumerTag", false, 3);
+                                              NSubstitute.Substitute.For<IRabbitWatcher>(), false, 3);
 
             // Action
             consumer.Dispose();

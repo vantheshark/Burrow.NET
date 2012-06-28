@@ -4,9 +4,10 @@ using RabbitMQ.Client.Events;
 
 namespace Burrow.Extras.Internal
 {
-    public class PriorityMessageHandlerFactory : DefaultMessageHandlerFactory
+    internal class PriorityMessageHandlerFactory : DefaultMessageHandlerFactory
     {
-        public PriorityMessageHandlerFactory(IConsumerErrorHandler consumerErrorHandler, IRabbitWatcher watcher) : base(consumerErrorHandler, watcher)
+        public PriorityMessageHandlerFactory(IConsumerErrorHandler consumerErrorHandler, IRabbitWatcher watcher) 
+            : base(consumerErrorHandler, watcher)
         {
         }
 

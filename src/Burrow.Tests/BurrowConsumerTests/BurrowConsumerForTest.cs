@@ -5,8 +5,8 @@ namespace Burrow.Tests.BurrowConsumerTests
 {
     public class BurrowConsumerForTest : BurrowConsumer
     {
-        public BurrowConsumerForTest(IModel channel, IMessageHandler messageHandler, IRabbitWatcher watcher, string consumerTag, bool autoAck, int batchSize) 
-            : base(channel, messageHandler, watcher, consumerTag, autoAck, batchSize)
+        public BurrowConsumerForTest(IModel channel, IMessageHandler messageHandler, IRabbitWatcher watcher, bool autoAck, int batchSize) 
+            : base(channel, messageHandler, watcher, autoAck, batchSize)
         {
              WaitHandler = new AutoResetEvent(false);
         }

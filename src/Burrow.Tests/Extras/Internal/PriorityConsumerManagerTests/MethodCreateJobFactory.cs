@@ -20,7 +20,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityConsumerManagerTests
         {
             // Arrange
             var waitHandler = new AutoResetEvent(false);
-            var consumerManager = new PriorityConsumerManagerForTest(_watcher, _handlerFactory, _serializer, 10);
+            var consumerManager = new PriorityConsumerManagerForTest(_watcher, _handlerFactory, _serializer);
             uint priority = 0;
             
             // Action

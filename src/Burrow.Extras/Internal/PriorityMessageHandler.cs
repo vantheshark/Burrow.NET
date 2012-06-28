@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Burrow.Extras.Internal
@@ -11,32 +10,6 @@ namespace Burrow.Extras.Internal
                                       Func<BasicDeliverEventArgs, Task> jobFactory,
                                       IRabbitWatcher watcher) : base(consumerErrorHandler, jobFactory, watcher)
         {
-        }
-
-        public override void BeforeHandlingMessage(IBasicConsumer consumer, BasicDeliverEventArgs eventArg)
-        {
-            if (consumer is PriorityBurrowConsumer)
-            {
-                var msgPriority = GetMsgPriority(eventArg);
-                if (msgPriority >= 0)
-                {
-                    var borker = (consumer as PriorityBurrowConsumer).EventBroker;
-                    borker.TellOthersAPriorityMessageIsHandled(consumer, msgPriority);
-                }
-            }
-        }
-
-        public override void AfterHandlingMessage(IBasicConsumer consumer, BasicDeliverEventArgs eventArg)
-        {
-            if (consumer is PriorityBurrowConsumer)
-            {
-                var msgPriority = GetMsgPriority(eventArg);
-                if (msgPriority >= 0)
-                {
-                    var borker = (consumer as PriorityBurrowConsumer).EventBroker;
-                    borker.TellOthersAPriorityMessageIsFinished(consumer, msgPriority);
-                }
-            }
         }
 
         internal static int GetMsgPriority(BasicDeliverEventArgs eventArg)

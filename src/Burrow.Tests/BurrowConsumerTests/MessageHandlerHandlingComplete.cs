@@ -17,7 +17,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             model.IsOpen.Returns(true);
             var msgHandler = Substitute.For<IMessageHandler>();
             var consumer = new BurrowConsumerForTest(model, msgHandler,
-                                                     Substitute.For<IRabbitWatcher>(), "consumerTag", true, 3);
+                                                     Substitute.For<IRabbitWatcher>(), true, 3);
 
 
 

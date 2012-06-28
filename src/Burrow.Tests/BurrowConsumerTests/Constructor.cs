@@ -13,7 +13,7 @@ namespace Burrow.Tests.BurrowConsumerTests
         {
             // Action
             new BurrowConsumer(null, NSubstitute.Substitute.For<IMessageHandler>(),
-                               NSubstitute.Substitute.For<IRabbitWatcher>(), "consumerTag", false, 3);
+                               NSubstitute.Substitute.For<IRabbitWatcher>(), false, 3);
         }
 
         [TestMethod, ExpectedException(typeof(ArgumentNullException))]
@@ -21,7 +21,7 @@ namespace Burrow.Tests.BurrowConsumerTests
         {
             // Action
             new BurrowConsumer(NSubstitute.Substitute.For<IModel>(), null,
-                               NSubstitute.Substitute.For<IRabbitWatcher>(), "consumerTag", false, 3);
+                               NSubstitute.Substitute.For<IRabbitWatcher>(), false, 3);
         }
 
         [TestMethod, ExpectedException(typeof(ArgumentNullException))]
@@ -29,7 +29,7 @@ namespace Burrow.Tests.BurrowConsumerTests
         {
             // Action
             new BurrowConsumer(NSubstitute.Substitute.For<IModel>(), NSubstitute.Substitute.For<IMessageHandler>(),
-                               null, "consumerTag", false, 3);
+                               null, false, 3);
         }
 
         [TestMethod, ExpectedException(typeof(ArgumentNullException))]
@@ -37,15 +37,7 @@ namespace Burrow.Tests.BurrowConsumerTests
         {
             // Action
             new BurrowConsumer(NSubstitute.Substitute.For<IModel>(), NSubstitute.Substitute.For<IMessageHandler>(),
-                               NSubstitute.Substitute.For<IRabbitWatcher>(), "consumerTag", false, 0);
-        }
-
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
-        public void Should_throw_exception_if_provide_null_consumer_tag()
-        {
-            // Action
-            new BurrowConsumer(NSubstitute.Substitute.For<IModel>(), NSubstitute.Substitute.For<IMessageHandler>(),
-                               NSubstitute.Substitute.For<IRabbitWatcher>(), null, false, 3);
+                               NSubstitute.Substitute.For<IRabbitWatcher>(), false, 0);
         }
     }
 }

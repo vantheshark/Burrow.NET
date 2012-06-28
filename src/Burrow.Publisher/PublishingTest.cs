@@ -56,7 +56,7 @@ namespace Burrow.Publisher
             var tunnel = RabbitTunnel.Factory.WithPrioritySupport().Create().WithPrioritySupport();
 
             tunnel.SetSerializer(new JsonSerializer());
-            const int msgToPublish = 5000;
+            const int msgToPublish = 10000;
 
             uint index;
             for (index = 0; index < msgToPublish; index++)
@@ -71,6 +71,8 @@ namespace Burrow.Publisher
                         Color = "White",
                         Name = "The Energizer Bunny"
                     }, (uint)priority);
+
+                    //System.Threading.Thread.Sleep(30);
                 }
                 catch (Exception ex)
                 {

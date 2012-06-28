@@ -13,6 +13,7 @@ namespace Burrow
     {
         protected readonly IRabbitWatcher _watcher;
         private readonly bool _autoAck;
+        
 
         private readonly object _sharedQueueLock = new object();
         private readonly Thread _subscriptionCallbackThread;
@@ -22,8 +23,7 @@ namespace Burrow
         public BurrowConsumer(IModel channel,
                               IMessageHandler messageHandler,
                               IRabbitWatcher watcher,                     
-                                 
-                              string consumerTag,
+                              
                               bool autoAck,
                               int batchSize)
             : base(channel, new SharedQueue())
@@ -45,17 +45,10 @@ namespace Burrow
             {
                 throw new ArgumentNullException("batchSize", "batchSize must be greater than or equal 1");
             }
-            
-            if (string.IsNullOrEmpty(consumerTag))
-            {
-                throw new ArgumentNullException("consumerTag", "consumerTag cannot be null or empty");
-            }
-
 
             Model.ModelShutdown += WhenChannelShutdown;
             Model.BasicRecoverAsync(true);
             BatchSize = batchSize;
-            ConsumerTag = consumerTag;
 
             _pool = new InteruptableSemaphore(BatchSize, BatchSize);
             _watcher = watcher;
@@ -119,7 +112,10 @@ namespace Burrow
             catch (Exception exception)
             {
                 _messageHandler.HandleError(this, basicDeliverEventArgs, exception);
-                DoAck(basicDeliverEventArgs, this);
+                if (_autoAck)
+                {
+                    DoAck(basicDeliverEventArgs, this);
+                }
                 _pool.Release();
             }
         }

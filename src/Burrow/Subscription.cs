@@ -8,11 +8,11 @@ namespace Burrow
     public class Subscription
     {
         private IModel _channel;
-        public virtual string QueueName { get; internal set; }
-        public virtual string SubscriptionName { get; internal set; }
-        public virtual string ConsumerTag { get; internal set; }
+        public string QueueName { get; set; }
+        public string SubscriptionName { get; set; }
+        public string ConsumerTag { get; set; }
 
-        internal Subscription()
+        internal protected Subscription()
         {            
         }
 
@@ -22,7 +22,7 @@ namespace Burrow
             SetChannel(channel);
         }
 
-        internal void SetChannel(IModel channel)
+        public void SetChannel(IModel channel)
         {
             if (channel == null)
             {

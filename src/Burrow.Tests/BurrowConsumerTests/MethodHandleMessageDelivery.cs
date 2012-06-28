@@ -22,7 +22,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             msgHandler.When(x => x.HandleMessage(Arg.Any<IBasicConsumer>(), Arg.Any<BasicDeliverEventArgs>()))
                       .Do(callInfo => waitHandler.Set());
             var consumer = new BurrowConsumerForTest(model, msgHandler,
-                                                     Substitute.For<IRabbitWatcher>(), "consumerTag", true, 3);
+                                                     Substitute.For<IRabbitWatcher>(), true, 3);
 
             // Action
             consumer.Queue.Enqueue(new BasicDeliverEventArgs
@@ -48,7 +48,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             msgHandler.When(x => x.HandleMessage(Arg.Any<IBasicConsumer>(), Arg.Any<BasicDeliverEventArgs>()))
                       .Do(callInfo => { throw new Exception(); });
             var consumer = new BurrowConsumerForTest(model, msgHandler,
-                                                     Substitute.For<IRabbitWatcher>(), "consumerTag", true, 3);
+                                                     Substitute.For<IRabbitWatcher>(), true, 3);
 
             // Action
             consumer.Queue.Enqueue(new BasicDeliverEventArgs

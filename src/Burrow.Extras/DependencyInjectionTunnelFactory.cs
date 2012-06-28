@@ -46,8 +46,7 @@ namespace Burrow.Extras
 
             Func<IConsumerManager> consumerManager = () => new ConsumerManager(rabbitWatcher,
                                                                                _burrowResolver.Resolve<IMessageHandlerFactory>() ?? handlerFactory(),
-                                                                               serializer, 
-                                                                               Global.DefaultConsumerBatchSize);
+                                                                               serializer);
 
             return new RabbitTunnel(_burrowResolver.Resolve<IConsumerManager>() ?? consumerManager(),
                                     rabbitWatcher,

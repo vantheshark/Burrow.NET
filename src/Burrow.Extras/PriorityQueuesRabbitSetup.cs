@@ -3,12 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
+using Burrow.Extras.Internal;
 using RabbitMQ.Client.Exceptions;
 
 namespace Burrow.Extras
 {
     public class PriorityQueuesRabbitSetup : RabbitSetup
     {
+        internal static volatile IPriorityQueueSuffix GlobalPriorityQueueSuffix = new PriorityQueueSuffix();
+
         public PriorityQueuesRabbitSetup(Func<string, string, IRouteFinder> routeFinderFactory, IRabbitWatcher watcher, string connectionString, string environment) 
             : base(routeFinderFactory, watcher, connectionString, environment)
         {
@@ -26,12 +29,12 @@ namespace Burrow.Extras
             }
         }
 
-        protected override void BindQueue(RabbitMQ.Client.IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
+        protected override void BindQueue<T>(RabbitMQ.Client.IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
         {
             if (queue is PriorityQueueSetupData)
             {
                 var maxPriority = (queue as PriorityQueueSetupData).MaxPriorityLevel;
-                for (var i = 0; i <= maxPriority; i++)
+                for (uint i = 0; i <= maxPriority; i++)
                 {
                     try
                     {
@@ -41,7 +44,7 @@ namespace Burrow.Extras
                         arguments.Add("RoutingKey", routingKey);
                         //http://www.rabbitmq.com/tutorials/amqp-concepts.html
                         //http://lostechies.com/derekgreer/2012/03/28/rabbitmq-for-windows-exchange-types/
-                        model.QueueBind(GetPriorityQueueName(queueName, i), exchangeName, routingKey/*It'll be ignored as AMQP spec*/, arguments);
+                        model.QueueBind(GetPriorityQueueName<T>(queueName, i), exchangeName, routingKey/*It'll be ignored as AMQP spec*/, arguments);
                     }
                     catch (Exception ex)
                     {
@@ -51,16 +54,16 @@ namespace Burrow.Extras
             }
             else
             {
-                base.BindQueue(model, queue, exchangeName, queueName, routingKey);
+                base.BindQueue<T>(model, queue, exchangeName, queueName, routingKey);
             }
         }
 
-        private string GetPriorityQueueName(string originalQueueName, int priority)
+        private string GetPriorityQueueName<T>(string originalQueueName, uint priority)
         {
-            return string.Format("{0}_Priority{1}", originalQueueName, priority);
+            return string.Format("{0}{1}", originalQueueName, GlobalPriorityQueueSuffix.Get(typeof(T), priority));
         }
 
-        protected override void DeclareQueue(QueueSetupData queue, string queueName, RabbitMQ.Client.IModel model)
+        protected override void DeclareQueue<T>(QueueSetupData queue, string queueName, RabbitMQ.Client.IModel model)
         {
             IDictionary arguments = new Dictionary<string, object>();
             if (queue.MessageTimeToLive > 0)
@@ -75,11 +78,11 @@ namespace Burrow.Extras
             if (queue is PriorityQueueSetupData)
             {
                 var maxPriority = (queue as PriorityQueueSetupData).MaxPriorityLevel;
-                for (int i = 0; i <= maxPriority; i++)
+                for (uint i = 0; i <= maxPriority; i++)
                 {
                     try
                     {
-                        model.QueueDeclare(GetPriorityQueueName(queueName, i), queue.Durable, false,
+                        model.QueueDeclare(GetPriorityQueueName<T>(queueName, i), queue.Durable, false,
                                            queue.AutoDelete, arguments);
                     }
                     catch (OperationInterruptedException oie)
@@ -101,21 +104,21 @@ namespace Burrow.Extras
             }
             else
             {
-                base.DeclareQueue(queue, queueName, model);
+                base.DeclareQueue<T>(queue, queueName, model);
             }
         }
 
-        protected override void DeleteQueue(RabbitMQ.Client.IModel model, QueueSetupData queue, string queueName)
+        protected override void DeleteQueue<T>(RabbitMQ.Client.IModel model, QueueSetupData queue, string queueName)
         {
 
             if (queue is PriorityQueueSetupData)
             {
                 var maxPriority = (queue as PriorityQueueSetupData).MaxPriorityLevel;
-                for (int i = 0; i <= maxPriority; i++)
+                for (uint i = 0; i <= maxPriority; i++)
                 {
                     try
                     {
-                        model.QueueDelete(GetPriorityQueueName(queueName, i));
+                        model.QueueDelete(GetPriorityQueueName<T>(queueName, i));
                     }
                     catch (OperationInterruptedException oie)
                     {
@@ -137,7 +140,7 @@ namespace Burrow.Extras
             }
             else
             {
-                base.DeleteQueue(model, queue, queueName);
+                base.DeleteQueue<T>(model, queue, queueName);
             }
         }
     }

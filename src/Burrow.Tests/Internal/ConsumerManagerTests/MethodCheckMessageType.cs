@@ -13,8 +13,7 @@ namespace Burrow.Tests.Internal.ConsumerManagerTests
         public void Should_throw_exception_if_mesage_type_not_match()
         {
             // Arrange
-            var consumer = new ConsumerManagerForTest(Substitute.For<IRabbitWatcher>(), Substitute.For<IMessageHandlerFactory>(),
-                                                      Substitute.For<ISerializer>(), 10);
+            var consumer = new ConsumerManagerForTest(Substitute.For<IRabbitWatcher>(), Substitute.For<IMessageHandlerFactory>(), Substitute.For<ISerializer>());
             
             var basicProperties = Substitute.For<IBasicProperties>();
             basicProperties.Type.Returns("Invalid_type");

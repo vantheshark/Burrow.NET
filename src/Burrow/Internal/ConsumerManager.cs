@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -11,11 +12,11 @@ namespace Burrow.Internal
         protected readonly IRabbitWatcher _watcher;
         protected readonly IMessageHandlerFactory _messageHandlerFactory;
         protected readonly ISerializer _serializer;
-        protected readonly List<BurrowConsumer> _createdConsumers;
+        protected readonly List<IBasicConsumer> _createdConsumers;
 
         public ConsumerManager(IRabbitWatcher watcher, 
                                IMessageHandlerFactory messageHandlerFactory,
-                               ISerializer serializer, int batchSize)
+                               ISerializer serializer)
         {
             if (watcher == null)
             {
@@ -29,24 +30,18 @@ namespace Burrow.Internal
             {
                 throw new ArgumentNullException("serializer");
             }
-            if (batchSize < 1)
-            {
-                throw new ArgumentException("batchSize must be greater than or equal 1", "batchSize");
-            }
-            
-            BatchSize = batchSize;
 
             _watcher = watcher;
             _messageHandlerFactory = messageHandlerFactory;
             _serializer = serializer;
-            _createdConsumers = new List<BurrowConsumer>();
+            _createdConsumers = new List<IBasicConsumer>();
         }
 
         public virtual IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
         {
             var action = CreateJobFactory(onReceiveMessage);
             var messageHandler = _messageHandlerFactory.Create(action);
-            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, consumerTag, true, 1);
+            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, true, 1);
             _createdConsumers.Add(consumer);
             return consumer;
         }
@@ -55,25 +50,26 @@ namespace Burrow.Internal
         {
             var action = CreateJobFactory(subscriptionName, onReceiveMessage);
             var messageHandler = _messageHandlerFactory.Create(action);
-            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, consumerTag, false, 1);
+            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, false, 1);
             _createdConsumers.Add(consumer);
             return consumer;
         }
 
-        public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
+        public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage, ushort? batchSize)
         {
             var action = CreateJobFactory(onReceiveMessage);
             var messageHandler = _messageHandlerFactory.Create(action);
-            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, consumerTag, true, BatchSize);
+            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, true, (batchSize > 1 ? batchSize.Value : Global.DefaultConsumerBatchSize));
             _createdConsumers.Add(consumer);
             return consumer;
         }
 
-        public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage)
+        public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize)
         {
             var action = CreateJobFactory(subscriptionName, onReceiveMessage);
             var messageHandler = _messageHandlerFactory.Create(action);
-            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, consumerTag, false, BatchSize);
+            var consumer = new BurrowConsumer(channel, messageHandler, _watcher, false, (batchSize > 1 ? batchSize.Value : Global.DefaultConsumerBatchSize));
+            _createdConsumers.Add(consumer);
             return consumer;
         }
 
@@ -105,11 +101,9 @@ namespace Burrow.Internal
         public void ClearConsumers()
         {
             _watcher.DebugFormat("Clearing consumer subscriptions");
-            _createdConsumers.ForEach(c => c.Dispose());
+            _createdConsumers.OfType<IDisposable>().ToList().ForEach(c => c.Dispose());
             _createdConsumers.Clear();
         }
-
-        public int BatchSize { get; protected set; }
 
         private bool _disposed;
         public void Dispose()

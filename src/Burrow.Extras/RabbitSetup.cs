@@ -53,17 +53,17 @@ namespace Burrow.Extras
                 using (var model = connection.CreateModel())
                 {
                     // Declare Queue
-                    DeclareQueue(queue, queueName, model);
+                    DeclareQueue<T>(queue, queueName, model);
                 }
                 using (var model = connection.CreateModel())
                 {
                     // Bind Queue to Exchange
-                    BindQueue(model, queue, exchangeName, queueName, routingKey);
+                    BindQueue<T>(model, queue, exchangeName, queueName, routingKey);
                 }
             }
         }
 
-        protected virtual void BindQueue(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
+        protected virtual void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace Burrow.Extras
             }
         }
 
-        protected virtual void DeclareQueue(QueueSetupData queue, string queueName, IModel model)
+        protected virtual void DeclareQueue<T>(QueueSetupData queue, string queueName, IModel model)
         {
             try
             {
@@ -141,7 +141,7 @@ namespace Burrow.Extras
                 using (var model = connection.CreateModel())
                 {
                     // Delete Queue
-                    DeleteQueue(model, queue, queueName);
+                    DeleteQueue<T>(model, queue, queueName);
                 }
 
                 using (var model = connection.CreateModel())
@@ -170,7 +170,7 @@ namespace Burrow.Extras
             }
         }
 
-        protected virtual void DeleteQueue(IModel model, QueueSetupData queue, string queueName)
+        protected virtual void DeleteQueue<T>(IModel model, QueueSetupData queue, string queueName)
         {
             try
             {

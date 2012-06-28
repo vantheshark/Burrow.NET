@@ -5,12 +5,12 @@ using RabbitMQ.Client;
 
 namespace Burrow.Extras.Internal
 {
-    public class PriorityConsumerManager : ConsumerManager
+    internal class PriorityConsumerManager : ConsumerManager
     {
         public PriorityConsumerManager(IRabbitWatcher watcher,
                                        IMessageHandlerFactory messageHandlerFactory,
-                                       ISerializer serializer, int batchSize)
-            : base(watcher, messageHandlerFactory, serializer, batchSize)
+                                       ISerializer serializer)
+            : base(watcher, messageHandlerFactory, serializer)
         {
         }
 
@@ -18,7 +18,7 @@ namespace Burrow.Extras.Internal
         {
             var action = CreateJobFactory(onReceiveMessage);
             var messageHandler = _messageHandlerFactory.Create(action);
-            var consumer = new PriorityBurrowConsumer(null /*Will be set later*/, 0, channel, messageHandler, _watcher, consumerTag, true, 1);
+            var consumer = new PriorityBurrowConsumer(channel, messageHandler, _watcher, true, 1);
             _createdConsumers.Add(consumer);
             return consumer;
         }
@@ -27,25 +27,26 @@ namespace Burrow.Extras.Internal
         {
             var action = CreateJobFactory(subscriptionName, onReceiveMessage);
             var messageHandler = _messageHandlerFactory.Create(action);
-            var consumer = new PriorityBurrowConsumer(null /*Will be set later*/, 0, channel, messageHandler, _watcher, consumerTag, false, 1);
+            var consumer = new PriorityBurrowConsumer(channel, messageHandler, _watcher, false, 1);
             _createdConsumers.Add(consumer);
             return consumer;
         }
 
-        public override IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
+        public override IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage, ushort? batchSize)
         {
             var action = CreateJobFactory(onReceiveMessage);
             var messageHandler = _messageHandlerFactory.Create(action);
-            var consumer = new PriorityBurrowConsumer(null /*Will be set later*/, 0, channel, messageHandler, _watcher, consumerTag, true, BatchSize);
+            var consumer = new PriorityBurrowConsumer(channel, messageHandler, _watcher, true, (batchSize > 1 ? batchSize.Value : Global.DefaultConsumerBatchSize));
             _createdConsumers.Add(consumer);
             return consumer;
         }
 
-        public override IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage)
+        public override IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize)
         {
             var action = CreateJobFactory(subscriptionName, onReceiveMessage);
             var messageHandler = _messageHandlerFactory.Create(action);
-            var consumer = new PriorityBurrowConsumer(null /*Will be set later*/, 0, channel, messageHandler, _watcher, consumerTag, false, BatchSize);
+            var consumer = new PriorityBurrowConsumer(channel, messageHandler, _watcher, false, (batchSize > 1 ? batchSize.Value : Global.DefaultConsumerBatchSize));
+            _createdConsumers.Add(consumer);
             return consumer;
         }
 
