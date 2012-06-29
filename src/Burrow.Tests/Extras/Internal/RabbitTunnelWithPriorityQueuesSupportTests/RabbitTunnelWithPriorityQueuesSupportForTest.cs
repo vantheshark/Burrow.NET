@@ -13,7 +13,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
         {
         }
 
-        public RabbitTunnelWithPriorityQueuesSupportForTest(PriorityConsumerManager consumerManager, IRabbitWatcher watcher, IRouteFinder routeFinder, IDurableConnection connection, ISerializer serializer, ICorrelationIdGenerator correlationIdGenerator, bool setPersistent) 
+        public RabbitTunnelWithPriorityQueuesSupportForTest(IConsumerManager consumerManager, IRabbitWatcher watcher, IRouteFinder routeFinder, IDurableConnection connection, ISerializer serializer, ICorrelationIdGenerator correlationIdGenerator, bool setPersistent)
             : base(consumerManager, watcher, routeFinder, connection, serializer, correlationIdGenerator, setPersistent)
         {
         }

@@ -5,6 +5,8 @@ namespace Burrow
 {
     public interface IConsumerManager : IDisposable
     {
+        IMessageHandlerFactory MessageHandlerFactory { get; }
+
         /// <summary>
         /// Create a synchronous IBasicConsumer, this consumer should ack the message after handling it
         /// </summary>

@@ -10,24 +10,25 @@ namespace Burrow.Extras.Internal
 {
     internal class RabbitTunnelWithPriorityQueuesSupport : RabbitTunnel, ITunnelWithPrioritySupport
     {
-        public RabbitTunnelWithPriorityQueuesSupport(IRouteFinder routeFinder,
-                                                     IDurableConnection connection)
-            : this(new PriorityConsumerManager(Global.DefaultWatcher,
-                                       new PriorityMessageHandlerFactory(new ConsumerErrorHandler(connection.ConnectionFactory,
-                                                                                                  Global.DefaultSerializer,
-                                                                                                  Global.DefaultWatcher),
-                                                                             Global.DefaultWatcher),
+        private readonly PriorityConsumerManager _priorityConsumerManager;
+
+        public RabbitTunnelWithPriorityQueuesSupport(IRouteFinder routeFinder, IDurableConnection connection)
+            : this(new ConsumerManager(Global.DefaultWatcher, 
+                                       new DefaultMessageHandlerFactory(new ConsumerErrorHandler(connection.ConnectionFactory, 
+                                                                                                 Global.DefaultSerializer, 
+                                                                                                 Global.DefaultWatcher), 
+                                                                            Global.DefaultWatcher), 
                                        Global.DefaultSerializer),
-                   Global.DefaultWatcher,
-                   routeFinder,
+                   Global.DefaultWatcher, 
+                   routeFinder, 
                    connection,
-                   Global.DefaultSerializer,
+                   Global.DefaultSerializer, 
                    Global.DefaultCorrelationIdGenerator,
                    Global.DefaultPersistentMode)
         {
         }
 
-        public RabbitTunnelWithPriorityQueuesSupport(PriorityConsumerManager consumerManager,
+        public RabbitTunnelWithPriorityQueuesSupport(IConsumerManager consumerManager,
                                                      IRabbitWatcher watcher,
                                                      IRouteFinder routeFinder,
                                                      IDurableConnection connection,
@@ -36,6 +37,7 @@ namespace Burrow.Extras.Internal
                                                      bool setPersistent)
             : base(consumerManager, watcher, routeFinder, connection, serializer, correlationIdGenerator, setPersistent)
         {
+            _priorityConsumerManager = new PriorityConsumerManager(watcher, consumerManager.MessageHandlerFactory, serializer);
         }
 
         public void Publish<T>(T rabbit, uint priority)
@@ -75,28 +77,28 @@ namespace Burrow.Extras.Internal
         public void Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
             CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 
         public CompositeSubscription Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T, MessageDeliverEventArgs> onReceiveMessage, Type comparerType = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
             return CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 
         public void SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage, batchSize);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage, batchSize);
             CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 
         public CompositeSubscription SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T, MessageDeliverEventArgs> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage, batchSize);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage, batchSize);
             return CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 

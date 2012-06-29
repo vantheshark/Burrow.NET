@@ -55,17 +55,14 @@ Ofcourse you're gonna need a _connection string_ to RabbitMQ server, _exchange_ 
 ##3. DOCUMENT
 
 Documentation can be found at github wiki page: https://github.com/vanthoainguyen/Burrow.NET/wiki/Get-started-with-Burrow.NET    
-Or at Codeplex project page: http://burrow.codeplex.com/documentation
 
 Some blog posts:
 
 * [Messaging with RabbitMQ and Burrow.NET](http://thoai-nguyen.blogspot.com.au/2012/05/messaging-rabbitmq-and-burrownet.html)
 * [RabbitMQ Exchanges & Queues naming convention with Burrow.NET](http://thoai-nguyen.blogspot.com.au/2012/05/rabbitmq-exchange-queue-name-convention.html)
 * [Custom Burrow.NET TunnelFactory & RabbitMQ](http://thoai-nguyen.blogspot.com.au/2012/06/custom-burrownet-tunnelfactory-rabbitmq.html)
-
-
-
-
+* [Things you can easily change in Burrow.NET](http://thoai-nguyen.blogspot.com.au/2012/06/things-you-can-change-in-burrownet.html)
+* [Programmatically  create RabbitMQ Exchange and Queue with Burrow.NET](http://thoai-nguyen.blogspot.com.au/2012/06/programmatically-rabbitmq-exchange.html)
 
 Nuget library is also added at http://nuget.org/packages/Burrow.NET
 

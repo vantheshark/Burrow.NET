@@ -9,8 +9,9 @@ namespace Burrow.Internal
 {
     public class ConsumerManager : IConsumerManager
     {
+        public virtual IMessageHandlerFactory MessageHandlerFactory { get; private set; }
+
         protected readonly IRabbitWatcher _watcher;
-        protected readonly IMessageHandlerFactory _messageHandlerFactory;
         protected readonly ISerializer _serializer;
         protected readonly List<IBasicConsumer> _createdConsumers;
 
@@ -32,7 +33,7 @@ namespace Burrow.Internal
             }
 
             _watcher = watcher;
-            _messageHandlerFactory = messageHandlerFactory;
+            MessageHandlerFactory = messageHandlerFactory;
             _serializer = serializer;
             _createdConsumers = new List<IBasicConsumer>();
         }
@@ -40,7 +41,7 @@ namespace Burrow.Internal
         public virtual IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
         {
             var action = CreateJobFactory(onReceiveMessage);
-            var messageHandler = _messageHandlerFactory.Create(action);
+            var messageHandler = MessageHandlerFactory.Create(action);
             var consumer = new BurrowConsumer(channel, messageHandler, _watcher, true, 1);
             _createdConsumers.Add(consumer);
             return consumer;
@@ -49,7 +50,7 @@ namespace Burrow.Internal
         public virtual IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             var action = CreateJobFactory(subscriptionName, onReceiveMessage);
-            var messageHandler = _messageHandlerFactory.Create(action);
+            var messageHandler = MessageHandlerFactory.Create(action);
             var consumer = new BurrowConsumer(channel, messageHandler, _watcher, false, 1);
             _createdConsumers.Add(consumer);
             return consumer;
@@ -58,7 +59,7 @@ namespace Burrow.Internal
         public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage, ushort? batchSize)
         {
             var action = CreateJobFactory(onReceiveMessage);
-            var messageHandler = _messageHandlerFactory.Create(action);
+            var messageHandler = MessageHandlerFactory.Create(action);
             var consumer = new BurrowConsumer(channel, messageHandler, _watcher, true, (batchSize > 1 ? batchSize.Value : Global.DefaultConsumerBatchSize));
             _createdConsumers.Add(consumer);
             return consumer;
@@ -67,7 +68,7 @@ namespace Burrow.Internal
         public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize)
         {
             var action = CreateJobFactory(subscriptionName, onReceiveMessage);
-            var messageHandler = _messageHandlerFactory.Create(action);
+            var messageHandler = MessageHandlerFactory.Create(action);
             var consumer = new BurrowConsumer(channel, messageHandler, _watcher, false, (batchSize > 1 ? batchSize.Value : Global.DefaultConsumerBatchSize));
             _createdConsumers.Add(consumer);
             return consumer;
@@ -111,7 +112,7 @@ namespace Burrow.Internal
             if (!_disposed)
             {
                 ClearConsumers();
-                _messageHandlerFactory.Dispose();
+                MessageHandlerFactory.Dispose();
             }
             _disposed = true;
         }

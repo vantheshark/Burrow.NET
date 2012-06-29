@@ -26,8 +26,9 @@ namespace Burrow.Extras.Internal
 
             var durableConnection = new DurableConnection(new DefaultRetryPolicy(), rabbitWatcher, connectionFactory);
             var errorHandler = new ConsumerErrorHandler(connectionFactory, Global.DefaultSerializer, rabbitWatcher);
-            var msgHandlerFactory = new PriorityMessageHandlerFactory(errorHandler, rabbitWatcher);
-            var consumerManager = new PriorityConsumerManager(rabbitWatcher, msgHandlerFactory, Global.DefaultSerializer);
+            
+            var msgHandlerFactory = new DefaultMessageHandlerFactory(errorHandler, rabbitWatcher);
+            var consumerManager = new ConsumerManager(rabbitWatcher, msgHandlerFactory, Global.DefaultSerializer);
 
             return new RabbitTunnelWithPriorityQueuesSupport(consumerManager,
                                                              rabbitWatcher, 
