@@ -141,15 +141,23 @@ namespace Burrow.Extras.Internal
 
             Task.Factory.StartNew(() =>
             {
-                while (!_disposed && !_channelShutdown)
+                try
                 {
-                    _pool.WaitOne();
-                    var msg = PriorityQueue.Dequeue();
-                    if (msg != null && msg.Message != null)
+                    Thread.CurrentThread.Name = string.Format("Consumer thread: {0}, Priority queue: {1}", ConsumerTag, _queuePriorirty);
+                    while (!_disposed && !_channelShutdown)
                     {
-                        _messageHandler.BeforeHandlingMessage(this, msg.Message);
-                        HandleMessageDelivery(msg.Message);
+                        _pool.WaitOne();
+                        var msg = PriorityQueue.Dequeue();
+                        if (msg != null && msg.Message != null)
+                        {
+                            _messageHandler.BeforeHandlingMessage(this, msg.Message);
+                            HandleMessageDelivery(msg.Message);
+                        }
                     }
+                }
+                catch (ThreadAbortException)
+                {
+                    _watcher.WarnFormat("The consumer thread {0} on queue {1} is aborted", ConsumerTag, _queuePriorirty);
                 }
             });
         }
@@ -167,6 +175,7 @@ namespace Burrow.Extras.Internal
         {
             PriorityQueue.Close();
             _channelShutdown = true;
+            _watcher.WarnFormat("Channel on queue {0} P:{1} is shutdown: {2}", ConsumerTag, _queuePriorirty, reason.ReplyText);
         }
 
         protected internal void HandleMessageDelivery(BasicDeliverEventArgs basicDeliverEventArgs)

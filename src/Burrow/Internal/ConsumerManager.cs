@@ -38,7 +38,7 @@ namespace Burrow.Internal
             _createdConsumers = new List<IBasicConsumer>();
         }
 
-        public virtual IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage)
+        public virtual IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, Action<T> onReceiveMessage)
         {
             var action = CreateJobFactory(onReceiveMessage);
             var messageHandler = MessageHandlerFactory.Create(action);
@@ -47,7 +47,7 @@ namespace Burrow.Internal
             return consumer;
         }
 
-        public virtual IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage)
+        public virtual IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             var action = CreateJobFactory(subscriptionName, onReceiveMessage);
             var messageHandler = MessageHandlerFactory.Create(action);
@@ -56,7 +56,7 @@ namespace Burrow.Internal
             return consumer;
         }
 
-        public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T> onReceiveMessage, ushort? batchSize)
+        public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize)
         {
             var action = CreateJobFactory(onReceiveMessage);
             var messageHandler = MessageHandlerFactory.Create(action);
@@ -65,7 +65,7 @@ namespace Burrow.Internal
             return consumer;
         }
 
-        public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, string consumerTag, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize)
+        public virtual IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize)
         {
             var action = CreateJobFactory(subscriptionName, onReceiveMessage);
             var messageHandler = MessageHandlerFactory.Create(action);

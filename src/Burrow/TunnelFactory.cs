@@ -22,6 +22,9 @@ namespace Burrow
             }
         }
 
+        /// <summary>
+        /// This method should only be called before close the main app. It will close all openning connections to RabbitMQ server
+        /// </summary>
         public void CloseAllConnections()
         {
             DurableConnection.CloseAllConnections();

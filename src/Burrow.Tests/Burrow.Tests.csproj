@@ -132,8 +132,6 @@
     <Compile Include="Internal\DurableConnectionTests\DurableConnectionTestHelper.cs" />
     <Compile Include="Internal\DurableConnectionTests\MethodDispose.cs" />
     <Compile Include="Internal\DurableConnectionTests\MethodSharedConnectionShutdown.cs" />
-    <Compile Include="Internal\InteruptableSemaphoreTests\MethodResume.cs" />
-    <Compile Include="Internal\InteruptableSemaphoreTests\MethodInterupt.cs" />
     <Compile Include="Internal\JavascriptSerializerTests\MethodDeserialize.cs" />
     <Compile Include="Internal\JavascriptSerializerTests\MethodSerialize.cs" />
     <Compile Include="Internal\DurableConnectionTests\MethodConnect.cs" />

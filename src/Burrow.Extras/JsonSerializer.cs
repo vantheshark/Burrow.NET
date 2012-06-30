@@ -4,6 +4,9 @@ using Newtonsoft.Json;
 
 namespace Burrow.Extras
 {
+    /// <summary>
+    /// This class is responsible for serializing and deserializing objects using Json.NET
+    /// </summary>
     public class JsonSerializer : ISerializer
     {
         private readonly JsonSerializerSettings _settings = new JsonSerializerSettings

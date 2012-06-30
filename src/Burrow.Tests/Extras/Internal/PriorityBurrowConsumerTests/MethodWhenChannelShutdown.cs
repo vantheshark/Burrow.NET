@@ -30,7 +30,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
 
 
             // Action
-            consumer.WhenChannelShutdown(channel, null);
+            consumer.WhenChannelShutdown(channel, new ShutdownEventArgs(ShutdownInitiator.Application, 0, "Just shut it down"));
 
             // Assert
             consumer.Dispose();

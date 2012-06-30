@@ -261,28 +261,28 @@ namespace Burrow
         public void Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
             CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
         public Subscription Subscribe<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
             return CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
         public void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage, batchSize);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
             CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
         public Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage, batchSize);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
             return CreateSubscription<T>(subscriptionName, createConsumer);
         }
 

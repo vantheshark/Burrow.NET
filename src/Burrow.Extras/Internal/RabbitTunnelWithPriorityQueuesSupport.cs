@@ -77,28 +77,28 @@ namespace Burrow.Extras.Internal
         public void Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
             CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 
         public CompositeSubscription Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T, MessageDeliverEventArgs> onReceiveMessage, Type comparerType = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, consumerTag, onReceiveMessage);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
             return CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 
         public void SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage, batchSize);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
             CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 
         public CompositeSubscription SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T, MessageDeliverEventArgs> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, consumerTag, onReceiveMessage, batchSize);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
             return CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 

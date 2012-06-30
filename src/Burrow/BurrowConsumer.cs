@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
-using Burrow.Internal;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -17,7 +16,7 @@ namespace Burrow
 
         private readonly object _sharedQueueLock = new object();
         private readonly Thread _subscriptionCallbackThread;
-        protected InteruptableSemaphore _pool { get; private set; }
+        protected Semaphore _pool { get; private set; }
         private readonly IMessageHandler _messageHandler;
 
         public BurrowConsumer(IModel channel,
@@ -50,7 +49,7 @@ namespace Burrow
             Model.BasicRecoverAsync(true);
             BatchSize = batchSize;
 
-            _pool = new InteruptableSemaphore(BatchSize, BatchSize);
+            _pool = new Semaphore(BatchSize, BatchSize);
             _watcher = watcher;
             _autoAck = autoAck;
 
@@ -59,6 +58,7 @@ namespace Burrow
             _messageHandler.HandlingComplete += MessageHandlerHandlingComplete;
             _subscriptionCallbackThread = new Thread(_ =>
             {
+                Thread.CurrentThread.Name = string.Format("Consumer thread: {0}", ConsumerTag);
                 while (!_disposed)
                 {
                     try
@@ -74,6 +74,10 @@ namespace Burrow
                             _messageHandler.BeforeHandlingMessage(this, deliverEventArgs);
                             HandleMessageDelivery(deliverEventArgs);
                         }
+                    }
+                    catch(ThreadAbortException)
+                    {
+                        _watcher.WarnFormat("The consumer thread {0} is aborted", ConsumerTag);
                     }
                     catch (EndOfStreamException)
                     {
