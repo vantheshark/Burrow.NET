@@ -78,16 +78,38 @@ namespace Burrow.Internal
         {
             return eventArgs => Task.Factory.StartNew(() =>
             {
+                var currentThread = System.Threading.Thread.CurrentThread;
+                currentThread.IsBackground = true;
+#if DEBUG
+                _watcher.DebugFormat("4. A task to execute the provided callback with DTag: {0} by CTag: {1} has been started using {2}.",
+                                     eventArgs.DeliveryTag,
+                                     eventArgs.ConsumerTag,
+                                     currentThread.IsThreadPoolThread ? "ThreadPool" : "dedicated Thread");
+#endif
                 CheckMessageType<T>(eventArgs.BasicProperties);
                 var message = _serializer.Deserialize<T>(eventArgs.Body);
                 onReceiveMessage(message);
-            });
+#if DEBUG
+                _watcher.DebugFormat("5. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished successfully.",
+                                     eventArgs.DeliveryTag,
+                                     eventArgs.ConsumerTag);
+#endif
+            }, Global.DefaultTaskCreationOptionsProvider());
         }
 
         protected virtual Func<BasicDeliverEventArgs, Task> CreateJobFactory<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             return eventArgs => Task.Factory.StartNew(() =>
             {
+                var currentThread = System.Threading.Thread.CurrentThread;
+                currentThread.IsBackground = true;
+#if DEBUG
+                _watcher.DebugFormat("4. A task to execute the provided callback with DTag: {0} by CTag: {1} has been started using {2}.", 
+                                     eventArgs.DeliveryTag, 
+                                     eventArgs.ConsumerTag, 
+                                     currentThread.IsThreadPoolThread ? "ThreadPool" : "dedicated Thread");
+#endif
+                
                 CheckMessageType<T>(eventArgs.BasicProperties);
                 var message = _serializer.Deserialize<T>(eventArgs.Body);
                 onReceiveMessage(message, new MessageDeliverEventArgs
@@ -96,7 +118,12 @@ namespace Burrow.Internal
                     DeliveryTag = eventArgs.DeliveryTag,
                     SubscriptionName = subscriptionName
                 });
-            });
+#if DEBUG
+                _watcher.DebugFormat("5. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished successfully.", 
+                                     eventArgs.DeliveryTag, 
+                                     eventArgs.ConsumerTag);
+#endif
+            }, Global.DefaultTaskCreationOptionsProvider());
         }
 
         public void ClearConsumers()

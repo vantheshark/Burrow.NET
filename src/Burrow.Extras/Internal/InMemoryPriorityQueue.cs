@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace Burrow.Extras.Internal
         T Dequeue();
         void Enqueue(T item);
         int Count { get; }
+        void DeleteAll(Predicate<T> match);
     }
 
     internal class InMemoryPriorityQueue<T> : IInMemoryPriorityQueue<T> where T : IPriorityMessage
@@ -19,6 +21,27 @@ namespace Burrow.Extras.Internal
         protected volatile bool Closing;
         private readonly int _maxSize;
         protected IntervalHeap<T> PriorityQueue;
+
+
+        public void DeleteAll(Predicate<T> match)
+        {
+            lock (PriorityQueue)
+            {
+                Closing = false;
+                var all = PriorityQueue.ToList();
+                all.RemoveAll(match);
+
+                // Clear all items
+                while(PriorityQueue.Count > 0)
+                {
+                    PriorityQueue.DeleteMax();
+                }
+
+                // Add the rest
+                PriorityQueue.AddAll(all);
+                Monitor.PulseAll(PriorityQueue);
+            }
+        }
 
         public InMemoryPriorityQueue(int maxSize, IComparer<T> comparer)
         {
@@ -39,6 +62,7 @@ namespace Burrow.Extras.Internal
         {
             if (Closing)
             {
+                Monitor.PulseAll(PriorityQueue);
                 throw new EndOfStreamException("PriorityQueue closed");
             }
         }

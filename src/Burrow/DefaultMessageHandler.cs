@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -72,13 +73,58 @@ namespace Burrow
 
         public virtual void HandleMessage(IBasicConsumer consumer, BasicDeliverEventArgs eventArg)
         {
-            var completionTask = _jobFactory(eventArg);
+            var completionTask = _jobFactory(eventArg);            
+/*
+#if DEBUG            
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(3000);
+                if (completionTask.Status == TaskStatus.WaitingToRun || completionTask.Status == TaskStatus.WaitingForActivation)
+                {
+                    _watcher.DebugFormat("This demonsrate I can create task");
+                }
+            }, Global.DefaultTaskCreationOptionsProvider());
+
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(4000);
+                if (completionTask.Status == TaskStatus.WaitingToRun || completionTask.Status == TaskStatus.WaitingForActivation)
+                {
+                    _watcher.DebugFormat("This demonsrate I can create task using TaskCreationOptions.LongRunning");
+                }
+            }, TaskCreationOptions.LongRunning);
+
+            ThreadPool.QueueUserWorkItem(x =>
+            {
+                Thread.Sleep(5000);
+                if (completionTask.Status == TaskStatus.WaitingToRun || completionTask.Status == TaskStatus.WaitingForActivation)
+                {
+                    _watcher.DebugFormat("This demonsrate I can create thread pool");
+                }
+            });
+
+            var t = new Thread(() =>
+            {
+                Thread.Sleep(6000);
+                if (completionTask.Status == TaskStatus.WaitingToRun ||
+                    completionTask.Status == TaskStatus.WaitingForActivation)
+                {
+                    _watcher.DebugFormat("This demonsrate I can create thread");
+                }
+            }) {Priority = ThreadPriority.Highest};
+            t.Start();
+
+            var taskContinueOptions = Global.DefaultTaskContinuationOptionsProvider();
+            _watcher.DebugFormat("Task continue options is {0}", taskContinueOptions.ToString());
+#endif
+ */ 
             completionTask.ContinueWith(task =>
             {
                 try
                 {
                     if (task.IsFaulted)
                     {
+                        _watcher.DebugFormat("... A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished but there is an error: {2}", eventArg.DeliveryTag, eventArg.ConsumerTag, task.Exception == null ? "Unknown error" : task.Exception.StackTrace);
                         HandleError(consumer, eventArg, task.Exception);
                     }
                 }
@@ -98,7 +144,7 @@ namespace Burrow
                         HandlingComplete(eventArg);
                     }
                 }
-            });
+            }, Global.DefaultTaskContinuationOptionsProvider());
         }
     }
 }

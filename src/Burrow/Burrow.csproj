@@ -64,6 +64,7 @@
     <Compile Include="IMessageHandlerFactory.cs" />
     <Compile Include="Internal\BinarySerializer.cs" />
     <Compile Include="Internal\ConsoleWatcher.cs" />
+    <Compile Include="Internal\SafeSemaphore.cs" />
     <Compile Include="ISerializer.cs" />
     <Compile Include="Internal\BurrowError.cs" />
     <Compile Include="Internal\ConsumerErrorHandler.cs" />
@@ -84,6 +85,7 @@
     <Compile Include="RabbitTunnel.cs" />
     <Compile Include="BurrowConsumer.cs" />
     <Compile Include="Subscription.cs" />
+    <Compile Include="DefaultTaskCreationOptionProvider.cs" />
     <Compile Include="TunnelFactory.cs" />
   </ItemGroup>
   <ItemGroup>

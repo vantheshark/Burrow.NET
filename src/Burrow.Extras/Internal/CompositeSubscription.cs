@@ -43,34 +43,44 @@ namespace Burrow.Extras.Internal
         #region -- http://www.rabbitmq.com/amqp-0-9-1-reference.html#basic.ack.multiple --
         public void Ack(string consumerTag, ulong deliveryTag)
         {
-            _internalCache[consumerTag].Ack(deliveryTag);
+            TryAckOrNAck(consumerTag,  x => x.Ack(deliveryTag));
         }
 
         public void Ack(string consumerTag, IEnumerable<ulong> deliveryTags)
         {
-            _internalCache[consumerTag].Ack(deliveryTags);
+            TryAckOrNAck(consumerTag, x => x.Ack(deliveryTags));
         }
 
         public void AckAllOutstandingMessages(string consumerTag)
         {
-            _internalCache[consumerTag].AckAllOutstandingMessages();
+            TryAckOrNAck(consumerTag, x => x.AckAllOutstandingMessages());
         }
-
 
         public void Nack(string consumerTag, ulong deliveryTag, bool requeue)
         {
-            _internalCache[consumerTag].Nack(deliveryTag, requeue);
+            TryAckOrNAck(consumerTag, x => x.Nack(deliveryTag, requeue));
         }
 
         public void Nack(string consumerTag, IEnumerable<ulong> deliveryTags, bool requeue)
         {
-            _internalCache[consumerTag].Nack(deliveryTags, requeue);
+            TryAckOrNAck(consumerTag, x => x.Nack(deliveryTags, requeue));
         }
 
         public void NackAllOutstandingMessages(string consumerTag, bool requeue)
         {
-            _internalCache[consumerTag].NackAllOutstandingMessages(requeue);
+            TryAckOrNAck(consumerTag, x => x.NackAllOutstandingMessages(requeue));
         }
+
+        private void TryAckOrNAck(string consumerTag, Action<Subscription> action)
+        {
+            var sub = GetByConsumerTag(consumerTag);
+            if (sub == null)
+            {
+                throw new SubscriptionNotFoundException(consumerTag, string.Format("Subscription {0} not found, this problem could happen after a retry for new connection. You properly just ignore the old objects you're trying to ack/nack", consumerTag));
+            }
+            action(sub);
+        }
+
         #endregion
     }
 }

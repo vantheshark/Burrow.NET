@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using Burrow.Internal;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
 namespace Burrow
@@ -12,11 +12,11 @@ namespace Burrow
     {
         protected readonly IRabbitWatcher _watcher;
         private readonly bool _autoAck;
-        
+        private bool _channelShutdown;
 
         private readonly object _sharedQueueLock = new object();
         private readonly Thread _subscriptionCallbackThread;
-        protected Semaphore _pool { get; private set; }
+        protected SafeSemaphore _pool { get; private set; }
         private readonly IMessageHandler _messageHandler;
 
         public BurrowConsumer(IModel channel,
@@ -49,7 +49,7 @@ namespace Burrow
             Model.BasicRecoverAsync(true);
             BatchSize = batchSize;
 
-            _pool = new Semaphore(BatchSize, BatchSize);
+            _pool = new SafeSemaphore(watcher, BatchSize, BatchSize);
             _watcher = watcher;
             _autoAck = autoAck;
 
@@ -58,44 +58,79 @@ namespace Burrow
             _messageHandler.HandlingComplete += MessageHandlerHandlingComplete;
             _subscriptionCallbackThread = new Thread(_ =>
             {
-                Thread.CurrentThread.Name = string.Format("Consumer thread: {0}", ConsumerTag);
-                while (!_disposed)
+                try
                 {
-                    try
+                    Thread.CurrentThread.Name = string.Format("Consumer thread: {0}", ConsumerTag);
+                    while (!_disposed && !_channelShutdown)
                     {
-                        BasicDeliverEventArgs deliverEventArgs;
-                        lock (_sharedQueueLock)
+                        try
                         {
-                            _pool.WaitOne();
-                            deliverEventArgs = (BasicDeliverEventArgs) Queue.Dequeue();
+                            BasicDeliverEventArgs deliverEventArgs;
+                            lock (_sharedQueueLock)
+                            {
+#if DEBUG
+                                _watcher.DebugFormat("1. Wait the semaphore to release");
+                                _pool.WaitOne();
+                                _watcher.DebugFormat("2. Semaphore released, wait a msg from RabbitMQ. Probably a wait-for-ack message is blocking this");
+#else
+                                _pool.WaitOne();
+#endif
+
+                                deliverEventArgs = (BasicDeliverEventArgs)Queue.Dequeue();
+#if DEBUG
+                                _watcher.DebugFormat("3. Msg from RabbitMQ arrived (probably the previous msg has been acknownledged), prepare to handle it");
+#endif
+                            }
+                            if (deliverEventArgs != null)
+                            {
+                                _messageHandler.BeforeHandlingMessage(this, deliverEventArgs);
+                                HandleMessageDelivery(deliverEventArgs);
+                            }
+                            else
+                            {
+                                _watcher.ErrorFormat("3. Message arrived but it's not a BasicDeliverEventArgs for some reason, properly a serious BUG :D, contact author asap, release semaphore for other messages");
+                                _pool.Release();
+                            }
                         }
-                        if (deliverEventArgs != null)
+                        catch (EndOfStreamException)
                         {
-                            _messageHandler.BeforeHandlingMessage(this, deliverEventArgs);
-                            HandleMessageDelivery(deliverEventArgs);
+                            // do nothing here, EOS fired when queue is closed
+                            // Looks like the connection has gone away, so wait a little while
+                            // before continuing to poll the queue
+                            Thread.Sleep(100);
+                            _watcher.DebugFormat("EndOfStreamException occurs, release the semaphore for another message");
+                            _pool.Release();
                         }
-                    }
-                    catch(ThreadAbortException)
-                    {
-                        _watcher.WarnFormat("The consumer thread {0} is aborted", ConsumerTag);
-                    }
-                    catch (EndOfStreamException)
-                    {
-                        // do nothing here, EOS fired when queue is closed
-                        // Looks like the connection has gone away, so wait a little while
-                        // before continuing to poll the queue
-                        Thread.Sleep(10);
                     }
                 }
+                catch (ThreadStateException tse)
+                {
+                    _watcher.WarnFormat("The consumer thread {0} got a ThreadStateException: {1}, {2}", ConsumerTag, tse.Message, tse.StackTrace);
+                }
+                catch (ThreadInterruptedException)
+                {
+                    _watcher.WarnFormat("The consumer thread {0} is interrupted", ConsumerTag);
+                }
+                catch (ThreadAbortException)
+                {
+                    _watcher.WarnFormat("The consumer thread {0} is aborted", ConsumerTag);
+                }
             });
+            _subscriptionCallbackThread.IsBackground = true;
             _subscriptionCallbackThread.Start();
         }
 
         private void MessageHandlerHandlingComplete(BasicDeliverEventArgs eventArgs)
         {
+#if DEBUG
+            _watcher.DebugFormat("6. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished, now release the semaphore", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
+#endif
             _pool.Release();
             if (_autoAck)
             {
+#if DEBUG
+                _watcher.DebugFormat("7. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished, now release the semaphore", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
+#endif
                 DoAck(eventArgs, this);
             }
         }
@@ -103,7 +138,8 @@ namespace Burrow
         protected virtual void WhenChannelShutdown(IModel model, ShutdownEventArgs reason)
         {
             Queue.Close();
-            _subscriptionCallbackThread.Abort();
+            _channelShutdown = true;
+            _watcher.WarnFormat("Channel on queue {0} is shutdown: {1}", ConsumerTag, reason.ReplyText);
         }
 
         private void HandleMessageDelivery(BasicDeliverEventArgs basicDeliverEventArgs)
@@ -126,26 +162,12 @@ namespace Burrow
 
         protected virtual void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
         {
-            if (_disposed || !subscriptionInfo.Model.IsOpen)
+            if (_disposed)
             {
                 return;
             }
 
-            const string failedToAckMessage = "Basic ack failed because chanel was closed with message {0}. " +
-                                              "Message remains on RabbitMQ and will be retried.";
-
-            try
-            {
-                subscriptionInfo.Model.BasicAck(basicDeliverEventArgs.DeliveryTag, false);
-            }
-            catch (AlreadyClosedException alreadyClosedException)
-            {
-                _watcher.WarnFormat(failedToAckMessage, alreadyClosedException.Message);
-            }
-            catch (IOException ioException)
-            {
-                _watcher.WarnFormat(failedToAckMessage, ioException.Message);
-            }
+            Subscription.TryAckOrNAck(channel => channel.BasicAck(basicDeliverEventArgs.DeliveryTag, false), subscriptionInfo.Model, _watcher);
         }
 
         public int BatchSize { get; private set; }
@@ -159,6 +181,7 @@ namespace Burrow
             }
 
             _pool.Dispose();
+            
             Queue.Close();
             _disposed = true;
         }

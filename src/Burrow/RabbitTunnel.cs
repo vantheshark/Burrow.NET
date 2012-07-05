@@ -20,7 +20,7 @@ namespace Burrow
         private readonly ICorrelationIdGenerator _correlationIdGenerator;
 
         protected readonly List<IModel> _createdChannels = new List<IModel>();
-        protected readonly ConcurrentBag<Action> _subscribeActions;
+        protected readonly ConcurrentDictionary<Guid, Action> _subscribeActions;
 
         protected static readonly object _tunnelGate = new object();
         private readonly AutoResetEvent _autoResetEvent = new AutoResetEvent(true);
@@ -32,6 +32,7 @@ namespace Burrow
         
         public event Action OnOpened;
         public event Action OnClosed;
+        public event Action<Subscription> ConsumerDisconnected;
 
         public RabbitTunnel(IRouteFinder routeFinder,
                             IDurableConnection connection)
@@ -86,7 +87,7 @@ namespace Burrow
 
             _connection.Connected += OpenTunnel;
             _connection.Disconnected += CloseTunnel;
-            _subscribeActions = new ConcurrentBag<Action>();
+            _subscribeActions = new ConcurrentDictionary<Guid, Action>();
         }
 
         private void CloseTunnel()
@@ -104,9 +105,8 @@ namespace Burrow
                 _consumerManager.ClearConsumers();
 
                 //NOTE: Sometimes, disposing the channel blocks current thread
-                var task = new Task(() => _createdChannels.ForEach(DisposeChannel));
-                task.ContinueWith(t => _createdChannels.Clear());
-                task.Start();
+                var task = Task.Factory.StartNew(() => _createdChannels.ForEach(DisposeChannel), Global.DefaultTaskCreationOptionsProvider());
+                task.ContinueWith(t => _createdChannels.Clear(), Global.DefaultTaskContinuationOptionsProvider());
 
                 if (OnClosed != null)
                 {
@@ -125,8 +125,8 @@ namespace Burrow
             try
             {
                 CreatePublishChannel();
-                _watcher.DebugFormat("Re-subscribe to queues");
-                foreach (var subscription in _subscribeActions)
+                _watcher.InfoFormat("Re-subscribe to queues");
+                foreach (var subscription in _subscribeActions.Values)
                 {
                     TrySubscribe(subscription);
                 }
@@ -297,31 +297,68 @@ namespace Burrow
             }
         }
 
+        protected virtual void TryReconnect(IModel disconnectedChannel, Guid id, ShutdownEventArgs eventArgs)
+        {
+            _createdChannels.Remove(disconnectedChannel);
+            if (eventArgs.ReplyCode == 406 && eventArgs.ReplyText.StartsWith("PRECONDITION_FAILED - unknown delivery tag "))
+            {
+                _watcher.InfoFormat("Trying to re-subscribe to queue after 2 seconds ...");
+                new Timer(subscriptionId =>
+                {
+                    try
+                    {
+                        _subscribeActions[(Guid)subscriptionId]();
+                    }
+                    catch (Exception ex)
+                    {
+                        _watcher.Error(ex);
+                        throw;
+                    }
+                }, id, 2000, Timeout.Infinite);
+            }
+        }
+
         private Subscription CreateSubscription<T>(string subscriptionName, Func<IModel, string, IBasicConsumer> createConsumer)
         {
             var subscription = new Subscription { SubscriptionName = subscriptionName } ;
+            var id = Guid.NewGuid();
             Action subscriptionAction = () =>
             {
                 subscription.QueueName = _routeFinder.FindQueueName<T>(subscriptionName);
                 subscription.ConsumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
-
                 var channel = _connection.CreateChannel();
+                channel.ModelShutdown += (c, reason) => 
+                {
+                    RaiseConsumerDisconnectedEvent(subscription);
+                    TryReconnect(c, id, reason); 
+                };
                 channel.BasicQos(0, Global.PreFetchSize, false);
                 _createdChannels.Add(channel);
                 
                 subscription.SetChannel(channel);
 
                 var consumer = createConsumer(channel, subscription.ConsumerTag);
-
+                if (consumer is DefaultBasicConsumer)
+                {
+                    (consumer as DefaultBasicConsumer).ConsumerTag = subscription.ConsumerTag;
+                }
                 //NOTE: The message will still be on the Unacknowledged list until it's processed and the method
                 //      DoAck is call.
                 channel.BasicConsume(subscription.QueueName, false /* noAck, must be false */, subscription.ConsumerTag, consumer);
                 _watcher.InfoFormat("Subscribed to: {0} with subscriptionName: {1}", subscription.QueueName, subscription.SubscriptionName);
             };
 
-            _subscribeActions.Add(subscriptionAction);
+            _subscribeActions[id]= subscriptionAction;
             TrySubscribe(subscriptionAction);
             return subscription;
+        }
+
+        protected void RaiseConsumerDisconnectedEvent(Subscription subscription)
+        {
+            if (ConsumerDisconnected != null)
+            {
+                ConsumerDisconnected(subscription);
+            }
         }
 
         protected void TrySubscribe(Action subscription)
@@ -365,10 +402,8 @@ namespace Burrow
         public void Dispose()
         {
             //NOTE: Sometimes, disposing the channel blocks current thread
-            var task = new Task(() => _createdChannels.ForEach(DisposeChannel));
-            task.ContinueWith(t => _createdChannels.Clear());
-            task.Start();
-
+            var task = Task.Factory.StartNew(() => _createdChannels.ForEach(DisposeChannel), Global.DefaultTaskCreationOptionsProvider());
+            task.ContinueWith(t => _createdChannels.Clear(), Global.DefaultTaskContinuationOptionsProvider());
             
             if (_connection.IsConnected)
             {

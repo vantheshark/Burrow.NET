@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
+using Burrow.Internal;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 
 namespace Burrow.Extras.Internal
 {
@@ -18,8 +17,8 @@ namespace Burrow.Extras.Internal
         private readonly int _batchSize;
 
         private bool _channelShutdown;
-        
-        private Semaphore _pool;
+
+        private SafeSemaphore _pool;
         private CompositeSubscription _subscription;
         internal IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>> PriorityQueue;
         private uint _queuePriorirty;
@@ -114,6 +113,7 @@ namespace Burrow.Extras.Internal
             _subscription = subscription;
             _sharedSemaphore = sharedSemaphore;
             PriorityQueue = priorityQueue;
+            PriorityQueue.DeleteAll(msg => msg.Priority == priority);
         }
 
         public void Ready()
@@ -129,42 +129,81 @@ namespace Burrow.Extras.Internal
 
             lock (SyncRoot)
             {
-                try
-                {
-                    _pool = Semaphore.OpenExisting(_sharedSemaphore);
-                }
-                catch (WaitHandleCannotBeOpenedException)
-                {
-                    _pool = new Semaphore(_batchSize, _batchSize, _sharedSemaphore);
-                }
+                _pool = new SafeSemaphore(_watcher, _batchSize, _batchSize, _sharedSemaphore);
             }
 
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() => 
             {
                 try
                 {
                     Thread.CurrentThread.Name = string.Format("Consumer thread: {0}, Priority queue: {1}", ConsumerTag, _queuePriorirty);
                     while (!_disposed && !_channelShutdown)
                     {
-                        _pool.WaitOne();
-                        var msg = PriorityQueue.Dequeue();
-                        if (msg != null && msg.Message != null)
+                        try
                         {
-                            _messageHandler.BeforeHandlingMessage(this, msg.Message);
-                            HandleMessageDelivery(msg.Message);
+#if DEBUG
+                            _watcher.DebugFormat("1. Wait the semaphore to release");
+                            _pool.WaitOne();
+                            _watcher.DebugFormat("2. Semaphore released, wait a msg from RabbitMQ. Probably a wait-for-ack message is blocking this");
+#else
+                            _pool.WaitOne();
+#endif
+                            var msg = PriorityQueue.Dequeue();
+                            
+                            if (msg != null && msg.Message != null)
+                            {
+#if DEBUG
+                                _watcher.DebugFormat("3. Msg from RabbitMQ arrived (probably the previous msg has been acknownledged), prepare to handle it");
+#endif
+                                _messageHandler.BeforeHandlingMessage(this, msg.Message);
+                                HandleMessageDelivery(msg.Message);
+                            }
+                            else
+                            {
+                                _watcher.ErrorFormat("3. Msg from RabbitMQ arrived but it's NULL for some reason,  properly a serious BUG :D, contact author asap, release the semaphore for other messages");
+                                _pool.Release();
+                            }
+                        }
+                        catch (EndOfStreamException) // NOTE: Must keep the consumer thread alive
+                        {
+                            // Properly need to end this thread here because the new consumer will be created
+
+                            // do nothing here, EOS fired when queue is closed. Demonstrate that by stop the RabbitMQ service
+                            // Looks like the connection has gone away, so wait a little while
+                            // before continuing to poll the queue
+                            Thread.Sleep(100);
+                            _watcher.DebugFormat("EndOfStreamException occurs, release the semaphore for another message");
+                            _pool.Release();
                         }
                     }
+                }
+                catch (ThreadStateException tse)
+                {
+                    _watcher.WarnFormat("The consumer thread {0} on queue {1} got a ThreadStateException: {2}, {3}", ConsumerTag, _queuePriorirty, tse.Message, tse.StackTrace);
+                }
+                catch(ThreadInterruptedException)
+                {
+                    _watcher.WarnFormat("The consumer thread {0} on queue {1} is interrupted", ConsumerTag, _queuePriorirty);
                 }
                 catch (ThreadAbortException)
                 {
                     _watcher.WarnFormat("The consumer thread {0} on queue {1} is aborted", ConsumerTag, _queuePriorirty);
                 }
             });
+            thread.IsBackground = true;
+            thread.Start();
         }
 
         protected internal void MessageHandlerHandlingComplete(BasicDeliverEventArgs eventArgs)
         {
-            _pool.Release();
+            try
+            {
+                _pool.Release();
+            }
+            catch (Exception ex)
+            {
+                _watcher.Error(ex);
+            }
             if (_autoAck)
             {
                 DoAck(eventArgs);
@@ -206,21 +245,7 @@ namespace Burrow.Extras.Internal
                 return;
             }
 
-            const string failedToAckMessage = "Basic ack failed because chanel was closed with message {0}. " +
-                                              "Message remains on RabbitMQ and will be retried.";
-
-            try
-            {
-                _subscription.Ack(basicDeliverEventArgs.ConsumerTag, basicDeliverEventArgs.DeliveryTag);
-            }
-            catch (AlreadyClosedException alreadyClosedException)
-            {
-                _watcher.WarnFormat(failedToAckMessage, alreadyClosedException.Message);
-            }
-            catch (IOException ioException)
-            {
-                _watcher.WarnFormat(failedToAckMessage, ioException.Message);
-            }
+            _subscription.Ack(basicDeliverEventArgs.ConsumerTag, basicDeliverEventArgs.DeliveryTag);
         }
 
         private volatile bool _disposed;

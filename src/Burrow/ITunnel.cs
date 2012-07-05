@@ -8,6 +8,11 @@ namespace Burrow
 
         event Action OnClosed;
 
+        /// <summary>
+        /// This event will be fired once a consumer is disconnected, for example you ack a msg with wrong delivery id (I blame RabbitMQ.Client guys)
+        /// </summary>
+        event Action<Subscription> ConsumerDisconnected;
+
         bool IsOpened { get; }
 
         void Publish<T>(T rabbit);

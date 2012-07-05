@@ -124,15 +124,9 @@ namespace Burrow.Internal
 
             var connection = SharedConnections[ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost];
             var channel = connection.CreateModel();
-            channel.ModelShutdown += ChannelShutdown;
             return channel;
         }
-
-        private void ChannelShutdown(IModel model, ShutdownEventArgs reason)
-        {
-            _watcher.WarnFormat("Channel shutdown: {0}", reason.ReplyText);
-        }
-
+ 
         public void Dispose()
         {
             //Should not dispose connection here since other tunnel might use it

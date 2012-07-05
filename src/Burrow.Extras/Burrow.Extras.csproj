@@ -111,6 +111,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueueSetupData.cs" />
     <Compile Include="RabbitSetup.cs" />
+    <Compile Include="SubscriptionNotFoundException.cs" />
     <Compile Include="TunnelFactoryExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

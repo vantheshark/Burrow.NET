@@ -105,21 +105,31 @@ namespace Burrow.Extras.Internal
         private CompositeSubscription CreateSubscription<T>(string subscriptionName, uint maxPriorityLevel, Func<IModel, string, IBasicConsumer> createConsumer, Type comparerType)
         {
             var comparer = TryGetComparer(comparerType);
-            var result = new CompositeSubscription();
+            var compositeSubscription = new CompositeSubscription();
             var maxSize = Global.PreFetchSize * ((int)maxPriorityLevel + 1);
             var priorityQueue = new InMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>(maxSize, comparer);
             var sharedSemaphore = string.Format("{0}{1}", subscriptionName, Guid.NewGuid());
-
             for (uint level = 0; level <= maxPriorityLevel; level++)
             {
                 var subscription = new Subscription { SubscriptionName = subscriptionName };
                 uint priority = level;
+                var id = Guid.NewGuid();
+
                 Action subscriptionAction = () =>
                 {
                     subscription.QueueName = _routeFinder.FindQueueName<T>(subscriptionName) + PriorityQueuesRabbitSetup.GlobalPriorityQueueSuffix.Get(typeof(T), priority);
-                    subscription.ConsumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
-
+                    if (string.IsNullOrEmpty(subscription.ConsumerTag))
+                    {
+                        // Keep the key here because it's used for the key indexes of internal cache
+                        subscription.ConsumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
+                    }
                     var channel = _connection.CreateChannel();
+                    channel.ModelShutdown += (c, reason) =>
+                    {
+                        RaiseConsumerDisconnectedEvent(subscription);
+                        TryReconnect(c, id, reason); 
+                        
+                    };
                     channel.BasicQos(0, Global.PreFetchSize, false);
                     _createdChannels.Add(channel);
 
@@ -129,8 +139,9 @@ namespace Burrow.Extras.Internal
                     {
                         throw new NotSupportedException(string.Format("Expected PriorityBurrowConsumer but was {0}", consumer == null ? "NULL" : consumer.GetType().Name));
                     }
-
-                    priorityConsumer.Init(priorityQueue, result, priority, sharedSemaphore);
+                    
+                    priorityConsumer.Init(priorityQueue, compositeSubscription, priority, sharedSemaphore);
+                    priorityConsumer.ConsumerTag = subscription.ConsumerTag;
                     subscription.SetChannel(channel);
 
                     //NOTE: The message will still be on the Unacknowledged list until it's processed and the method
@@ -144,11 +155,11 @@ namespace Burrow.Extras.Internal
                     priorityConsumer.Ready();
                 };
 
-                _subscribeActions.Add(subscriptionAction);
+                _subscribeActions[id] = subscriptionAction;
                 TrySubscribe(subscriptionAction);
-                result.AddSubscription(subscription);
+                compositeSubscription.AddSubscription(subscription);
             }
-            return result;
+            return compositeSubscription;
         }
 
         private IComparer<GenericPriorityMessage<BasicDeliverEventArgs>> TryGetComparer(Type comparerType)
