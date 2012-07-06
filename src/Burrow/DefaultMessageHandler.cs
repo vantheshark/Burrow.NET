@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,50 +8,78 @@ using RabbitMQ.Client.Events;
 
 namespace Burrow
 {
-    public class DefaultMessageHandler : IMessageHandler
+    public class DefaultMessageHandler<T> : IMessageHandler
     {
+        protected readonly string _subscriptionName;
         protected readonly IRabbitWatcher _watcher;
-        protected readonly Func<BasicDeliverEventArgs, Task> _jobFactory;
+        protected readonly Action<T, MessageDeliverEventArgs> _msgHandlingAction;
         protected readonly IConsumerErrorHandler _consumerErrorHandler;
+        protected readonly ISerializer _messageSerializer;
 
         public event MessageHandlingEvent HandlingComplete;
 
-        public DefaultMessageHandler(IConsumerErrorHandler consumerErrorHandler,
-                                     Func<BasicDeliverEventArgs, Task> jobFactory,
+        public DefaultMessageHandler(string subscriptionName, 
+                                     Action<T, MessageDeliverEventArgs> msgHandlingAction,
+                                     IConsumerErrorHandler consumerErrorHandler, 
+                                     ISerializer messageSerializer, 
                                      IRabbitWatcher watcher)
         {
+            if (msgHandlingAction == null)
+            {
+                throw new ArgumentNullException("msgHandlingAction");
+            }
+
             if (consumerErrorHandler == null)
             {
                 throw new ArgumentNullException("consumerErrorHandler");
             }
-            if (jobFactory == null)
+
+            if (messageSerializer == null)
             {
-                throw new ArgumentNullException("jobFactory");
+                throw new ArgumentNullException("messageSerializer");
             }
+
             if (watcher == null)
             {
                 throw new ArgumentNullException("watcher");
             }
 
+            _subscriptionName = subscriptionName;
             _watcher = watcher;
             _consumerErrorHandler = consumerErrorHandler;
-            _jobFactory = jobFactory;
+            _messageSerializer = messageSerializer;
+            _msgHandlingAction = msgHandlingAction;
         }
 
-        public virtual void BeforeHandlingMessage(IBasicConsumer consumer, BasicDeliverEventArgs eventArg)
+        /// <summary>
+        /// If you want to do anything before handling the message, speak now or forever hold your peace!
+        /// </summary>
+        /// <param name="eventArg"></param>
+        protected virtual void BeforeHandlingMessage(BasicDeliverEventArgs eventArg)
         {
         }
 
-        public virtual void AfterHandlingMessage(IBasicConsumer consumer, BasicDeliverEventArgs eventArg)
+        /// <summary>
+        /// If you want to do anything before handling the message, speak now or forever hold your peace!
+        /// </summary>
+        /// <param name="eventArg"></param>
+        protected virtual void AfterHandlingMessage(BasicDeliverEventArgs eventArg)
         {
         }
 
-        public virtual void HandleError(IBasicConsumer consumer, BasicDeliverEventArgs eventArg, Exception exception)
+        /// <summary>
+        /// This method provide the default implementation of error handling.
+        /// Infact, it delegates the implementation to ConsumerErrorHandler
+        /// </summary>
+        /// <param name="eventArg"></param>
+        /// <param name="exception"></param>
+        public virtual void HandleError(BasicDeliverEventArgs eventArg, Exception exception)
         {
             _watcher.ErrorFormat(BuildErrorLogMessage(eventArg, exception));
             _consumerErrorHandler.HandleError(eventArg, exception);
         }
-
+        
+        [ExcludeFromCodeCoverage]
         protected virtual string BuildErrorLogMessage(BasicDeliverEventArgs basicDeliverEventArgs, Exception exception)
         {
             var message = Encoding.UTF8.GetString(basicDeliverEventArgs.Body);
@@ -71,80 +100,112 @@ namespace Burrow
                    string.Format(" Exception:\n{0}\n", exception);
         }
 
-        public virtual void HandleMessage(IBasicConsumer consumer, BasicDeliverEventArgs eventArg)
+        /// <summary>
+        /// This method creates a background Task to handle the job.
+        /// It will catches all exceptions
+        /// </summary>
+        /// <param name="eventArgs"></param>
+        public void HandleMessage(BasicDeliverEventArgs eventArgs)
         {
-            var completionTask = _jobFactory(eventArg);            
-/*
-#if DEBUG            
             Task.Factory.StartNew(() =>
-            {
-                Thread.Sleep(3000);
-                if (completionTask.Status == TaskStatus.WaitingToRun || completionTask.Status == TaskStatus.WaitingForActivation)
-                {
-                    _watcher.DebugFormat("This demonsrate I can create task");
-                }
-            }, Global.DefaultTaskCreationOptionsProvider());
-
-            Task.Factory.StartNew(() =>
-            {
-                Thread.Sleep(4000);
-                if (completionTask.Status == TaskStatus.WaitingToRun || completionTask.Status == TaskStatus.WaitingForActivation)
-                {
-                    _watcher.DebugFormat("This demonsrate I can create task using TaskCreationOptions.LongRunning");
-                }
-            }, TaskCreationOptions.LongRunning);
-
-            ThreadPool.QueueUserWorkItem(x =>
-            {
-                Thread.Sleep(5000);
-                if (completionTask.Status == TaskStatus.WaitingToRun || completionTask.Status == TaskStatus.WaitingForActivation)
-                {
-                    _watcher.DebugFormat("This demonsrate I can create thread pool");
-                }
-            });
-
-            var t = new Thread(() =>
-            {
-                Thread.Sleep(6000);
-                if (completionTask.Status == TaskStatus.WaitingToRun ||
-                    completionTask.Status == TaskStatus.WaitingForActivation)
-                {
-                    _watcher.DebugFormat("This demonsrate I can create thread");
-                }
-            }) {Priority = ThreadPriority.Highest};
-            t.Start();
-
-            var taskContinueOptions = Global.DefaultTaskContinuationOptionsProvider();
-            _watcher.DebugFormat("Task continue options is {0}", taskContinueOptions.ToString());
-#endif
- */ 
-            completionTask.ContinueWith(task =>
             {
                 try
                 {
-                    if (task.IsFaulted)
-                    {
-                        _watcher.DebugFormat("... A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished but there is an error: {2}", eventArg.DeliveryTag, eventArg.ConsumerTag, task.Exception == null ? "Unknown error" : task.Exception.StackTrace);
-                        HandleError(consumer, eventArg, task.Exception);
-                    }
+                    BeforeHandlingMessage(eventArgs);
+                    DoTheJob(eventArgs);
                 }
                 catch (Exception ex)
                 {
+#if DEBUG
+                    _watcher.ErrorFormat("5. The task to execute the provided callback with DTag: {0} by CTag: {1} has been finished but there is an error", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
+#endif
                     _watcher.Error(ex);
+                    try
+                    {
+                        HandleError(eventArgs, ex);
+                    }
+                    catch (Exception errorHandlingEx)
+                    {
+                        _watcher.ErrorFormat("Failed to handle the exception: {0} because of {1}", ex.Message, errorHandlingEx.StackTrace);
+                    }
                 }
                 finally
                 {
-                    // Broadcast msgs
-                    AfterHandlingMessage(consumer, eventArg);
-
-                    //NOTE: Only this way, the new event to interupt other consumers will override previous resume event
-                    if (HandlingComplete != null)
-                    {
-                        // Release pool + DoAck
-                        HandlingComplete(eventArg);
-                    }
+                    CleanUp(eventArgs);
                 }
-            }, Global.DefaultTaskContinuationOptionsProvider());
+                
+            }, Global.DefaultTaskCreationOptionsProvider());
+        }
+
+        /// <summary>
+        /// This method is actually invoke the callback providded to ITunnel when you subcribe to the queue
+        /// </summary>
+        /// <param name="eventArgs"></param>
+        protected virtual void DoTheJob(BasicDeliverEventArgs eventArgs)
+        {
+            var currentThread = Thread.CurrentThread;
+            currentThread.IsBackground = true;
+            currentThread.Priority = ThreadPriority.Highest;
+#if DEBUG
+            _watcher.DebugFormat("4. A task to execute the provided callback with DTag: {0} by CTag: {1} has been started using {2}.",
+                                 eventArgs.DeliveryTag,
+                                 eventArgs.ConsumerTag,
+                                 currentThread.IsThreadPoolThread ? "ThreadPool" : "dedicated Thread");
+#endif
+            CheckMessageType(eventArgs.BasicProperties);
+            var message = _messageSerializer.Deserialize<T>(eventArgs.Body);
+            _msgHandlingAction(message, new MessageDeliverEventArgs
+            {
+                ConsumerTag = eventArgs.ConsumerTag,
+                DeliveryTag = eventArgs.DeliveryTag,
+                SubscriptionName = _subscriptionName,
+            });
+#if DEBUG
+            _watcher.DebugFormat("5. The task to execute the provided callback with DTag: {0} by CTag: {1} has been finished successfully.",
+                                 eventArgs.DeliveryTag,
+                                 eventArgs.ConsumerTag);
+#endif
+        }
+
+        /// <summary>
+        /// This method is doing the dirty clean up job: Call the AfterHandlingMessage & fire HandlingComplete event
+        /// </summary>
+        /// <param name="eventArgs"></param>
+        internal void CleanUp(BasicDeliverEventArgs eventArgs)
+        {
+            try
+            {
+                AfterHandlingMessage(eventArgs);
+            }
+            catch (Exception afterHandlingMessageException)
+            {
+                _watcher.ErrorFormat("There is an error when trying to call AfterHandlingMessage method");
+                _watcher.Error(afterHandlingMessageException);
+            }
+
+            if (HandlingComplete != null)
+            {
+                try
+                {
+                    HandlingComplete(eventArgs);
+                }
+                catch (Exception exceptionWhenFiringHandlingCompleteEvent)
+                {
+                    // Properly should Release pool + DoAck on the BurrowConsumer object
+                    _watcher.ErrorFormat("There is an error when trying to fire HandlingComplete event");
+                    _watcher.Error(exceptionWhenFiringHandlingCompleteEvent);
+                }
+            }
+        }
+
+        protected void CheckMessageType(IBasicProperties properties)
+        {
+            var typeName = Global.DefaultTypeNameSerializer.Serialize(typeof(T));
+            if (properties.Type != typeName)
+            {
+                _watcher.ErrorFormat("Message type is incorrect. Expected '{0}', but was '{1}'", typeName, properties.Type);
+                throw new Exception(string.Format("Message type is incorrect. Expected '{0}', but was '{1}'", typeName, properties.Type));
+            }
         }
     }
 }

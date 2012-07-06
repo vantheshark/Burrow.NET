@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Diagnostics.CodeAnalysis;
 using Burrow.Internal;
 
 namespace Burrow
@@ -29,7 +30,8 @@ namespace Burrow
         {
             DurableConnection.CloseAllConnections();
         }
-
+        
+        [ExcludeFromCodeCoverage]
         public virtual ITunnel Create()
         {
             var rabbitConnectionString = ConfigurationManager.ConnectionStrings["RabbitMQ"];
@@ -74,7 +76,7 @@ namespace Burrow
 
             var durableConnection = new DurableConnection(new DefaultRetryPolicy(), rabbitWatcher, connectionFactory);
             var errorHandler = new ConsumerErrorHandler(connectionFactory, Global.DefaultSerializer, rabbitWatcher);
-            var msgHandlerFactory = new DefaultMessageHandlerFactory(errorHandler, rabbitWatcher);
+            var msgHandlerFactory = new DefaultMessageHandlerFactory(errorHandler, Global.DefaultSerializer, rabbitWatcher);
             var consumerManager = new ConsumerManager(rabbitWatcher, msgHandlerFactory, Global.DefaultSerializer);
 
             return new RabbitTunnel(consumerManager,

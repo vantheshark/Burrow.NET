@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using Burrow.Extras.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RabbitMQ.Client;
@@ -28,6 +30,26 @@ namespace Burrow.Tests.BurrowConsumerTests
             // Assert
             model.DidNotReceive().BasicAck(Arg.Any<ulong>(), Arg.Any<bool>());
             consumer.Dispose();
+        }
+
+        [TestMethod]
+        public void Should_do_nothing_if_already_disposed()
+        {
+            // Arrange
+            var waitHandler = new ManualResetEvent(false);
+            var model = Substitute.For<IModel>();
+            var consumer = new BurrowConsumerForTest(model, Substitute.For<IMessageHandler>(), Substitute.For<IRabbitWatcher>(), true, 3);
+            var queue = Substitute.For<IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>>();
+            queue.When(x => x.Dequeue()).Do(callInfo => waitHandler.WaitOne());
+           
+
+            // Action
+            consumer.Dispose();
+            consumer.DoAckForTest(new BasicDeliverEventArgs(), consumer);
+
+            // Assert
+            model.DidNotReceive().BasicAck(Arg.Any<ulong>(), Arg.Any<bool>());
+            waitHandler.Set();
         }
 
 

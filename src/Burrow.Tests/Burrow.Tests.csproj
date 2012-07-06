@@ -38,8 +38,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="NSubstitute">
-      <HintPath>..\packages\NSubstitute.1.4.0.0\lib\NET40\NSubstitute.dll</HintPath>
+    <Reference Include="NSubstitute, Version=1.4.2.0, Culture=neutral, PublicKeyToken=92dd2e9066daa5ca, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NSubstitute.1.4.2.0\lib\NET40\NSubstitute.dll</HintPath>
     </Reference>
     <Reference Include="RabbitMQ.Client">
       <HintPath>..\packages\RabbitMQ.Client.2.8.1\lib\net30\RabbitMQ.Client.dll</HintPath>
@@ -54,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BadMessageHandlerExceptionTests\PropertyMessage.cs" />
     <Compile Include="BurrowConsumerTests\BurrowConsumerForTest.cs" />
     <Compile Include="BurrowConsumerTests\Constructor.cs" />
     <Compile Include="BurrowConsumerTests\MethodHandleMessageDelivery.cs" />
@@ -66,9 +68,15 @@
     <Compile Include="ConstantRouteFinderTests\MethodFinds.cs" />
     <Compile Include="DefaultMessageHandlerFactoryTests\Constructor.cs" />
     <Compile Include="DefaultMessageHandlerTests\Constructor.cs" />
+    <Compile Include="DefaultMessageHandlerTests\DefaultMessageHandlerForTest.cs" />
+    <Compile Include="DefaultMessageHandlerTests\MethodCheckMessageType.cs" />
+    <Compile Include="DefaultMessageHandlerTests\MethodCleanUp.cs" />
     <Compile Include="DefaultMessageHandlerTests\MethodHandleError.cs" />
     <Compile Include="DefaultMessageHandlerTests\MethodHandleMessage.cs" />
+    <Compile Include="DefaultTaskCreationOptionProviderTests\MethodGetOptions.cs" />
     <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodGetByConsumerTag.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodTryAckOrNAck.cs" />
+    <Compile Include="Extras\Internal\InMemoryPriorityQueueTests\MethodDeleteAll.cs" />
     <Compile Include="Extras\Internal\InMemoryPriorityQueueTests\MethodEnqueue.cs" />
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\Constructor.cs" />
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodInit.cs" />
@@ -81,8 +89,7 @@
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodReady.cs" />
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodWhenChannelShutdown.cs" />
     <Compile Include="Extras\Internal\PriorityComparerTests\MethodCompare.cs" />
-    <Compile Include="Extras\Internal\PriorityConsumerManagerTests\MethodCreateJobFactory.cs" />
-    <Compile Include="Extras\Internal\PriorityConsumerManagerTests\PriorityConsumerManagerForTest.cs" />
+    <Compile Include="Extras\Internal\PriorityMessageHandlerTests\MethodDoTheJob.cs" />
     <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\RabbitTunnelWithPriorityQueuesSupportForTest.cs" />
     <Compile Include="Extras\PriorityQueuesRabbitSetupTests\MethodDestroy.cs" />
     <Compile Include="Extras\PriorityQueuesRabbitSetupTests\MethodSetupExchangeAndQueueFor.cs" />
@@ -106,6 +113,9 @@
     <Compile Include="Extras\PriorityQueueSetupDataTests\Constructor.cs" />
     <Compile Include="Extras\PriorityQueuesRabbitSetupTests\PriorityQueuesRabbitSetupForTest.cs" />
     <Compile Include="Extras\TunnelFactoryExtensionsTests\MethodChangePriorityQueueSuffixConvention.cs" />
+    <Compile Include="RabbitTunnelTests\MethodTryReconnect.cs" />
+    <Compile Include="RabbitTunnelTests\MethodRaiseConsumerDisconnectedEvent.cs" />
+    <Compile Include="SubscriptionTests\MethodTryAckOrNAck.cs" />
     <Compile Include="TunnelFactoryTests\MethodCloseAllConnections.cs" />
     <Compile Include="Extras\RabbitSetupTests\Customer.cs" />
     <Compile Include="Extras\RabbitSetupTests\MethodDestroy.cs" />
@@ -118,9 +128,6 @@
     <Compile Include="Internal\ConsumerErrorHandlerTests\Constructor.cs" />
     <Compile Include="Internal\ConsumerErrorHandlerTests\MethodHandleError.cs" />
     <Compile Include="Internal\ConsumerManagerTests\Constructor.cs" />
-    <Compile Include="Internal\ConsumerManagerTests\ConsumerManagerForTest.cs" />
-    <Compile Include="Internal\ConsumerManagerTests\MethodCheckMessageType.cs" />
-    <Compile Include="Internal\ConsumerManagerTests\MethodCreateJobFactory.cs" />
     <Compile Include="Internal\DefaultRetryPolicyTests\MethodReset.cs" />
     <Compile Include="Internal\DefaultRetryPolicyTests\MethodWaitForNextRetry.cs" />
     <Compile Include="Internal\DefaultRouteFinderTests\MethodQueueName.cs" />
@@ -128,7 +135,6 @@
     <Compile Include="Internal\DefaultRouteFinderTests\MethodFindExchangeName.cs" />
     <Compile Include="Internal\DurableConnectionTests\Constructor.cs" />
     <Compile Include="Internal\DurableConnectionTests\MethodCreateChannel.cs" />
-    <Compile Include="Internal\DurableConnectionTests\MethodChannelShutdown.cs" />
     <Compile Include="Internal\DurableConnectionTests\DurableConnectionTestHelper.cs" />
     <Compile Include="Internal\DurableConnectionTests\MethodDispose.cs" />
     <Compile Include="Internal\DurableConnectionTests\MethodSharedConnectionShutdown.cs" />

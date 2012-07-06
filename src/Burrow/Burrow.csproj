@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BadMessageHandlerException.cs" />
     <Compile Include="DefaultMessageHandler.cs" />
     <Compile Include="ConnectionString.cs" />
     <Compile Include="DefaultMessageHandlerFactory.cs" />

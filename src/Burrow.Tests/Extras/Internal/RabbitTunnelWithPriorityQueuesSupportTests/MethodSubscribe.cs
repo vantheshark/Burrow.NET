@@ -1,8 +1,10 @@
-﻿using Burrow.Extras.Internal;
+﻿using System;
+using Burrow.Extras.Internal;
 using Burrow.Tests.Extras.RabbitSetupTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTests
@@ -49,6 +51,42 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             newChannel.Received().BasicConsume("Queue_Priority3", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());
             Assert.IsInstanceOfType(subs, typeof(CompositeSubscription));
             Assert.AreEqual(4, subs.Count);
+        }
+
+        [TestMethod]
+        public void Should_register_ModelShutdown_event_on_each_created_channel()
+        {
+            // Arrange
+            var call = false;
+            var newChannel = Substitute.For<IModel>();
+            newChannel.IsOpen.Returns(true);
+            IDurableConnection durableConnection;
+            var tunnel = RabbitTunnelWithPriorityQueuesSupportForTest.CreateTunnel(newChannel, out durableConnection);
+            tunnel.ConsumerDisconnected += s => { call = true; };
+            tunnel.Subscribe<Customer>("subscriptionName", 3, (x, y) => { });
+            
+            // Action
+            newChannel.ModelShutdown += Raise.Event<ModelShutdownEventHandler>(newChannel, new ShutdownEventArgs(ShutdownInitiator.Peer, 0, "Shutdown"));
+
+            // Assert
+            Assert.IsTrue(call);
+        }
+
+        [TestMethod, ExpectedException(typeof(ArgumentException))]
+        public void Should_throw_exception_if_provide_invalid_Comparer()
+        {
+            // Arrange
+            var call = false;
+            var newChannel = Substitute.For<IModel>();
+            newChannel.IsOpen.Returns(true);
+            IDurableConnection durableConnection;
+            var tunnel = RabbitTunnelWithPriorityQueuesSupportForTest.CreateTunnel(newChannel, out durableConnection);
+            tunnel.ConsumerDisconnected += s => { call = true; };
+
+            // Action
+            //tunnel.Subscribe<Customer>("subscriptionName", 3, (x, y) => { }, typeof(PriorityComparer<>));
+            tunnel.Subscribe<Customer>("subscriptionName", 3, (x, y) => { }, typeof(Customer));
+          
         }
     }
 }

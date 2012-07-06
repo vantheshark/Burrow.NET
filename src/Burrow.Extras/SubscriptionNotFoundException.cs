@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Burrow.Extras
 {
+    [ExcludeFromCodeCoverage]
     public class SubscriptionNotFoundException : Exception
     {
         public string Name { get; private set; }

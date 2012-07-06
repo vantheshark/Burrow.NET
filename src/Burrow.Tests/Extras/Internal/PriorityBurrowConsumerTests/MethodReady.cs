@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using Burrow.Extras.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -56,15 +57,97 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             var sub = Substitute.For<CompositeSubscription>();
             sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });
             consumer.Init(queue, sub, 1, Guid.NewGuid().ToString());
-            consumer.Ready();
-
 
             // Action
+            consumer.Ready();
             dequeueCount.WaitOne();
             consumer.PriorityQueue.Enqueue(new GenericPriorityMessage<BasicDeliverEventArgs>(new BasicDeliverEventArgs(), 1));
             enqueueCount.WaitOne();
             
             
+
+            // Assert
+            consumer.Dispose();
+        }
+
+        [TestMethod]
+        public void Should_catch_EndOfStreamException()
+        {
+            // Arrange
+            var count = new CountdownEvent(2);
+            var channel = Substitute.For<IModel>();
+            var watcher = Substitute.For<IRabbitWatcher>();
+            var queue = Substitute.For<IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>>();
+            queue.When(x => x.Dequeue()).Do(callInfo => {
+                count.Signal();
+                throw new EndOfStreamException();                
+            });
+            var consumer = new PriorityBurrowConsumer(channel, Substitute.For<IMessageHandler>(), watcher, true, 2);
+
+            var sub = Substitute.For<CompositeSubscription>();
+            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });
+            consumer.Init(queue, sub, 1, Guid.NewGuid().ToString());
+            
+
+            // Action
+            consumer.Ready();
+            count.Wait();
+
+            // Assert
+            consumer.Dispose();
+        }
+
+        [TestMethod]
+        public void Should_catch_ThreadStateException()
+        {
+            // Arrange
+            var count = new AutoResetEvent(false);
+            var channel = Substitute.For<IModel>();
+            var watcher = Substitute.For<IRabbitWatcher>();
+            watcher.When(w => w.WarnFormat(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<uint>(), Arg.Any<string>(), Arg.Any<string>())).Do(c => count.Set());
+            var queue = Substitute.For<IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>>();
+            queue.When(x => x.Dequeue()).Do(callInfo =>
+            {
+                throw new ThreadStateException();
+            });
+            var consumer = new PriorityBurrowConsumer(channel, Substitute.For<IMessageHandler>(), watcher, true, 2);
+
+            var sub = Substitute.For<CompositeSubscription>();
+            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });
+            consumer.Init(queue, sub, 1, Guid.NewGuid().ToString());
+
+
+            // Action
+            consumer.Ready();
+            count.WaitOne(2000);
+
+            // Assert
+            consumer.Dispose();
+        }
+
+        [TestMethod]
+        public void Should_catch_ThreadInterruptedException()
+        {
+            // Arrange
+            var count = new AutoResetEvent(false);
+            var channel = Substitute.For<IModel>();
+            var watcher = Substitute.For<IRabbitWatcher>();
+            watcher.When(w => w.WarnFormat(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<uint>(), Arg.Any<string>(), Arg.Any<string>())).Do(c => count.Set());
+            var queue = Substitute.For<IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>>();
+            queue.When(x => x.Dequeue()).Do(callInfo =>
+            {
+                throw new ThreadInterruptedException();
+            });
+            var consumer = new PriorityBurrowConsumer(channel, Substitute.For<IMessageHandler>(), watcher, true, 2);
+
+            var sub = Substitute.For<CompositeSubscription>();
+            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });
+            consumer.Init(queue, sub, 1, Guid.NewGuid().ToString());
+
+
+            // Action
+            consumer.Ready();
+            count.WaitOne(2000);
 
             // Assert
             consumer.Dispose();

@@ -40,7 +40,8 @@ namespace Burrow
                                        new DefaultMessageHandlerFactory(new ConsumerErrorHandler(connection.ConnectionFactory, 
                                                                                                  Global.DefaultSerializer, 
                                                                                                  Global.DefaultWatcher), 
-                                                                            Global.DefaultWatcher), 
+                                                                        Global.DefaultSerializer,
+                                                                        Global.DefaultWatcher), 
                                        Global.DefaultSerializer),
                    Global.DefaultWatcher, 
                    routeFinder, 
@@ -303,18 +304,19 @@ namespace Burrow
             if (eventArgs.ReplyCode == 406 && eventArgs.ReplyText.StartsWith("PRECONDITION_FAILED - unknown delivery tag "))
             {
                 _watcher.InfoFormat("Trying to re-subscribe to queue after 2 seconds ...");
-                new Timer(subscriptionId =>
-                {
-                    try
-                    {
-                        _subscribeActions[(Guid)subscriptionId]();
-                    }
-                    catch (Exception ex)
-                    {
-                        _watcher.Error(ex);
-                        throw;
-                    }
-                }, id, 2000, Timeout.Infinite);
+                new Timer(subscriptionId => ExecuteSubscription((Guid) subscriptionId), id, 2000, Timeout.Infinite);
+            }
+        }
+
+        internal void ExecuteSubscription(Guid id)
+        {
+            try
+            {
+                _subscribeActions[id]();
+            }
+            catch (Exception ex)
+            {
+                _watcher.Error(ex);
             }
         }
 

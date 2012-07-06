@@ -17,7 +17,8 @@ namespace Burrow.Extras.Internal
                                        new DefaultMessageHandlerFactory(new ConsumerErrorHandler(connection.ConnectionFactory, 
                                                                                                  Global.DefaultSerializer, 
                                                                                                  Global.DefaultWatcher), 
-                                                                            Global.DefaultWatcher), 
+                                                                        Global.DefaultSerializer,
+                                                                        Global.DefaultWatcher), 
                                        Global.DefaultSerializer),
                    Global.DefaultWatcher, 
                    routeFinder, 
@@ -164,14 +165,16 @@ namespace Burrow.Extras.Internal
 
         private IComparer<GenericPriorityMessage<BasicDeliverEventArgs>> TryGetComparer(Type comparerType)
         {
-            var type = comparerType ?? typeof(PriorityComparer<>);
-            if (type.IsAssignableFrom(typeof(IComparer<>)))
+            try
             {
-                throw new ArgumentException("comparerType must be assignable from IComparer<>", "comparerType");
+                var type = comparerType ?? typeof(PriorityComparer<>);
+                var t = type.MakeGenericType(typeof(GenericPriorityMessage<BasicDeliverEventArgs>));
+                return (IComparer<GenericPriorityMessage<BasicDeliverEventArgs>>)Activator.CreateInstance(t);
             }
-
-            var t = type.MakeGenericType(typeof(GenericPriorityMessage<BasicDeliverEventArgs>));
-            return (IComparer<GenericPriorityMessage<BasicDeliverEventArgs>>)Activator.CreateInstance(t);
+            catch (Exception ex)
+            {
+                throw new ArgumentException("comparerType must be assignable from IComparer<>", "comparerType", ex);
+            }
         }
     }
 }

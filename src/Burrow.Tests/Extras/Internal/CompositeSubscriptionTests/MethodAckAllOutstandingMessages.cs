@@ -14,6 +14,7 @@ namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
         {
             // Arrange
             var channel = Substitute.For<IModel>();
+            channel.IsOpen.Returns(true);
             var subs = new CompositeSubscription();
             var subscription = new Subscription
             {

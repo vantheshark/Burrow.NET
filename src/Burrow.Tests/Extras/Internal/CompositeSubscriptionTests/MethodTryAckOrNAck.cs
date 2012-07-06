@@ -1,4 +1,5 @@
-﻿using Burrow.Extras.Internal;
+﻿using Burrow.Extras;
+using Burrow.Extras.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RabbitMQ.Client;
@@ -7,10 +8,10 @@ using RabbitMQ.Client;
 namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
 {
     [TestClass]
-    public class MethodNackAllOutstandingMessages
+    public class MethodTryAckOrNAck
     {
-        [TestMethod]
-        public void Should_call_NackAllOutstandingMessages_on_nested_subscription()
+        [TestMethod, ExpectedException(typeof(SubscriptionNotFoundException))]
+        public void Should_throw_SubscriptionNotFoundException_if_subscription_not_found()
         {
             // Arrange
             var channel = Substitute.For<IModel>();
@@ -26,10 +27,7 @@ namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
             subs.AddSubscription(subscription);
 
             // Action
-            subs.NackAllOutstandingMessages("ConsumerTag", true);
-
-            // Assert
-            channel.Received().BasicNack(0, true, true);
+            subs.NackAllOutstandingMessages("ConsumerTagNotFound", true);
         }
     }
 }

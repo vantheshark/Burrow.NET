@@ -1,19 +1,17 @@
 using System;
-using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
 
 namespace Burrow.Extras.Internal
 {
     internal class PriorityMessageHandlerFactory : DefaultMessageHandlerFactory
     {
-        public PriorityMessageHandlerFactory(IConsumerErrorHandler consumerErrorHandler, IRabbitWatcher watcher) 
-            : base(consumerErrorHandler, watcher)
+        public PriorityMessageHandlerFactory(IConsumerErrorHandler consumerErrorHandler, ISerializer messageSerializer, IRabbitWatcher watcher) 
+            : base(consumerErrorHandler, messageSerializer, watcher)
         {
         }
 
-        public override IMessageHandler Create(Func<BasicDeliverEventArgs, Task> jobFactory)
+        public override IMessageHandler Create<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> msgHandlingAction)
         {
-            return new PriorityMessageHandler(_consumerErrorHandler, jobFactory, _watcher);
-        }
+            return new PriorityMessageHandler<T>(subscriptionName, msgHandlingAction, _consumerErrorHandler, _messageSerializer, _watcher);
+        } 
     }
 }

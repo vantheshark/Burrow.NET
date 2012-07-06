@@ -47,6 +47,26 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             // Action
             consumer.Init(queue, new CompositeSubscription(), 1, null);
         }
+
+        [TestMethod]
+        public void Should_delete_all_existing_msgs_that_have_same_priority()
+        {
+            // Arrange
+            var channel = Substitute.For<IModel>();
+            var consumer = new PriorityBurrowConsumer(channel, Substitute.For<IMessageHandler>(), Substitute.For<IRabbitWatcher>(), true, 1);
+            var queue = new InMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>(5, new PriorityComparer<GenericPriorityMessage<BasicDeliverEventArgs>>());
+            queue.Enqueue(new GenericPriorityMessage<BasicDeliverEventArgs>(new BasicDeliverEventArgs(), 2));
+            queue.Enqueue(new GenericPriorityMessage<BasicDeliverEventArgs>(new BasicDeliverEventArgs(), 2));
+            queue.Enqueue(new GenericPriorityMessage<BasicDeliverEventArgs>(new BasicDeliverEventArgs(), 2));
+            queue.Enqueue(new GenericPriorityMessage<BasicDeliverEventArgs>(new BasicDeliverEventArgs(), 2));
+            
+
+            // Action
+            consumer.Init(queue, new CompositeSubscription(), 2, "sem");
+
+            // Assert
+            Assert.AreEqual(0, queue.Count);
+        }
     }
 }
 // ReSharper restore InconsistentNaming

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Burrow.Tests.Extras.RabbitSetupTests;
 using NSubstitute;
 using RabbitMQ.Client;
@@ -48,6 +50,16 @@ namespace Burrow.Tests.RabbitTunnelTests
             OnBrokerReceivedMessageIsCall = true;
         }
 
+        public ConcurrentDictionary<Guid, Action> SubscribeActions
+        {
+            get { return _subscribeActions; }
+        }
+
+        public List<IModel> CreatedChannels
+        {
+            get { return _createdChannels; }
+        }
+
 
         public bool? OnBrokerRejectedMessageIsCall;
         protected override void OnBrokerRejectedMessage(IModel model, RabbitMQ.Client.Events.BasicNackEventArgs args)
@@ -65,6 +77,16 @@ namespace Burrow.Tests.RabbitTunnelTests
         public void TrySubscribeForTest(Action subscription)
         {
             TrySubscribe(subscription);
+        }
+
+        public void PublicRaiseConsumerDisconnectedEvent(Subscription subscription)
+        {
+            RaiseConsumerDisconnectedEvent(subscription);
+        }
+
+        public void PublicTryReconnect(IModel disconnectedChannel, Guid id, ShutdownEventArgs eventArgs)
+        {
+            TryReconnect(disconnectedChannel, id, eventArgs);
         }
     }
 }

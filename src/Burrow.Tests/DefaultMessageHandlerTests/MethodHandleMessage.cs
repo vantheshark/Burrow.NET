@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
+using Burrow.Tests.Extras.RabbitSetupTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RabbitMQ.Client;
@@ -18,13 +18,13 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
             // Arrange
             var are = new AutoResetEvent(false);
             var errorHanlder = Substitute.For<IConsumerErrorHandler>();
-            Func<BasicDeliverEventArgs, Task> taskFactory = x => Task.Factory.StartNew(() => { });
-            var handler = new DefaultMessageHandler(errorHanlder, taskFactory, Substitute.For<IRabbitWatcher>());
+            var handler = new DefaultMessageHandler<Customer>("SubscriptionName", Substitute.For<Action<Customer, MessageDeliverEventArgs>>(), errorHanlder, Substitute.For<ISerializer>(), Substitute.For<IRabbitWatcher>());
             handler.HandlingComplete += x => are.Set();
-
+            var p = Substitute.For<IBasicProperties>();
+            p.Type = Global.DefaultTypeNameSerializer.Serialize(typeof(Customer));
 
             // Action
-            handler.HandleMessage(Substitute.For<IBasicConsumer>(), new BasicDeliverEventArgs("tag", 1, false, "e", "r", Substitute.For<IBasicProperties>(), new byte[0]));
+            handler.HandleMessage(new BasicDeliverEventArgs("tag", 1, false, "e", "r", p, new byte[0]));
 
             // Assert
             are.WaitOne();
@@ -38,12 +38,12 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
             // Arrange
             var are = new AutoResetEvent(false);
             var errorHanlder = Substitute.For<IConsumerErrorHandler>();
-            Func<BasicDeliverEventArgs, Task> taskFactory = x => Task.Factory.StartNew(() => { throw new Exception("Task executed failed");});
-            var handler = new DefaultMessageHandler(errorHanlder, taskFactory, Substitute.For<IRabbitWatcher>());
+            Action<Customer, MessageDeliverEventArgs> taskFactory = (x, y) => { throw new Exception("Task executed failed"); };
+            var handler = new DefaultMessageHandler<Customer>("SubscriptionName", taskFactory, errorHanlder, Substitute.For<ISerializer>(), Substitute.For<IRabbitWatcher>());
             handler.HandlingComplete += x => are.Set();
 
             // Action
-            handler.HandleMessage(Substitute.For<IBasicConsumer>(), new BasicDeliverEventArgs("tag", 1, false, "e", "r", Substitute.For<IBasicProperties>(), new byte[0]));
+            handler.HandleMessage(new BasicDeliverEventArgs("tag", 1, false, "e", "r", Substitute.For<IBasicProperties>(), new byte[0]));
 
             // Assert
             are.WaitOne();
@@ -58,17 +58,21 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
             var are = new AutoResetEvent(false);
             var errorHanlder = Substitute.For<IConsumerErrorHandler>();
             errorHanlder.When(x => x.HandleError(Arg.Any<BasicDeliverEventArgs>(), Arg.Any<Exception>())).Do(callInfo => { throw new Exception("Cannot handle error"); });
-            Func<BasicDeliverEventArgs, Task> taskFactory = x => Task.Factory.StartNew(() => { throw new Exception("Task executed failed"); });
+            Action<Customer, MessageDeliverEventArgs> taskFactory = (x, y) => { throw new Exception("Task executed failed"); };
             var watcher = Substitute.For<IRabbitWatcher>();
-            var handler = new DefaultMessageHandler(errorHanlder, taskFactory, watcher);
+            var handler = new DefaultMessageHandler<Customer>("SubscriptionName", taskFactory, errorHanlder, Substitute.For<ISerializer>(), watcher);
             handler.HandlingComplete += x => are.Set();
 
+            var p = Substitute.For<IBasicProperties>();
+            p.Type = Global.DefaultTypeNameSerializer.Serialize(typeof (Customer));
+
             // Action
-            handler.HandleMessage(Substitute.For<IBasicConsumer>(), new BasicDeliverEventArgs("tag", 1, false, "e", "r", Substitute.For<IBasicProperties>(), new byte[0]));
+            handler.HandleMessage(new BasicDeliverEventArgs("tag", 1, false, "e", "r", p, new byte[0]));
 
             // Assert
             are.WaitOne();
-            watcher.Received().Error(Arg.Is<Exception>(x => x.Message == "Cannot handle error"));
+            watcher.Received().Error(Arg.Is<Exception>(x => x.Message == "Task executed failed"));
+            watcher.Received().ErrorFormat(Arg.Is<string>(x => x.StartsWith("Failed to handle the exception: ")), Arg.Any<object>(), Arg.Any<object>());
 
         }
     }

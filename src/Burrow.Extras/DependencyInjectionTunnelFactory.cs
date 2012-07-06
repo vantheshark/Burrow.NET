@@ -41,7 +41,7 @@ namespace Burrow.Extras
                                                                                       serializer,
                                                                                       rabbitWatcher);
 
-            Func<IMessageHandlerFactory> handlerFactory = () => new DefaultMessageHandlerFactory(_burrowResolver.Resolve<IConsumerErrorHandler>() ?? errorHandler(), rabbitWatcher);
+            Func<IMessageHandlerFactory> handlerFactory = () => new DefaultMessageHandlerFactory(_burrowResolver.Resolve<IConsumerErrorHandler>() ?? errorHandler(), serializer, rabbitWatcher);
 
 
             Func<IConsumerManager> consumerManager = () => new ConsumerManager(rabbitWatcher,

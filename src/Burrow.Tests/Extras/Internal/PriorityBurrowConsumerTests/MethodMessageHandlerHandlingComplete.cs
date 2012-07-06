@@ -44,32 +44,57 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
         public void Should_ack_if_auto_ack()
         {
             // Arrange
-            var blockTheThread = new AutoResetEvent(false);
-            var waitForFirstDequeue = new AutoResetEvent(false);
-            var countdownEvent = new CountdownEvent(1);
-
-            var channel = Substitute.For<IModel>();
-            channel.When(x => x.BasicAck(Arg.Any<ulong>(), Arg.Any<bool>())).Do(callInfo => countdownEvent.Signal());
-
+            var waitHandler = new ManualResetEvent(false);
             var queue = Substitute.For<IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>>();
-            queue.When(x => x.Dequeue()).Do(callInfo => { waitForFirstDequeue.Set(); blockTheThread.WaitOne(); });
+            queue.When(x => x.Dequeue()).Do(callInfo => waitHandler.WaitOne());
 
-            var consumer = new PriorityBurrowConsumer(channel, Substitute.For<IMessageHandler>(), Substitute.For<IRabbitWatcher>(), true, 1);
+            var model = Substitute.For<IModel>();
+            model.IsOpen.Returns(true);
+            model.When(x => x.BasicAck(Arg.Any<ulong>(), Arg.Any<bool>())).Do(callInfo => waitHandler.Set());
 
-            var sub = Substitute.For<CompositeSubscription>();
-            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });
-            consumer.Init(queue, sub, 1, Guid.NewGuid().ToString());
+            var handler = Substitute.For<IMessageHandler>();
+            var subscription = new CompositeSubscription();
+            subscription.AddSubscription(new Subscription(model) {ConsumerTag = "ConsumerTag"});
+
+            var consumer = new PriorityBurrowConsumer(model, handler, Substitute.For<IRabbitWatcher>(), true, 1);
+            consumer.Init(queue, subscription, 1, Guid.NewGuid().ToString());
             consumer.Ready();
 
-
             // Action
-            waitForFirstDequeue.WaitOne();
-            consumer.MessageHandlerHandlingComplete(new BasicDeliverEventArgs("Burrow", 1, true, "", "", null, null));
+            handler.HandlingComplete += Raise.Event<MessageHandlingEvent>(new BasicDeliverEventArgs{ConsumerTag = "ConsumerTag"});
+            waitHandler.WaitOne();
 
             // Assert
-            countdownEvent.Wait();
+            model.Received(1).BasicAck(Arg.Any<ulong>(), false);
             consumer.Dispose();
-            blockTheThread.Set();
+        }
+
+        [TestMethod]
+        public void Should_not_ack_if_not_auto_ack()
+        {
+            // Arrange
+            var waitHandler = new ManualResetEvent(false);
+            var queue = Substitute.For<IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>>();
+            queue.When(x => x.Dequeue()).Do(callInfo => waitHandler.WaitOne());
+
+            var model = Substitute.For<IModel>();
+            model.IsOpen.Returns(true);
+
+            var handler = Substitute.For<IMessageHandler>();
+            var subscription = new CompositeSubscription();
+            subscription.AddSubscription(new Subscription(model) { ConsumerTag = "ConsumerTag" });
+
+            var consumer = new PriorityBurrowConsumer(model, handler, Substitute.For<IRabbitWatcher>(), false, 1);
+            consumer.Init(queue, subscription, 1, Guid.NewGuid().ToString());
+            consumer.Ready();
+
+            // Action
+            handler.HandlingComplete += Raise.Event<MessageHandlingEvent>(new BasicDeliverEventArgs { ConsumerTag = "ConsumerTag" });
+            
+            // Assert
+            model.DidNotReceive().BasicAck(Arg.Any<ulong>(), Arg.Any<bool>());
+            waitHandler.Set();
+            consumer.Dispose();
         }
     }
 

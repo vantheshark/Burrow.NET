@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Burrow.Internal
 {
+    [ExcludeFromCodeCoverage]
     public class SafeSemaphore : IDisposable
     {
         private readonly IRabbitWatcher _watcher;

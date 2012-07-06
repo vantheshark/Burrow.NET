@@ -76,30 +76,39 @@ namespace Burrow
                                 _pool.WaitOne();
 #endif
 
-                                deliverEventArgs = (BasicDeliverEventArgs)Queue.Dequeue();
+                                deliverEventArgs = Queue.Dequeue() as BasicDeliverEventArgs;
 #if DEBUG
+
                                 _watcher.DebugFormat("3. Msg from RabbitMQ arrived (probably the previous msg has been acknownledged), prepare to handle it");
 #endif
                             }
                             if (deliverEventArgs != null)
                             {
-                                _messageHandler.BeforeHandlingMessage(this, deliverEventArgs);
                                 HandleMessageDelivery(deliverEventArgs);
                             }
                             else
                             {
-                                _watcher.ErrorFormat("3. Message arrived but it's not a BasicDeliverEventArgs for some reason, properly a serious BUG :D, contact author asap, release semaphore for other messages");
+                                _watcher.ErrorFormat("Message arrived but it's not a BasicDeliverEventArgs for some reason, properly a serious BUG :D, contact author asap, release semaphore for other messages");
                                 _pool.Release();
                             }
                         }
                         catch (EndOfStreamException)
                         {
+                            // This thread will be ended soon because the new consumer will be created
                             // do nothing here, EOS fired when queue is closed
                             // Looks like the connection has gone away, so wait a little while
                             // before continuing to poll the queue
                             Thread.Sleep(100);
+#if DEBUG
                             _watcher.DebugFormat("EndOfStreamException occurs, release the semaphore for another message");
+
+#endif
                             _pool.Release();
+                        }
+                        catch (BadMessageHandlerException ex)
+                        {
+                            _watcher.Error(ex);
+                            Dispose();
                         }
                     }
                 }
@@ -122,16 +131,28 @@ namespace Burrow
 
         private void MessageHandlerHandlingComplete(BasicDeliverEventArgs eventArgs)
         {
+            try
+            {
+                if (_autoAck && !_disposed)
+                {
 #if DEBUG
-            _watcher.DebugFormat("6. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished, now release the semaphore", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
+                    _watcher.DebugFormat("7. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished, now ack message", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
+
 #endif
-            _pool.Release();
-            if (_autoAck)
+                    DoAck(eventArgs, this);
+                }
+            }
+            catch (Exception ex)
+            {
+                _watcher.Error(ex);
+            }
+            finally
             {
 #if DEBUG
-                _watcher.DebugFormat("7. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished, now release the semaphore", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
+                _watcher.DebugFormat("6. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished, now release the semaphore", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
+
 #endif
-                DoAck(eventArgs, this);
+                _pool.Release();
             }
         }
 
@@ -147,16 +168,12 @@ namespace Burrow
             try
             {
                 _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}", basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.DeliveryTag);
-                _messageHandler.HandleMessage(this, basicDeliverEventArgs);
+                //NOTE: We dont have to catch exception here 
+                _messageHandler.HandleMessage(basicDeliverEventArgs);
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                _messageHandler.HandleError(this, basicDeliverEventArgs, exception);
-                if (_autoAck)
-                {
-                    DoAck(basicDeliverEventArgs, this);
-                }
-                _pool.Release();
+                throw new BadMessageHandlerException(ex);
             }
         }
 
@@ -179,11 +196,9 @@ namespace Burrow
             {
                 return;
             }
-
-            _pool.Dispose();
-            
-            Queue.Close();
             _disposed = true;
+            _pool.Dispose();
+            Queue.Close();
         }
     }
 }

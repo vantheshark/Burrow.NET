@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using Burrow.Extras.Internal;
+﻿using Burrow.Extras.Internal;
+using Burrow.Tests.Extras.RabbitSetupTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RabbitMQ.Client.Events;
 
 namespace Burrow.Tests.Extras.Internal.PriorityMessageHandlerFactoryTests
 {
@@ -14,13 +12,14 @@ namespace Burrow.Tests.Extras.Internal.PriorityMessageHandlerFactoryTests
         {
             // Arrange
             var factory = new PriorityMessageHandlerFactory(NSubstitute.Substitute.For<IConsumerErrorHandler>(),
+                                                            NSubstitute.Substitute.For<ISerializer>(),
                                                             NSubstitute.Substitute.For<IRabbitWatcher>());
 
             // Action
-            var handler = factory.Create(NSubstitute.Substitute.For<Func<BasicDeliverEventArgs, Task>>());
+            var handler = factory.Create<Customer>("supscriptionName",  (x, y) => { });
 
             // Assert
-            Assert.IsInstanceOfType(handler, typeof(PriorityMessageHandler));
+            Assert.IsInstanceOfType(handler, typeof(PriorityMessageHandler<Customer>));
         }
     }
 }

@@ -1,0 +1,11 @@
+* 1.0.13 (06 July 2012)
+- Improvement + Bug fixing + Cleanup Code
+- Will reconnect if channel shutdow due to ack/nack wrong delivery ID
+- Add DefaultTaskCreationOptionsProvider to Global.cs to allow altering the way Burrow.NET schedule the Task either using ThreadPool or dedicated Thread
+- Log UnobservedTaskException
+
+* 1.0.12 
+- Change the way implement priority queues using IntervalHeap
+
+
+* Older releases

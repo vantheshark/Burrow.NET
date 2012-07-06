@@ -154,26 +154,30 @@ namespace Burrow.Extras.Internal
                             {
 #if DEBUG
                                 _watcher.DebugFormat("3. Msg from RabbitMQ arrived (probably the previous msg has been acknownledged), prepare to handle it");
+
 #endif
-                                _messageHandler.BeforeHandlingMessage(this, msg.Message);
                                 HandleMessageDelivery(msg.Message);
                             }
                             else
                             {
-                                _watcher.ErrorFormat("3. Msg from RabbitMQ arrived but it's NULL for some reason,  properly a serious BUG :D, contact author asap, release the semaphore for other messages");
+                                _watcher.ErrorFormat("Msg from RabbitMQ arrived but it's NULL for some reason, properly a serious BUG :D, contact author asap, release the semaphore for other messages");
                                 _pool.Release();
                             }
                         }
                         catch (EndOfStreamException) // NOTE: Must keep the consumer thread alive
                         {
-                            // Properly need to end this thread here because the new consumer will be created
-
-                            // do nothing here, EOS fired when queue is closed. Demonstrate that by stop the RabbitMQ service
-                            // Looks like the connection has gone away, so wait a little while
-                            // before continuing to poll the queue
+                            // This happen when the internal Queue is closed. The root reason could be connection problem
                             Thread.Sleep(100);
+#if DEBUG                            
                             _watcher.DebugFormat("EndOfStreamException occurs, release the semaphore for another message");
+
+#endif
                             _pool.Release();
+                        }
+                        catch (BadMessageHandlerException ex)
+                        {
+                            _watcher.Error(ex);
+                            Dispose();
                         }
                     }
                 }
@@ -194,51 +198,39 @@ namespace Burrow.Extras.Internal
             thread.Start();
         }
 
-        protected internal void MessageHandlerHandlingComplete(BasicDeliverEventArgs eventArgs)
+        internal void MessageHandlerHandlingComplete(BasicDeliverEventArgs eventArgs)
         {
-            try
-            {
-                _pool.Release();
-            }
-            catch (Exception ex)
-            {
-                _watcher.Error(ex);
-            }
+            _pool.Release();
             if (_autoAck)
             {
                 DoAck(eventArgs);
             }
         }
 
-        protected internal void WhenChannelShutdown(IModel model, ShutdownEventArgs reason)
+        internal void WhenChannelShutdown(IModel model, ShutdownEventArgs reason)
         {
             PriorityQueue.Close();
             _channelShutdown = true;
             _watcher.WarnFormat("Channel on queue {0} P:{1} is shutdown: {2}", ConsumerTag, _queuePriorirty, reason.ReplyText);
         }
 
-        protected internal void HandleMessageDelivery(BasicDeliverEventArgs basicDeliverEventArgs)
+        internal void HandleMessageDelivery(BasicDeliverEventArgs basicDeliverEventArgs)
         {
             try
             {
-                #if DEBUG                
-                var priority = PriorityMessageHandler.GetMsgPriority(basicDeliverEventArgs);
-                _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}, P: {3}", basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.DeliveryTag, priority);
-                #endif
-                _messageHandler.HandleMessage(this, basicDeliverEventArgs);
+#if DEBUG                
+            var priority = PriorityMessageHandler.GetMsgPriority(basicDeliverEventArgs);
+            _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}, P: {3}", basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.DeliveryTag, priority);
+#endif
+                _messageHandler.HandleMessage(basicDeliverEventArgs);
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                _messageHandler.HandleError(this, basicDeliverEventArgs, exception);
-                if (_autoAck)
-                {
-                    DoAck(basicDeliverEventArgs);
-                }
-                _pool.Release();
+                throw new BadMessageHandlerException(ex);
             }
         }
 
-        protected internal void DoAck(BasicDeliverEventArgs basicDeliverEventArgs)
+        internal void DoAck(BasicDeliverEventArgs basicDeliverEventArgs)
         {
             if (_disposed)
             {
@@ -256,15 +248,7 @@ namespace Burrow.Extras.Internal
                 return;
             }
             _disposed = true;
-
-            try
-            {
-                _pool.Dispose();
-            }
-            catch
-            {
-            }
-
+            _pool.Dispose();
             PriorityQueue.Close();
         }
     }

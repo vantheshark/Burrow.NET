@@ -10,14 +10,21 @@ namespace Burrow.Tests.DefaultMessageHandlerFactoryTests
         public void Should_throw_exception_if_use_null_consumerErrorHandler()
         {
             // Action
-            new DefaultMessageHandlerFactory(null, NSubstitute.Substitute.For<IRabbitWatcher>());
+            new DefaultMessageHandlerFactory(null, NSubstitute.Substitute.For<ISerializer>(), NSubstitute.Substitute.For<IRabbitWatcher>());
+        }
+
+        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        public void Should_throw_exception_if_use_null_serializer()
+        {
+            // Action
+            new DefaultMessageHandlerFactory(NSubstitute.Substitute.For<IConsumerErrorHandler>(), null, NSubstitute.Substitute.For<IRabbitWatcher>());
         }
 
         [TestMethod, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_use_null_watcher()
         {
             // Action
-            new DefaultMessageHandlerFactory(NSubstitute.Substitute.For<IConsumerErrorHandler>(), null);
+            new DefaultMessageHandlerFactory(NSubstitute.Substitute.For<IConsumerErrorHandler>(), NSubstitute.Substitute.For<ISerializer>(), null);
         }
     }
 }

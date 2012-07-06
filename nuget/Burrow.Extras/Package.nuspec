@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Burrow.Extras</id>
-    <version>1.0.12</version>
+    <version>1.0.13</version>
     <authors>Van Thoai Nguyen</authors>
     <owners>Van Thoai Nguyen</owners>
     <licenseUrl>http://sam.zoy.org/wtfpl/COPYING</licenseUrl>
@@ -16,7 +16,7 @@
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP Burrow.Extras</tags>
     <dependencies>
 		<dependency id="RabbitMQ.Client" version="2.8.1" />
-		<dependency id="Burrow.NET" version="1.0.12" />
+		<dependency id="Burrow.NET" version="1.0.13" />
 		<dependency id="Newtonsoft.Json" version="4.5.4" />
     </dependencies>
   </metadata>
