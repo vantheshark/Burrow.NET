@@ -74,7 +74,9 @@
     <Compile Include="DefaultMessageHandlerTests\MethodHandleError.cs" />
     <Compile Include="DefaultMessageHandlerTests\MethodHandleMessage.cs" />
     <Compile Include="DefaultTaskCreationOptionProviderTests\MethodGetOptions.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodAckAllUpTo.cs" />
     <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodGetByConsumerTag.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodNackAllUpTo.cs" />
     <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodTryAckOrNAck.cs" />
     <Compile Include="Extras\Internal\InMemoryPriorityQueueTests\MethodDeleteAll.cs" />
     <Compile Include="Extras\Internal\InMemoryPriorityQueueTests\MethodEnqueue.cs" />
@@ -115,6 +117,10 @@
     <Compile Include="Extras\TunnelFactoryExtensionsTests\MethodChangePriorityQueueSuffixConvention.cs" />
     <Compile Include="RabbitTunnelTests\MethodTryReconnect.cs" />
     <Compile Include="RabbitTunnelTests\MethodRaiseConsumerDisconnectedEvent.cs" />
+    <Compile Include="SubscriptionTests\MethodNack.cs" />
+    <Compile Include="SubscriptionTests\MethodAck.cs" />
+    <Compile Include="SubscriptionTests\MethodNackAllUpTo.cs" />
+    <Compile Include="SubscriptionTests\MethodAckAllUpTo.cs" />
     <Compile Include="SubscriptionTests\MethodTryAckOrNAck.cs" />
     <Compile Include="TunnelFactoryTests\MethodCloseAllConnections.cs" />
     <Compile Include="Extras\RabbitSetupTests\Customer.cs" />

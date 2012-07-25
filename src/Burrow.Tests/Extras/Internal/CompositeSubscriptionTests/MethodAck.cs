@@ -33,7 +33,7 @@ namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
 
 
         [TestMethod]
-        public void Should_call_ack_on_nested_subscriptions_with_the_max_value_of_delivery_tag()
+        public void Should_call_ack_on_nested_subscriptions_with_all_delivery_tag()
         {
             // Arrange
             var channel = Substitute.For<IModel>();
@@ -52,7 +52,11 @@ namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
             subs.Ack("ConsumerTag", new[] { (ulong)1, (ulong)2, (ulong)3, (ulong)4, (ulong)5 });
 
             // Assert
-            channel.Received().BasicAck(5, true);
+            channel.Received().BasicAck(1, false);
+            channel.Received().BasicAck(2, false);
+            channel.Received().BasicAck(3, false);
+            channel.Received().BasicAck(4, false);
+            channel.Received().BasicAck(5, false);
         }
     }
 }

@@ -1,3 +1,7 @@
+* 1.0.14 (26 July 2012)
+- Fix method Ack(IEnumerable<ulong> deliveryTag) on Subscription class which did the wrong thing by ack all msgs up to the max value of the list, same fix for CompositeSubscription
+- Add method AckAllUpTo(ulong deliveryTag) on Subscrition to ack all msgs which have delivery tag less than or equal the provided delivery tag
+
 * 1.0.13 (06 July 2012)
 - Improvement + Bug fixing + Cleanup Code
 - Will reconnect if channel shutdow due to ack/nack wrong delivery ID

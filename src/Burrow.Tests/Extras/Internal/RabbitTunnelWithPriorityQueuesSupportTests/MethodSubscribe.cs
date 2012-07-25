@@ -76,17 +76,15 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
         public void Should_throw_exception_if_provide_invalid_Comparer()
         {
             // Arrange
-            var call = false;
             var newChannel = Substitute.For<IModel>();
             newChannel.IsOpen.Returns(true);
             IDurableConnection durableConnection;
             var tunnel = RabbitTunnelWithPriorityQueuesSupportForTest.CreateTunnel(newChannel, out durableConnection);
-            tunnel.ConsumerDisconnected += s => { call = true; };
+            tunnel.ConsumerDisconnected += s => {};
 
             // Action
             //tunnel.Subscribe<Customer>("subscriptionName", 3, (x, y) => { }, typeof(PriorityComparer<>));
             tunnel.Subscribe<Customer>("subscriptionName", 3, (x, y) => { }, typeof(Customer));
-          
         }
     }
 }

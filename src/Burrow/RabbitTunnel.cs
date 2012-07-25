@@ -126,7 +126,10 @@ namespace Burrow
             try
             {
                 CreatePublishChannel();
-                _watcher.InfoFormat("Re-subscribe to queues");
+                if (_subscribeActions.Count > 0)
+                {
+                    _watcher.InfoFormat("Subscribe to queues");
+                }
                 foreach (var subscription in _subscribeActions.Values)
                 {
                     TrySubscribe(subscription);
@@ -146,6 +149,7 @@ namespace Burrow
         {
             if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
             {
+                _watcher.InfoFormat("Creating dedicated publishing channel");
                 _dedicatedPublishingChannel = _connection.CreateChannel();
                 _createdChannels.Add(_dedicatedPublishingChannel);
 
