@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Burrow.Internal;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -15,7 +16,6 @@ namespace Burrow
         private bool _channelShutdown;
 
         private readonly object _sharedQueueLock = new object();
-        private readonly Thread _subscriptionCallbackThread;
         protected SafeSemaphore _pool { get; private set; }
         private readonly IMessageHandler _messageHandler;
 
@@ -56,7 +56,7 @@ namespace Burrow
 
             _messageHandler = messageHandler;
             _messageHandler.HandlingComplete += MessageHandlerHandlingComplete;
-            _subscriptionCallbackThread = new Thread(_ =>
+            Task.Factory.StartNew(() =>
             {
                 try
                 {
@@ -124,9 +124,7 @@ namespace Burrow
                 {
                     _watcher.WarnFormat("The consumer thread {0} is aborted", ConsumerTag);
                 }
-            });
-            _subscriptionCallbackThread.IsBackground = true;
-            _subscriptionCallbackThread.Start();
+            }, TaskCreationOptions.LongRunning);
         }
 
         private void MessageHandlerHandlingComplete(BasicDeliverEventArgs eventArgs)

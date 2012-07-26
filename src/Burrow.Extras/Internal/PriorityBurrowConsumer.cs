@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Burrow.Internal;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -132,7 +133,7 @@ namespace Burrow.Extras.Internal
                 _pool = new SafeSemaphore(_watcher, _batchSize, _batchSize, _sharedSemaphore);
             }
 
-            var thread = new Thread(() => 
+            Task.Factory.StartNew(() =>
             {
                 try
                 {
@@ -193,9 +194,7 @@ namespace Burrow.Extras.Internal
                 {
                     _watcher.WarnFormat("The consumer thread {0} on queue {1} is aborted", ConsumerTag, _queuePriorirty);
                 }
-            });
-            thread.IsBackground = true;
-            thread.Start();
+            }, TaskCreationOptions.LongRunning);
         }
 
         internal void MessageHandlerHandlingComplete(BasicDeliverEventArgs eventArgs)

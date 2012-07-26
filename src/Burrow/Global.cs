@@ -58,6 +58,9 @@ namespace Burrow
         {
             foreach (var ex in e.Exception.InnerExceptions)
             {
+                // NOTE: Should not observe the msg here, let the client of this library deal with that since there could be 
+                // other TPL Task created by the developers
+                
                 DefaultWatcher.Error(ex);
             }
         }

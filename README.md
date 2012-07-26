@@ -24,7 +24,7 @@ Alright, to publish a message, you just need something like:
 var tunnel = RabbitTunnel.Factory.Create();
 tunnel.Publish(new OrderDetail
 {	
-    Name = "IPad 3",
+    Name = "Google Nexus 7",
     Color = "Black",
     Amount = 1	
 });
@@ -63,6 +63,7 @@ Some blog posts:
 * [Custom Burrow.NET TunnelFactory & RabbitMQ](http://thoai-nguyen.blogspot.com.au/2012/06/custom-burrownet-tunnelfactory-rabbitmq.html)
 * [Things you can easily change in Burrow.NET](http://thoai-nguyen.blogspot.com.au/2012/06/things-you-can-change-in-burrownet.html)
 * [Programmatically  create RabbitMQ Exchange and Queue with Burrow.NET](http://thoai-nguyen.blogspot.com.au/2012/06/programmatically-rabbitmq-exchange.html)
+* [Priority With RabbitMQ implementation in .NET](http://thoai-nguyen.blogspot.com.au/2012/07/priority-queue-rabbitmq-burrownet.html)
 
 Nuget library is also added at http://nuget.org/packages/Burrow.NET
 
