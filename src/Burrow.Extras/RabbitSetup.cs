@@ -65,6 +65,12 @@ namespace Burrow.Extras
 
         protected virtual void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
         {
+            if (string.IsNullOrEmpty(exchangeName))
+            {
+                _watcher.WarnFormat("Attempt to bind queue {0} to a empty name Exchange, that's the default built-in exchange so the action will be ignored", queueName);
+                return;
+            }
+
             try
             {
                 model.QueueBind(queueName, exchangeName, routingKey);
@@ -109,6 +115,11 @@ namespace Burrow.Extras
 
         protected virtual void DeclareExchange(ExchangeSetupData exchange, IModel model, string exchangeName)
         {
+            if (string.IsNullOrEmpty(exchangeName))
+            {
+                _watcher.WarnFormat("Attempt to declare a Exchange with empty string, that's the default built-in exchange so the action will be ignored");
+                return;
+            }
             try
             {
                 model.ExchangeDeclare(exchangeName, exchange.ExchangeType, exchange.Durable, exchange.AutoDelete, null);

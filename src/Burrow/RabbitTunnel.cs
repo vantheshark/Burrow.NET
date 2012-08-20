@@ -338,7 +338,16 @@ namespace Burrow
                     RaiseConsumerDisconnectedEvent(subscription);
                     TryReconnect(c, id, reason); 
                 };
-                channel.BasicQos(0, Global.PreFetchSize, false);
+
+                if (Global.PreFetchSize <= ushort.MaxValue)
+                {
+                    channel.BasicQos(0, (ushort)Global.PreFetchSize, false);
+                }
+                else
+                {
+                    _watcher.WarnFormat("The prefetch size is too high {0}, maximum {1}, the queue will prefetch all the msgs", Global.PreFetchSize, ushort.MaxValue);
+                }
+
                 _createdChannels.Add(channel);
                 
                 subscription.SetChannel(channel);

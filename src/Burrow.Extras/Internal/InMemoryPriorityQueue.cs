@@ -19,7 +19,7 @@ namespace Burrow.Extras.Internal
     internal class InMemoryPriorityQueue<T> : IInMemoryPriorityQueue<T> where T : IPriorityMessage
     {
         protected volatile bool Closing;
-        private readonly int _maxSize;
+        private readonly long _maxSize;
         protected IntervalHeap<T> PriorityQueue;
 
 
@@ -43,7 +43,7 @@ namespace Burrow.Extras.Internal
             }
         }
 
-        public InMemoryPriorityQueue(int maxSize, IComparer<T> comparer)
+        public InMemoryPriorityQueue(long maxSize, IComparer<T> comparer)
         {
             _maxSize = maxSize;
             PriorityQueue = new IntervalHeap<T>(comparer);

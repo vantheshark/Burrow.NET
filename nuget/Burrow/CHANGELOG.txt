@@ -1,6 +1,8 @@
 * 1.0.14 (26 July 2012)
 - Fix method Ack(IEnumerable<ulong> deliveryTag) on Subscription class which did the wrong thing by ack all msgs up to the max value of the list, same fix for CompositeSubscription
 - Add method AckAllUpTo(ulong deliveryTag) on Subscrition to ack all msgs which have delivery tag less than or equal the provided delivery tag
+- Change the PreFetchSize data type to uint which enventually let the app prefetch everything in the queue if the size is larger than ushort.MaxValue
+- Add warning log if attempt to declare/bind with Exchange whose name is empty string as that's the default builtin Exchange. Publish msg to that exchange with the routing key equal to the queue name will route the message to that queue
 
 * 1.0.13 (06 July 2012)
 - Improvement + Bug fixing + Cleanup Code

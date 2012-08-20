@@ -24,7 +24,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             tunnel.Subscribe<Customer>("subscriptionName", 3, x => { });
 
             // Assert
-            newChannel.Received(4).BasicQos(0, Global.PreFetchSize, false);
+            newChannel.Received(4).BasicQos(0, (ushort)Global.PreFetchSize, false);
             newChannel.Received().BasicConsume("Queue_Priority0", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());
             newChannel.Received().BasicConsume("Queue_Priority1", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());
             newChannel.Received().BasicConsume("Queue_Priority2", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());
@@ -44,7 +44,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             var subs = tunnel.Subscribe<Customer>("subscriptionName", 3, (x, y) => { });
 
             // Assert
-            newChannel.Received(4).BasicQos(0, Global.PreFetchSize, false);
+            newChannel.Received(4).BasicQos(0, (ushort)Global.PreFetchSize, false);
             newChannel.Received().BasicConsume("Queue_Priority0", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());
             newChannel.Received().BasicConsume("Queue_Priority1", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());
             newChannel.Received().BasicConsume("Queue_Priority2", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());

@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.13")]
-[assembly: AssemblyFileVersion("1.0.13")]
+[assembly: AssemblyVersion("1.0.14")]
+[assembly: AssemblyFileVersion("1.0.14")]
 [assembly: InternalsVisibleTo("Burrow.Extras, PublicKey=002400000480000094000000060200000024000052534131000400000100010041648a77dd126910f8c2ca76de9594be24f0332c91eff09f54192d4dc2198181bc0a5b79dcce6c82bc3f1261e5c27b3b7874d1a2e41e904258150d4a3ca742f735ec55c7b1a79d5948f55491079100eb746f64694401fd4aa9b15d3c9e92d8a8c66180d54f7fbbe5f9e8c78f71f7947abd0b2bfeabe79ea3c5c07336564cf19e")]
 [assembly: InternalsVisibleTo("Burrow.Tests, PublicKey=002400000480000094000000060200000024000052534131000400000100010041648a77dd126910f8c2ca76de9594be24f0332c91eff09f54192d4dc2198181bc0a5b79dcce6c82bc3f1261e5c27b3b7874d1a2e41e904258150d4a3ca742f735ec55c7b1a79d5948f55491079100eb746f64694401fd4aa9b15d3c9e92d8a8c66180d54f7fbbe5f9e8c78f71f7947abd0b2bfeabe79ea3c5c07336564cf19e")]

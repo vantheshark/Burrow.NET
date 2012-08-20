@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Burrow.Extras</id>
-    <version>1.0.13</version>
+    <version>1.0.14</version>
     <authors>Van Thoai Nguyen</authors>
     <owners>Van Thoai Nguyen</owners>
     <licenseUrl>http://sam.zoy.org/wtfpl/COPYING</licenseUrl>
@@ -11,7 +11,10 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 	<summary>Burrow.Extras provides extra utilities for Burrow.NET</summary>    
 	<description>Burrow.Extras provide DependencyInjection TunnelFactory, JsonSerializer and RabbitSetup which help to create Exchanges and Queues programmatically.</description>
-    <releaseNotes>Change Priority implementation using IntervalHeap</releaseNotes>
+    <releaseNotes>- Fix method Ack(IEnumerable&lt;ulong&gt; deliveryTag) on Subscription class which did the wrong thing by ack all msgs up to the max value of the list, same fix for CompositeSubscription
+- Add method AckAllUpTo(ulong deliveryTag) on Subscrition to ack all msgs which have delivery tag less than or equal the provided delivery tag
+- Change the PreFetchSize data type to uint which enventually let the app prefetch everything in the queue if the size is larger than ushort.MaxValue
+- Add warning log if attempt to declare/bind with Exchange whose name is empty string as that's the default builtin Exchange. Publish msg to that exchange with the routing key equal to the queue name will route the message to that queue</releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP Burrow.Extras</tags>
     <dependencies>
