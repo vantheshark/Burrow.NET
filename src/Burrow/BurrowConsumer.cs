@@ -21,8 +21,8 @@ namespace Burrow
 
         public BurrowConsumer(IModel channel,
                               IMessageHandler messageHandler,
-                              IRabbitWatcher watcher,                     
-                              
+                              IRabbitWatcher watcher,
+
                               bool autoAck,
                               int batchSize)
             : base(channel, new SharedQueue())
@@ -39,7 +39,7 @@ namespace Burrow
             {
                 throw new ArgumentNullException("watcher");
             }
-            
+
             if (batchSize < 1)
             {
                 throw new ArgumentNullException("batchSize", "batchSize must be greater than or equal 1");
@@ -63,53 +63,7 @@ namespace Burrow
                     Thread.CurrentThread.Name = string.Format("Consumer thread: {0}", ConsumerTag);
                     while (!_disposed && !_channelShutdown)
                     {
-                        try
-                        {
-                            BasicDeliverEventArgs deliverEventArgs;
-                            lock (_sharedQueueLock)
-                            {
-#if DEBUG
-                                _watcher.DebugFormat("1. Wait the semaphore to release");
-                                _pool.WaitOne();
-                                _watcher.DebugFormat("2. Semaphore released, wait a msg from RabbitMQ. Probably a wait-for-ack message is blocking this");
-#else
-                                _pool.WaitOne();
-#endif
-
-                                deliverEventArgs = Queue.Dequeue() as BasicDeliverEventArgs;
-#if DEBUG
-
-                                _watcher.DebugFormat("3. Msg from RabbitMQ arrived (probably the previous msg has been acknownledged), prepare to handle it");
-#endif
-                            }
-                            if (deliverEventArgs != null)
-                            {
-                                HandleMessageDelivery(deliverEventArgs);
-                            }
-                            else
-                            {
-                                _watcher.ErrorFormat("Message arrived but it's not a BasicDeliverEventArgs for some reason, properly a serious BUG :D, contact author asap, release semaphore for other messages");
-                                _pool.Release();
-                            }
-                        }
-                        catch (EndOfStreamException)
-                        {
-                            // This thread will be ended soon because the new consumer will be created
-                            // do nothing here, EOS fired when queue is closed
-                            // Looks like the connection has gone away, so wait a little while
-                            // before continuing to poll the queue
-                            Thread.Sleep(100);
-#if DEBUG
-                            _watcher.DebugFormat("EndOfStreamException occurs, release the semaphore for another message");
-
-#endif
-                            _pool.Release();
-                        }
-                        catch (BadMessageHandlerException ex)
-                        {
-                            _watcher.Error(ex);
-                            Dispose();
-                        }
+                        WaitAndHandleMessageDelivery();
                     }
                 }
                 catch (ThreadStateException tse)
@@ -125,6 +79,57 @@ namespace Burrow
                     _watcher.WarnFormat("The consumer thread {0} is aborted", ConsumerTag);
                 }
             }, TaskCreationOptions.LongRunning);
+        }
+
+        internal virtual void WaitAndHandleMessageDelivery()
+        {
+            try
+            {
+                BasicDeliverEventArgs deliverEventArgs;
+                lock (_sharedQueueLock)
+                {
+#if DEBUG
+                    _watcher.DebugFormat("1. Wait the semaphore to release");
+                    _pool.WaitOne();
+                    _watcher.DebugFormat("2. Semaphore released, wait a msg from RabbitMQ. Probably a wait-for-ack message is blocking this");
+#else
+                    _pool.WaitOne();
+#endif
+
+                    deliverEventArgs = Queue.Dequeue() as BasicDeliverEventArgs;
+#if DEBUG
+
+                    _watcher.DebugFormat("3. Msg from RabbitMQ arrived (probably the previous msg has been acknownledged), prepare to handle it");
+#endif
+                }
+                if (deliverEventArgs != null)
+                {
+                    HandleMessageDelivery(deliverEventArgs);
+                }
+                else
+                {
+                    _watcher.ErrorFormat("Message arrived but it's not a BasicDeliverEventArgs for some reason, properly a serious BUG :D, contact author asap, release semaphore for other messages");
+                    _pool.Release();
+                }
+            }
+            catch (EndOfStreamException)
+            {
+                // This thread will be ended soon because the new consumer will be created
+                // do nothing here, EOS fired when queue is closed
+                // Looks like the connection has gone away, so wait a little while
+                // before continuing to poll the queue
+                Thread.Sleep(100);
+#if DEBUG
+                _watcher.DebugFormat("EndOfStreamException occurs, release the semaphore for another message");
+
+#endif
+                _pool.Release();
+            }
+            catch (BadMessageHandlerException ex)
+            {
+                _watcher.Error(ex);
+                Dispose();
+            }
         }
 
         private void MessageHandlerHandlingComplete(BasicDeliverEventArgs eventArgs)

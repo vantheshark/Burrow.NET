@@ -7,7 +7,7 @@ GitHub https://github.com/vanthoainguyen/Burrow.NET
 
 Burrow.NET is a simple library created based on some EasyNetQ ideas, it's a thin wrapper of RabbitMQ.Client for .NET. Basically, if you just need to put your message or subscribe messages from RabbitMQ server, you found the right place. With Burrow.NET, you can easily customize almost everything start with exchange and queue name, changing the way to serialize your object, inject custom error handling strategies, etc
 
-### Basic use
+### Basic usage
 
 To publish:
 
