@@ -41,31 +41,80 @@ namespace Burrow.Extras.Internal
         }
 
         #region -- http://www.rabbitmq.com/amqp-0-9-1-reference.html#basic.ack.multiple --
+        /// <summary>
+        /// Ack a message by its delivery tag of the consumer whose tag is consumerTag
+        /// </summary>
+        /// <param name="consumerTag"></param>
+        /// <param name="deliveryTag"></param>
         public void Ack(string consumerTag, ulong deliveryTag)
         {
             TryAckOrNAck(consumerTag,  x => x.Ack(deliveryTag));
         }
 
+        /// <summary>
+        /// Ack all messages by delivery tags in the list of the consumer whose tag is consumerTag
+        /// </summary>
+        /// <param name="consumerTag"></param>
+        /// <param name="deliveryTags"></param>
         public void Ack(string consumerTag, IEnumerable<ulong> deliveryTags)
         {
             TryAckOrNAck(consumerTag, x => x.Ack(deliveryTags));
         }
 
+        /// <summary>
+        /// Ack all messages that have delivery tag less than or equal provided delivery tag
+        /// </summary>
+        /// <param name="consumerTag"></param>
+        /// <param name="deliveryTag"></param>
+        public void AckAllUpTo(string consumerTag, ulong deliveryTag)
+        {
+            TryAckOrNAck(consumerTag, x => x.AckAllUpTo(deliveryTag));
+        }
+
+        /// <summary>
+        /// Beware of using this method. It acks all unacknowledged messages of the consumer by consumerTag 
+        /// </summary>
         public void AckAllOutstandingMessages(string consumerTag)
         {
             TryAckOrNAck(consumerTag, x => x.AckAllOutstandingMessages());
         }
 
+        /// <summary>
+        /// NAck a message by its delivery tag of the consumer whose tag is consumerTag
+        /// </summary>
+        /// <param name="consumerTag"></param>
+        /// <param name="deliveryTag"></param>
+        /// <param name="requeue"> </param>
         public void Nack(string consumerTag, ulong deliveryTag, bool requeue)
         {
             TryAckOrNAck(consumerTag, x => x.Nack(deliveryTag, requeue));
         }
 
+        /// <summary>
+        /// NAck all messages by delivery tags in the list of the consumer whose tag is consumerTag
+        /// </summary>
+        /// <param name="consumerTag"></param>
+        /// <param name="deliveryTags"></param>
+        /// <param name="requeue"> </param>
         public void Nack(string consumerTag, IEnumerable<ulong> deliveryTags, bool requeue)
         {
             TryAckOrNAck(consumerTag, x => x.Nack(deliveryTags, requeue));
         }
 
+        /// <summary>
+        /// Nack all messages that have delivery tag less than or equal provided delivery tag
+        /// </summary>
+        /// <param name="consumerTag"></param>
+        /// <param name="deliveryTag"></param>
+        /// <param name="requeue"> </param>
+        public void NackAllUpTo(string consumerTag, ulong deliveryTag, bool requeue)
+        {
+            TryAckOrNAck(consumerTag, x => x.NackAllUpTo(deliveryTag, requeue));
+        }
+
+        /// <summary>
+        /// Beware of using this method. It nacks all unacknowledged messages of the consumer by consumerTag 
+        /// </summary>
         public void NackAllOutstandingMessages(string consumerTag, bool requeue)
         {
             TryAckOrNAck(consumerTag, x => x.NackAllOutstandingMessages(requeue));

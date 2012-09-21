@@ -12,7 +12,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
     public class MethodSharedConnectionShutdown : DurableConnectionTestHelper
     {
         [TestMethod]
-        public void Should_be_call_if_App_is_closed_by_user()
+        public void Should_be_called_if_App_is_closed_by_user()
         {
             // Arrange
             var retryPolicy = Substitute.For<IRetryPolicy>();

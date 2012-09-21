@@ -18,7 +18,7 @@ namespace Burrow.Tests.RabbitTunnelTests
         {
         }
 
-        public static ITunnel CreateTunnel(IModel channel, out IDurableConnection durableConnection, bool isChannelOpen = true)
+        public static RabbitTunnel CreateTunnel(IModel channel, out IDurableConnection durableConnection, bool isChannelOpen = true)
         {
             if (channel != null)
             {

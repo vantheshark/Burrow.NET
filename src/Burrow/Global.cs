@@ -36,7 +36,7 @@ namespace Burrow
         /// <para>If you app decides not to ack the message immediately but just queueing everything received from Burrow.NET and ack later once they're finished, you will not get morethan 
         /// this number of messages in your internal queue because RabbitMQ.Client basically has a waithanler to block the consuming thread, only this number of messages can be dequeued.
         /// If this is a potential problem, you have to ack atleast a message to receive a new one from RabbitMQ</para>
-        public static ushort PreFetchSize = 128;
+        public static uint PreFetchSize = 128;
         
         /// <summary>
         /// Set to true will save the message to disk when it's published, default is true.
@@ -58,6 +58,9 @@ namespace Burrow
         {
             foreach (var ex in e.Exception.InnerExceptions)
             {
+                // NOTE: Should not observe the msg here, let the client of this library deal with that since there could be 
+                // other TPL Task created by the developers
+                
                 DefaultWatcher.Error(ex);
             }
         }

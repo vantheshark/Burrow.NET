@@ -1,12 +1,13 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Burrow
 {
-    public class DefaultMessageHandlerFactory : IMessageHandlerFactory
+    public class DefaultMessageHandlerFactory : IMessageHandlerFactory, IObserver<ISerializer>
     {
         protected readonly IConsumerErrorHandler _consumerErrorHandler;
         protected readonly IRabbitWatcher _watcher;
-        protected readonly ISerializer _messageSerializer;
+        protected ISerializer _messageSerializer;
 
         public DefaultMessageHandlerFactory(IConsumerErrorHandler consumerErrorHandler, ISerializer messageSerializer, IRabbitWatcher watcher)
         {
@@ -38,6 +39,22 @@ namespace Burrow
         public void Dispose()
         {
             _consumerErrorHandler.Dispose();
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void OnNext(ISerializer value)
+        {
+            _messageSerializer = value;
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void OnError(Exception error)
+        {
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void OnCompleted()
+        {
         }
     }
 }

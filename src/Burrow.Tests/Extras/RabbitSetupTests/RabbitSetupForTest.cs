@@ -7,9 +7,12 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
 {
     public class RabbitSetupForTest : RabbitSetup
     {
+        public IRabbitWatcher Watcher { get; set; }
+
         public RabbitSetupForTest(Func<string, string, IRouteFinder> routeFinderFactory, IRabbitWatcher watcher, string connectionString, string environment)
             : base(routeFinderFactory, watcher, connectionString, environment)
         {
+            Watcher = watcher;
         }
 
         public ConnectionFactory ConnectionFactory
@@ -32,6 +35,16 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var watcher = Substitute.For<IRabbitWatcher>();
             var setup = new RabbitSetupForTest(factory, watcher, "", "UNITTEST") { ConnectionFactory = connectionFactory };
             return setup;
+        }
+
+        public new void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
+        {
+            base.BindQueue<T>(model, queue, exchangeName, queueName, routingKey);
+        }
+
+        public new void DeclareExchange(ExchangeSetupData exchange, IModel model, string exchangeName)
+        {
+            base.DeclareExchange(exchange, model, exchangeName);
         }
     }
 }

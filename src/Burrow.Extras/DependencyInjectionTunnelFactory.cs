@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Burrow.Internal;
 
 namespace Burrow.Extras
@@ -37,24 +38,59 @@ namespace Burrow.Extras
                                                           rabbitWatcher, 
                                                           connectionFactory);
 
-            Func<IConsumerErrorHandler> errorHandler = () => new ConsumerErrorHandler(connectionFactory,
-                                                                                      serializer,
-                                                                                      rabbitWatcher);
+            var abc = new ObjectObserver<IObserver<ISerializer>>();
+            
+            Func<IConsumerErrorHandler> errorHandler = () =>
+            {
+                var handdler = new ConsumerErrorHandler(connectionFactory, serializer, rabbitWatcher);
+                abc.FireEvent(handdler);
+                return handdler;
+            };
 
-            Func<IMessageHandlerFactory> handlerFactory = () => new DefaultMessageHandlerFactory(_burrowResolver.Resolve<IConsumerErrorHandler>() ?? errorHandler(), serializer, rabbitWatcher);
+            Func<IMessageHandlerFactory> handlerFactory = () =>
+            {
+                var factory = new DefaultMessageHandlerFactory(_burrowResolver.Resolve<IConsumerErrorHandler>() ?? errorHandler(), 
+                                                               serializer, 
+                                                               rabbitWatcher);
+                abc.FireEvent(factory);
+                return factory;
+            };
 
 
-            Func<IConsumerManager> consumerManager = () => new ConsumerManager(rabbitWatcher,
-                                                                               _burrowResolver.Resolve<IMessageHandlerFactory>() ?? handlerFactory(),
-                                                                               serializer);
+            Func<IConsumerManager> consumerManager = () =>
+            {
+                var manager = new ConsumerManager(rabbitWatcher,
+                                                  _burrowResolver.Resolve<IMessageHandlerFactory>() ?? handlerFactory(),
+                                                  serializer);
+                abc.FireEvent(manager);
+                return manager;
+            };
 
-            return new RabbitTunnel(_burrowResolver.Resolve<IConsumerManager>() ?? consumerManager(),
-                                    rabbitWatcher,
-                                    _burrowResolver.Resolve<IRouteFinder>() ?? new DefaultRouteFinder(),
-                                    durableConnection,
-                                    serializer,
-                                    _burrowResolver.Resolve<ICorrelationIdGenerator>() ?? Global.DefaultCorrelationIdGenerator,
-                                    Global.DefaultPersistentMode);
+            var tunnel = new RabbitTunnel(_burrowResolver.Resolve<IConsumerManager>() ?? consumerManager(),
+                                          rabbitWatcher,
+                                          _burrowResolver.Resolve<IRouteFinder>() ?? new DefaultRouteFinder(),
+                                          durableConnection,
+                                          serializer,
+                                          _burrowResolver.Resolve<ICorrelationIdGenerator>() ?? Global.DefaultCorrelationIdGenerator,
+                                          Global.DefaultPersistentMode);
+
+            abc.ObjectCreated += tunnel.AddSerializerObserver;
+            
+            return tunnel;
+
+        }
+
+        [ExcludeFromCodeCoverage]
+        private class ObjectObserver<T>
+        {
+            public event Action<T> ObjectCreated;
+            public void FireEvent(T observer)
+            {
+                if (ObjectCreated != null)
+                {
+                    ObjectCreated(observer);
+                }
+            }
         }
     }
 }

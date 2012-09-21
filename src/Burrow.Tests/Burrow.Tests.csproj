@@ -37,13 +37,16 @@
     <AssemblyOriginatorKeyFile>Properties\burrow.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Castle.Core, Version=3.1.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <HintPath>..\packages\Castle.Core.3.1.0\lib\net40-client\Castle.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="NSubstitute, Version=1.4.2.0, Culture=neutral, PublicKeyToken=92dd2e9066daa5ca, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NSubstitute.1.4.2.0\lib\NET40\NSubstitute.dll</HintPath>
     </Reference>
     <Reference Include="RabbitMQ.Client">
-      <HintPath>..\packages\RabbitMQ.Client.2.8.1\lib\net30\RabbitMQ.Client.dll</HintPath>
+      <HintPath>..\packages\RabbitMQ.Client.2.8.6\lib\net30\RabbitMQ.Client.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -60,6 +63,7 @@
     <Compile Include="BurrowConsumerTests\Constructor.cs" />
     <Compile Include="BurrowConsumerTests\MethodHandleMessageDelivery.cs" />
     <Compile Include="BurrowConsumerTests\MethodDoAck.cs" />
+    <Compile Include="BurrowConsumerTests\MethodWaitAndHandleMessageDelivery.cs" />
     <Compile Include="BurrowConsumerTests\MethodWhenChannelShutdown.cs" />
     <Compile Include="BurrowConsumerTests\MessageHandlerHandlingComplete.cs" />
     <Compile Include="BurrowConsumerTests\MethodDispose.cs" />
@@ -74,7 +78,9 @@
     <Compile Include="DefaultMessageHandlerTests\MethodHandleError.cs" />
     <Compile Include="DefaultMessageHandlerTests\MethodHandleMessage.cs" />
     <Compile Include="DefaultTaskCreationOptionProviderTests\MethodGetOptions.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodAckAllUpTo.cs" />
     <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodGetByConsumerTag.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodNackAllUpTo.cs" />
     <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodTryAckOrNAck.cs" />
     <Compile Include="Extras\Internal\InMemoryPriorityQueueTests\MethodDeleteAll.cs" />
     <Compile Include="Extras\Internal\InMemoryPriorityQueueTests\MethodEnqueue.cs" />
@@ -112,9 +118,35 @@
     <Compile Include="Extras\JsonSerializerTests\MethodSerialize.cs" />
     <Compile Include="Extras\PriorityQueueSetupDataTests\Constructor.cs" />
     <Compile Include="Extras\PriorityQueuesRabbitSetupTests\PriorityQueuesRabbitSetupForTest.cs" />
+    <Compile Include="Extras\RabbitSetupTests\MethodDeclareExchange.cs" />
+    <Compile Include="Extras\RabbitSetupTests\MethodBindQueue.cs" />
     <Compile Include="Extras\TunnelFactoryExtensionsTests\MethodChangePriorityQueueSuffixConvention.cs" />
+    <Compile Include="Internal\ConsoleWatcherTests\MethodDebugFormat.cs" />
+    <Compile Include="RabbitTunnelTests\MethodSetSerializer.cs" />
     <Compile Include="RabbitTunnelTests\MethodTryReconnect.cs" />
     <Compile Include="RabbitTunnelTests\MethodRaiseConsumerDisconnectedEvent.cs" />
+    <Compile Include="RPC\BurrowRpcClientCoordinatorTests\Constructor.cs" />
+    <Compile Include="RPC\BurrowRpcClientCoordinatorTests\MethodReceiveResponse.cs" />
+    <Compile Include="RPC\BurrowRpcClientCoordinatorTests\MethodSend.cs" />
+    <Compile Include="RPC\BurrowRpcClientCoordinatorTests\MethodSendAsync.cs" />
+    <Compile Include="RPC\BurrowRpcLoadBalancerRouteFinderTests\MethodFindExchangeName.cs" />
+    <Compile Include="RPC\BurrowRpcRouteFinderTests\MethodFindQueueName.cs" />
+    <Compile Include="RPC\BurrowRpcRouteFinderTests\MethodFindExchangeName.cs" />
+    <Compile Include="RPC\BurrowRpcRouteFinderTests\MethodFindRoutingKey.cs" />
+    <Compile Include="RPC\BurrowRpcServerCoordinatorTests\Constructor.cs" />
+    <Compile Include="RPC\BurrowRpcServerCoordinatorTests\MethodHandleMesage.cs" />
+    <Compile Include="RPC\BurrowRpcServerCoordinatorTests\MethodStart.cs" />
+    <Compile Include="RPC\DefaultMethodFilterTests\MethodCheckValid.cs" />
+    <Compile Include="RPC\DefaultMethodFilterTests\MethodIsAsync.cs" />
+    <Compile Include="RPC\ISomeService.cs" />
+    <Compile Include="RPC\MethodMatcherTests\MethodMatch.cs" />
+    <Compile Include="RPC\RpcClientFactoryTests\MethodCreate.cs" />
+    <Compile Include="RPC\RpcClientInterceptorTests\MethodIntercept.cs" />
+    <Compile Include="RPC\SomeMessage.cs" />
+    <Compile Include="SubscriptionTests\MethodNack.cs" />
+    <Compile Include="SubscriptionTests\MethodAck.cs" />
+    <Compile Include="SubscriptionTests\MethodNackAllUpTo.cs" />
+    <Compile Include="SubscriptionTests\MethodAckAllUpTo.cs" />
     <Compile Include="SubscriptionTests\MethodTryAckOrNAck.cs" />
     <Compile Include="TunnelFactoryTests\MethodCloseAllConnections.cs" />
     <Compile Include="Extras\RabbitSetupTests\Customer.cs" />
@@ -160,6 +192,10 @@
     <ProjectReference Include="..\Burrow.Extras\Burrow.Extras.csproj">
       <Project>{143DB227-4AB7-4D4F-AE1A-4C5D2ED40180}</Project>
       <Name>Burrow.Extras</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Burrow.RPC\Burrow.RPC.csproj">
+      <Project>{020AB76B-78DF-44AA-BAD6-E1F44EEF2A81}</Project>
+      <Name>Burrow.RPC</Name>
     </ProjectReference>
     <ProjectReference Include="..\Burrow\Burrow.csproj">
       <Project>{A638FCE0-EDBA-4C08-BC92-09B40A48A342}</Project>

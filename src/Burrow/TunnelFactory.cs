@@ -79,14 +79,18 @@ namespace Burrow
             var msgHandlerFactory = new DefaultMessageHandlerFactory(errorHandler, Global.DefaultSerializer, rabbitWatcher);
             var consumerManager = new ConsumerManager(rabbitWatcher, msgHandlerFactory, Global.DefaultSerializer);
 
-            return new RabbitTunnel(consumerManager,
-                                    rabbitWatcher, 
-                                    new DefaultRouteFinder(), 
-                                    durableConnection,
-                                    Global.DefaultSerializer,
-                                    Global.DefaultCorrelationIdGenerator,
-                                    Global.DefaultPersistentMode);
+            var tunnel = new RabbitTunnel(consumerManager,
+                                          rabbitWatcher, 
+                                          new DefaultRouteFinder(), 
+                                          durableConnection,
+                                          Global.DefaultSerializer,
+                                          Global.DefaultCorrelationIdGenerator,
+                                          Global.DefaultPersistentMode);
 
+            tunnel.AddSerializerObserver(errorHandler);
+            tunnel.AddSerializerObserver(msgHandlerFactory);
+            tunnel.AddSerializerObserver(consumerManager);
+            return tunnel;
         }
     }
 }

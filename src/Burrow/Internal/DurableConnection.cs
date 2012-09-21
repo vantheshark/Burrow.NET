@@ -91,7 +91,7 @@ namespace Burrow.Internal
                 }
             }
 
-            if (reason != null && reason.ReplyText != "Connection disposed by application")
+            if (reason != null && reason.ReplyText != "Connection disposed by application" && reason.ReplyText != Subscription.CloseByApplication)
             {
                 _retryPolicy.WaitForNextRetry(Connect);
             }

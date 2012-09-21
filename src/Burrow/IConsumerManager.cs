@@ -39,7 +39,6 @@ namespace Burrow
         /// <returns></returns>
         IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize = null);
 
-
         /// <summary>
         /// Create a asynchronous IBasicConsumer which can start a number of batchSize threads to consume the queue, this consumer should not ack the messages after handling them.
         /// In fact, the system should act the messages later based on the information provided in MessageDeliverEventArgs

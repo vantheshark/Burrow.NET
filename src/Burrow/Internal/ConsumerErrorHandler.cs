@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -6,16 +7,15 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Burrow.Internal
 {
-    public class ConsumerErrorHandler : IConsumerErrorHandler
+    public class ConsumerErrorHandler : IConsumerErrorHandler, IObserver<ISerializer>
     {
         private readonly string _errorQueue;
         private readonly string _errorExchange;
-
         private readonly ConnectionFactory _connectionFactory;
-        private readonly ISerializer _serializer;
         private readonly IRabbitWatcher _watcher;
         private readonly object _channelGate = new object();
 
+        private ISerializer _serializer;
         private bool _errorQueueDeclared;
         private bool _errorQueueBound;
 
@@ -137,6 +137,22 @@ namespace Burrow.Internal
             {
                 _watcher.ErrorFormat("ConsumerErrorHandler: Failed to publish error message\nException is:\n" + unexpecctedException);
             }
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void OnNext(ISerializer value)
+        {
+            _serializer = value;
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void OnError(Exception error)
+        {
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void OnCompleted()
+        {
         }
     }
 }

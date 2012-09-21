@@ -1,14 +1,21 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Burrow.Internal
 {
+    //[DebuggerStepThrough]
     internal class ConsoleWatcher : IRabbitWatcher
     {
         private readonly object _consoleLock = new object();
 
+        public bool IsDebugEnable { get; set; }
+
         public void DebugFormat(string format, params object[] args)
         {
-            Write(ConsoleColor.Gray, format, args);
+            if (IsDebugEnable)
+            {
+                Write(ConsoleColor.Gray, format, args);
+            }
         }
 
         public void InfoFormat(string format, params object[] args)
@@ -30,7 +37,7 @@ namespace Burrow.Internal
         {
             Write(ConsoleColor.Red, exception.ToString());
         }
-
+        
         private void Write(ConsoleColor color, string format, params object[] args)
         {
             string msg;

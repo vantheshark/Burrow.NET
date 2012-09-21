@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using RabbitMQ.Client;
 
 namespace Burrow.Internal
 {
-    public class ConsumerManager : IConsumerManager
+    public class ConsumerManager : IConsumerManager, IObserver<ISerializer>
     {
         public virtual IMessageHandlerFactory MessageHandlerFactory { get; private set; }
 
         protected readonly IRabbitWatcher _watcher;
-        protected readonly ISerializer _serializer;
+        protected ISerializer _serializer;
         protected readonly List<IBasicConsumer> _createdConsumers;
+        internal readonly Action<ISerializer> UpdateSerializzer;
 
         public ConsumerManager(IRabbitWatcher watcher, 
                                IMessageHandlerFactory messageHandlerFactory,
@@ -34,6 +36,7 @@ namespace Burrow.Internal
             MessageHandlerFactory = messageHandlerFactory;
             _serializer = serializer;
             _createdConsumers = new List<IBasicConsumer>();
+            UpdateSerializzer = s => _serializer = s;
         }
 
         public virtual IBasicConsumer CreateConsumer<T>(IModel channel, string subscriptionName, Action<T> onReceiveMessage)
@@ -84,6 +87,22 @@ namespace Burrow.Internal
                 MessageHandlerFactory.Dispose();
             }
             _disposed = true;
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void OnNext(ISerializer value)
+        {
+            _serializer = value;
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void OnError(Exception error)
+        {
+        }
+
+        [ExcludeFromCodeCoverage]
+        public void OnCompleted()
+        {
         }
     }
 }

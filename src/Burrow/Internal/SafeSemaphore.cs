@@ -26,7 +26,10 @@ namespace Burrow.Internal
         {
             try
             {
-                _semaphore.WaitOne();
+                if (!_dispose)
+                {
+                    _semaphore.WaitOne();
+                }
             }
             catch (Exception ex)
             {
@@ -38,7 +41,10 @@ namespace Burrow.Internal
         {
             try
             {
-                _semaphore.Release();
+                if (!_dispose)
+                {
+                    _semaphore.Release();
+                }
             }
             catch (Exception ex)
             {
@@ -50,7 +56,10 @@ namespace Burrow.Internal
         {
             try
             {
-                _semaphore.Release(releaseCount);
+                if (!_dispose)
+                {
+                    _semaphore.Release(releaseCount);
+                }
             }
             catch (Exception ex)
             {
@@ -70,9 +79,17 @@ namespace Burrow.Internal
             }
         }
 
+        private volatile bool _dispose;
         public void Dispose()
         {
-            _semaphore.Dispose();
+            lock (_semaphore)
+            {
+                if (!_dispose)
+                {
+                    _semaphore.Dispose();
+                    _dispose = true;
+                }
+            }
         }
     }
 }

@@ -79,6 +79,30 @@ namespace Burrow.Tests.RabbitTunnelTests
             // Action
             tunnel.Publish("Muahaha");
         }
+
+        [TestMethod]
+        public void Should_create_dedicated_channel_without_reconnect_if_connection_has_been_connected_before()
+        {
+            // Arrange
+            var newChannel = Substitute.For<IModel>();
+            newChannel.IsOpen.Returns(true);
+            var routeFinder = Substitute.For<IRouteFinder>();
+            var durableConnection = Substitute.For<IDurableConnection>();
+            durableConnection.IsConnected.Returns(true);
+            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            durableConnection.CreateChannel().Returns(newChannel);
+            var tunnel = new RabbitTunnel(routeFinder, durableConnection);
+
+            // Action
+            tunnel.Publish("Muahaha");
+            tunnel.Publish("Hohohoho");
+
+            // Assert
+            routeFinder.Received().FindRoutingKey<string>();
+            durableConnection.Received(1).CreateChannel();
+            durableConnection.DidNotReceive().Connect();
+            newChannel.Received(2).BasicPublish(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IBasicProperties>(), Arg.Any<byte[]>());
+        }
     }
 }
 // ReSharper restore InconsistentNaming

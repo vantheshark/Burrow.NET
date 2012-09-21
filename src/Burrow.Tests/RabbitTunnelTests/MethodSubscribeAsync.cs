@@ -20,10 +20,10 @@ namespace Burrow.Tests.RabbitTunnelTests
             var tunnel = RabbitTunnelForTest.CreateTunnel(newChannel, out durableConnection);
 
             // Action
-            tunnel.SubscribeAsync<Customer>("subscriptionName", x => { });
+            tunnel.SubscribeAsync<Customer>("subscriptionName", x => { }, 1);
 
             // Assert
-            newChannel.Received().BasicQos(0, Global.PreFetchSize, false);
+            newChannel.Received().BasicQos(0, (ushort)Global.PreFetchSize, false);
             newChannel.Received().BasicConsume("Queue", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());
         }
 
@@ -37,10 +37,10 @@ namespace Burrow.Tests.RabbitTunnelTests
             var tunnel = RabbitTunnelForTest.CreateTunnel(newChannel, out durableConnection);
 
             // Action
-            tunnel.SubscribeAsync<Customer>("subscriptionName", (x, y) => { });
+            tunnel.SubscribeAsync<Customer>("subscriptionName", (x, y) => { }, 1);
 
             // Assert
-            newChannel.Received().BasicQos(0, Global.PreFetchSize, false);
+            newChannel.Received().BasicQos(0, (ushort)Global.PreFetchSize, false);
             newChannel.Received().BasicConsume("Queue", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());
         }
     }

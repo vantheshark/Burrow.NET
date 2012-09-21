@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Burrow.Internal;
@@ -81,6 +83,7 @@ namespace Burrow
             _watcher = watcher;
             _connection = connection;
             _correlationIdGenerator = correlationIdGenerator;
+            _observers = new ConcurrentBag<IObserver<ISerializer>>();
 
             SetRouteFinder(routeFinder);
             SetSerializer(serializer);
@@ -126,7 +129,10 @@ namespace Burrow
             try
             {
                 CreatePublishChannel();
-                _watcher.InfoFormat("Re-subscribe to queues");
+                if (_subscribeActions.Count > 0)
+                {
+                    _watcher.InfoFormat("Subscribe to queues");
+                }
                 foreach (var subscription in _subscribeActions.Values)
                 {
                     TrySubscribe(subscription);
@@ -146,6 +152,7 @@ namespace Burrow
         {
             if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
             {
+                _watcher.InfoFormat("Creating dedicated publishing channel");
                 _dedicatedPublishingChannel = _connection.CreateChannel();
                 _createdChannels.Add(_dedicatedPublishingChannel);
 
@@ -162,6 +169,7 @@ namespace Burrow
         /// </summary>
         /// <param name="model"></param>
         /// <param name="args"></param>
+        [ExcludeFromCodeCoverage]
         protected virtual void OnMessageIsUnrouted(IModel model, RabbitMQ.Client.Events.BasicReturnEventArgs args)
         {
         }
@@ -172,6 +180,7 @@ namespace Burrow
         /// </summary>
         /// <param name="model"></param>
         /// <param name="args"></param>
+        [ExcludeFromCodeCoverage]
         protected virtual void OnBrokerRejectedMessage(IModel model, RabbitMQ.Client.Events.BasicNackEventArgs args)
         {
         }
@@ -183,6 +192,7 @@ namespace Burrow
         /// </summary>
         /// <param name="model"></param>
         /// <param name="args"></param>
+        [ExcludeFromCodeCoverage]
         protected virtual void OnBrokerReceivedMessage(IModel model, RabbitMQ.Client.Events.BasicAckEventArgs args)
         {
         }
@@ -240,7 +250,7 @@ namespace Burrow
             // If for above reason, this channel has not been created, we can create it here
             if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
             {
-                OpenTunnel();
+                CreatePublishChannel();
 
                 // If still failed, it's time to throw exception
                 if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
@@ -334,7 +344,16 @@ namespace Burrow
                     RaiseConsumerDisconnectedEvent(subscription);
                     TryReconnect(c, id, reason); 
                 };
-                channel.BasicQos(0, Global.PreFetchSize, false);
+
+                if (Global.PreFetchSize <= ushort.MaxValue)
+                {
+                    channel.BasicQos(0, (ushort)Global.PreFetchSize, false);
+                }
+                else
+                {
+                    _watcher.WarnFormat("The prefetch size is too high {0}, maximum {1}, the queue will prefetch all the msgs", Global.PreFetchSize, ushort.MaxValue);
+                }
+
                 _createdChannels.Add(channel);
                 
                 subscription.SetChannel(channel);
@@ -386,7 +405,7 @@ namespace Burrow
             }
             _routeFinder = routeFinder;
         }
-
+        
         public void SetSerializer(ISerializer serializer)
         {
             if (serializer == null)
@@ -394,6 +413,10 @@ namespace Burrow
                 throw new ArgumentNullException("serializer");
             }
             _serializer = serializer;
+            foreach (var observer in _observers)
+            {
+                observer.OnNext(serializer);
+            }
         }
 
         public void SetPersistentMode(bool persistentMode)
@@ -440,6 +463,17 @@ namespace Burrow
             if (Factory == null)
             {
                 new TunnelFactory();
+            }
+        }
+
+        protected readonly ConcurrentBag<IObserver<ISerializer>> _observers;
+        
+        [ExcludeFromCodeCoverage]
+        internal void AddSerializerObserver(IObserver<ISerializer> observer)
+        {
+            if (!_observers.Contains(observer))
+            {
+                _observers.Add(observer);
             }
         }
     }
