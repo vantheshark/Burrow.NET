@@ -31,25 +31,27 @@ namespace Burrow.RPC
                     CheckedMethodCaches[method] = new NotSupportedException(string.Format("Dude, method {0} has param {1} is a delegate of type {2}. RPC call does not support delegate", method.Name, delegateParam.Name, delegateParam.ParameterType.FullName));
                     
                 }
+
+                else if (method.DeclaringType != null && method.DeclaringType.GetProperties().Any(prop => prop.GetSetMethod() == method || prop.GetGetMethod() == method))
+                {
+                    CheckedMethodCaches[method] = new NotSupportedException(string.Format("Dude, property accessor {0} is not supported for RPC call", method.Name));
+                }
+
                 else if (!methodIsAsync)
                 {
                     CheckedMethodCaches[method] = null;
                 }
-
-                else if (method.DeclaringType != null && method.DeclaringType.GetProperties().Any(prop => prop.GetSetMethod() == method || prop.GetGetMethod() == method))
-                {
-                    CheckedMethodCaches[method] = new NotSupportedException(string.Format("Property accessor {0} is not supported for RPC call", method.Name));
-                }
+                
                 else if (method.ReturnType != typeof (void))
                 {
-                    CheckedMethodCaches[method] = new Exception(string.Format("Dude, method {0} requires to return value but it's expected to run asynchronously", method.Name));
+                    CheckedMethodCaches[method] = new Exception(string.Format("Dude, method {0} requires to return a value but it's expected to run asynchronously", method.Name));
                 }
 
                 else foreach (var param in @params)
                 {
                     if (param.IsOut)
                     {
-                        CheckedMethodCaches[method] = new Exception(string.Format("Dude, param '{0}' of method {1} is out param, but the method is expected to run asynchronously", param.Name, method.Name));
+                        CheckedMethodCaches[method] = new Exception(string.Format("Dude, param '{0}' of method {1} is 'out' param, but the method is expected to run asynchronously", param.Name, method.Name));
                         break;
                     }
                 }
