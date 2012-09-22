@@ -23,10 +23,11 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
         }
 
         [TestMethod]
-        public void Should_publish_request_without_address()
+        public void Should_publish_request_with_address()
         {
             // Arrange
-            var routeFinder = Substitute.For<IRouteFinder>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
+            routeFinder.RequestQueue.Returns("RequestQueue");
             InternalDependencies.RpcQueueHelper = Substitute.For<IRpcQueueHelper>();
             var client = new BurrowRpcClientCoordinator<ISomeService>(null, routeFinder);
 
@@ -48,15 +49,15 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             client.Send(res);
 
             // Assert
-            tunnel.Received(1).Publish(Arg.Any<RpcRequest>(), Arg.Any<string>());
+            tunnel.Received(1).Publish(Arg.Any<RpcRequest>(), "RequestQueue");
         }
 
         [TestMethod, ExpectedException(typeof(TimeoutException))]
         public void Should_throw_exeception_if_timeout()
         {
             // Arrange
-            var routeFinder = Substitute.For<IRouteFinder>();
-            routeFinder.FindQueueName<RpcResponse>(Arg.Any<string>()).Returns("ISomeService.ResponseQueue");
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
+            routeFinder.UniqueResponseQueue.Returns("ISomeService.ResponseQueue");
             InternalDependencies.RpcQueueHelper = Substitute.For<IRpcQueueHelper>();
             var client = new BurrowRpcClientCoordinator<ISomeService>(null, routeFinder);
 

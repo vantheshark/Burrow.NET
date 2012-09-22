@@ -31,7 +31,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             new BurrowRpcClientCoordinator<ISomeService>("host=anyhost;username=guest;password=guest");
 
             // Assert
-            tunnel.Received(1).SetRouteFinder(Arg.Is<IRouteFinder>(arg => arg is BurrowRpcRouteFinder));
+            tunnel.Received(1).SetRouteFinder(Arg.Is<IRouteFinder>(arg => arg is RpcRouteFinderAdapter));
         }
 
         [TestMethod]
@@ -69,16 +69,18 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
         {
             // Arrange
             var model = Substitute.For<IModel>();
-            var routeFinder = Substitute.For<IRouteFinder>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
             
             InternalDependencies.RpcQueueHelper = Substitute.For<IRpcQueueHelper>();
             InternalDependencies.RpcQueueHelper
                 .When(x => x.CreateQueues(Arg.Any<string>(), Arg.Any<Action<IModel>>()))
                 .Do(callInfo => callInfo.Arg<Action<IModel>>()(model));
 
-            routeFinder.FindQueueName<RpcRequest>(typeof(ISomeService).Name).Returns("ISomeService.RequestQueue");
-            routeFinder.FindQueueName<RpcResponse>(Arg.Any<string>()).Returns("ISomeService.ResponseQueue");
-            routeFinder.FindExchangeName<RpcRequest>().Returns("ISomeService.RequestExchange");
+            routeFinder.RequestQueue.Returns("ISomeService.RequestQueue");
+            routeFinder.UniqueResponseQueue.Returns("ISomeService.ResponseQueue");
+            routeFinder.RequestExchangeName.Returns("ISomeService.RequestExchange");
+            routeFinder.RequestExchangeType.Returns("direct");
+            routeFinder.CreateExchangeAndQueue.Returns(true);
 
             // Action
             new BurrowRpcClientCoordinator<ISomeService>(null, routeFinder);

@@ -26,7 +26,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
         {
             // Arrange
             InternalDependencies.RpcQueueHelper = Substitute.For<IRpcQueueHelper>();
-            var client = new BurrowRpcClientCoordinator<ISomeService>(null, Substitute.For<IRouteFinder>());
+            var client = new BurrowRpcClientCoordinator<ISomeService>(null, Substitute.For<IRpcRouteFinder>());
 
             var res = new RpcResponse
             {
@@ -45,7 +45,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
         {
             // Arrange
             InternalDependencies.RpcQueueHelper = Substitute.For<IRpcQueueHelper>();
-            var client = new BurrowRpcClientCoordinator<ISomeService>(null, Substitute.For<IRouteFinder>());
+            var client = new BurrowRpcClientCoordinator<ISomeService>(null, Substitute.For<IRpcRouteFinder>());
 
             var res = new RpcResponse
             {

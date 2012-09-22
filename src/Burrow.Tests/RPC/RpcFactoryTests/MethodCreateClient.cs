@@ -2,23 +2,23 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable InconsistentNaming
-namespace Burrow.Tests.RPC.RpcClientFactoryTests
+namespace Burrow.Tests.RPC.RpcFactoryTests
 {
     [TestClass]
-    public class MethodCreate
+    public class MethodCreateClient
     {
         [TestMethod]
         public void Can_accept_null_params()
         {
             // Arrange
-            RpcClientFactory.Create<ISomeService>();
+            RpcFactory.CreateClient<ISomeService>();
         }
 
         [TestMethod]
         public void Can_accept_null_filters()
         {
             // Arrange
-            RpcClientFactory.Create<ISomeService>(NSubstitute.Substitute.For<IRpcClientCoordinator>());
+            RpcFactory.CreateClient<ISomeService>(NSubstitute.Substitute.For<IRpcClientCoordinator>());
         }
     }
 }

@@ -2,6 +2,7 @@
 - Fix method SetSerializer on RabbitTunnel to make serializer change to all dependencies
 - Implement Burrow.RPC
 - Fix a bug that execute the subscriptions twice when the connection to server has been establised before when a new tunnel want to publish a new message. Can reproduce this bug by create a tunnel, publish or subscribe. Create another tunnel on same app domain, subscribe, then publish. The second tunnel will run the subscription again as the dedicated channel is not created.
+- Add IsDebugEnable on IRabbitWatcher, sorry for that if you have to change your custom watcher implementation
 
 * 1.0.14 (26 July 2012)
 - Fix method Ack(IEnumerable<ulong> deliveryTag) on Subscription class which did the wrong thing by ack all msgs up to the max value of the list, same fix for CompositeSubscription

@@ -8,49 +8,43 @@ namespace Burrow.RPC
 {
     public class BurrowRpcClientCoordinator<T> : IRpcClientCoordinator where T : class
     {
-        private readonly string _instanceId = Guid.NewGuid().ToString();
         private readonly string _rabbitMqConnectionString;
         private readonly ITunnel _tunnel;
-        private readonly IRouteFinder _routeFinder;
+        private readonly IRpcRouteFinder _routeFinder;
         private readonly ConcurrentDictionary<Guid, RpcWaitHandler> _waitHandlers = new ConcurrentDictionary<Guid, RpcWaitHandler>();
-        private readonly string _requestQueueName;
-        private readonly string _responseQueueName;
 
         internal ConcurrentDictionary<Guid, RpcWaitHandler> GetCachedWaitHandlers()
         {
             return _waitHandlers;
         }
 
-        public BurrowRpcClientCoordinator(string rabbitMqConnectionString = null, IRouteFinder routeFinder = null, bool createRequestAndResponseQueues = true)
+        public BurrowRpcClientCoordinator(string rabbitMqConnectionString = null, IRpcRouteFinder routeFinder = null)
         {
             _rabbitMqConnectionString = InternalDependencies.RpcQueueHelper.TryGetValidConnectionString(rabbitMqConnectionString);
 
-            _routeFinder = routeFinder ?? new BurrowRpcRouteFinder();
+            _routeFinder = routeFinder ?? new DefaultRpcRouteFinder<T>();
             _tunnel = RabbitTunnel.Factory.Create(_rabbitMqConnectionString);
-            _tunnel.SetRouteFinder(_routeFinder);
+            _tunnel.SetRouteFinder(new RpcRouteFinderAdapter(_routeFinder));
             _tunnel.SetSerializer(Global.DefaultSerializer);
 
-            var subscriptionName = typeof (T).Name + "." + _instanceId;
-            _requestQueueName = _routeFinder.FindQueueName<RpcRequest>(typeof(T).Name);
-            _responseQueueName = _routeFinder.FindQueueName<RpcResponse>(subscriptionName);
-
-            Init(createRequestAndResponseQueues, subscriptionName);
+            var subscriptionName = typeof(T).Name;
+            Init(subscriptionName);
         }
 
-        private void Init(bool createRequestAndResponseQueues, string subscriptionName)
+        private void Init(string subscriptionName)
         {
             Action<IModel> createRequestAndResponseQueuesAction = channel =>
             {
                 IDictionary arguments = new Dictionary<string, object>();
-                channel.QueueDeclare(_responseQueueName, true, false, true /* response queue will be deleted if client disconnected */, arguments);
-                if (createRequestAndResponseQueues)
+                channel.QueueDeclare(_routeFinder.UniqueResponseQueue, true, false, true /* response queue will be deleted if client disconnected */, arguments);
+                if (_routeFinder.CreateExchangeAndQueue)
                 {
-                    channel.QueueDeclare(_requestQueueName, true, false, false, arguments);
-                    var requestExchange = _routeFinder.FindExchangeName<RpcRequest>();
+                    channel.QueueDeclare(_routeFinder.RequestQueue, true, false, false, arguments);
+                    var requestExchange = _routeFinder.RequestExchangeName;
                     if (!string.IsNullOrEmpty(requestExchange))
                     {
-                        channel.ExchangeDeclare(requestExchange, ExchangeType.Direct, true, false, null);
-                        channel.QueueBind(_requestQueueName, requestExchange, _requestQueueName /* Routing key is always same as requestQueueName*/);
+                        channel.ExchangeDeclare(requestExchange, _routeFinder.RequestExchangeType, true, false, null);
+                        channel.QueueBind(_routeFinder.RequestQueue, requestExchange, _routeFinder.RequestQueue /* Routing key is always same as requestQueueName*/);
                     }
                 }
             };
@@ -76,16 +70,16 @@ namespace Burrow.RPC
         public virtual void SendAsync(RpcRequest request)
         {
             request.ResponseAddress = null; // Don't need response
-            _tunnel.Publish(request, _requestQueueName);
+            _tunnel.Publish(request, _routeFinder.RequestQueue);
         }
 
         public virtual RpcResponse Send(RpcRequest request)
         {
-            request.ResponseAddress = _responseQueueName;
+            request.ResponseAddress = _routeFinder.UniqueResponseQueue;
             
             var waitHandler = new RpcWaitHandler();
             _waitHandlers[request.Id] = waitHandler;
-            _tunnel.Publish(request, _requestQueueName);
+            _tunnel.Publish(request, _routeFinder.RequestQueue);
 
             var timeToWait = request.UtcExpiryTime.HasValue && DateTime.UtcNow < request.UtcExpiryTime.Value
                            ? request.UtcExpiryTime.Value.Subtract(DateTime.UtcNow)

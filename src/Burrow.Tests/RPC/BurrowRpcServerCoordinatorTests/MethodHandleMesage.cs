@@ -31,7 +31,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
         public void Should_print_warn_msg_and_return_if_msg_is_expired()
         {
             // Arrange
-            var routeFinder = Substitute.For<IRouteFinder>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
             var instance = Substitute.For<ISomeService>();
             var server = new BurrowRpcServerCoordinator<ISomeService>(instance, routeFinder, "queue-connnection-string", "10");
 
@@ -52,7 +52,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
         public void Should_publish_respones_with_Exception_if_method_not_match()
         {
             // Arrange
-            var routeFinder = Substitute.For<IRouteFinder>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
             var instance = Substitute.For<ISomeService>();
             var server = new BurrowRpcServerCoordinator<ISomeService>(instance, routeFinder, "queue-connnection-string", "10");
             var request = new RpcRequest
@@ -73,7 +73,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
         public void Should_publish_nothing_if_msg_is_Async()
         {
             // Arrange
-            var routeFinder = Substitute.For<IRouteFinder>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
             var instance = Substitute.For<ISomeService>();
             var server = new BurrowRpcServerCoordinator<ISomeService>(instance, routeFinder, "queue-connnection-string", "10");
             var request = new RpcRequest
@@ -93,7 +93,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
         public void Should_invoke_method_on_real_instance_and_map_response_params()
         {
             // Arrange
-            var routeFinder = Substitute.For<IRouteFinder>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
             var instance = Substitute.For<ISomeService>();
             var server = new BurrowRpcServerCoordinator<ISomeService>(instance, routeFinder, "queue-connnection-string", "10");
             var request = new RpcRequest

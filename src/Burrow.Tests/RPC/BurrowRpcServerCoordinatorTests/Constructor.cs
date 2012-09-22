@@ -19,7 +19,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
         public void Should_throw_exception_if_provide_null_route_finder()
         {
             // Arrange
-            IRouteFinder routeFinder = null;
+            IRpcRouteFinder routeFinder = null;
             new BurrowRpcServerCoordinator<ISomeService>(NSubstitute.Substitute.For<ISomeService>(), routeFinder, "queue-connnection-string");
         }
 

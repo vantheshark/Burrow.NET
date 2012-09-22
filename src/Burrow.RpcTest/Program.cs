@@ -13,16 +13,27 @@ namespace Burrow.RpcTestClient
 
             PrintHelp();
 
-            var client = RpcClientFactory.Create<ISomeService>();
+            
 
-            IRpcServerCoordinator server = new BurrowRpcServerCoordinator<ISomeService>(new DummyImplementation(), new BurrowRpcLoadBalancerRouteFinder());
-
+            ISomeService realService = new DummyImplementation();
+            IRpcServerCoordinator server = RpcFactory.CreateServer(realService, serverId: "UnitTest");
             server.Start();
 
+
             string outValue;
+            var client = RpcFactory.CreateClient<ISomeService>();
             client.TryParse(out outValue);
 
-            Global.DefaultWatcher.InfoFormat("Rpc call is dispatched, change the method to something else to test");
+
+            
+            Console.WriteLine();
+            Console.WriteLine();
+            Global.DefaultWatcher.InfoFormat("Method TryParse was executed remotely, out value is {0}", outValue);
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+
+            Global.DefaultWatcher.InfoFormat("... change the method to something else to continue to test");
             Console.ReadKey();
         }
 
@@ -30,8 +41,10 @@ namespace Burrow.RpcTestClient
         {
             Global.DefaultWatcher.InfoFormat("This console app demonstrates how to use Burrow.RPC package!!!");
             Console.WriteLine();
-            Global.DefaultWatcher.InfoFormat("   1/ First it'll create the queues for requests and responses");
-            Global.DefaultWatcher.InfoFormat("   2/ Then it'll send the request to the request queue and wait for response if the method is decorated with Async attribute");
+            Global.DefaultWatcher.InfoFormat("   1/ First, it'll create the queues for requests and responses");
+            Global.DefaultWatcher.InfoFormat("   2/ Then it'll send the request to the request queue");
+            Global.DefaultWatcher.InfoFormat("      and wait for response if the method is decorated with Async attribute");
+            
             Console.WriteLine();
             Global.DefaultWatcher.InfoFormat("Press anykey to run...");
             Console.WriteLine();

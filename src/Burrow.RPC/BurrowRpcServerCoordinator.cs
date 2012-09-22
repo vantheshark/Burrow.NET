@@ -10,16 +10,15 @@ namespace Burrow.RPC
         private readonly string _serverId;
         private readonly T _realInstance;
         private readonly string _rabbitMqConnectionString;
-        private readonly IRouteFinder _routeFinder;
+        private readonly IRpcRouteFinder _routeFinder;
         private ITunnel _tunnel;
-        private string _subscriptionName;
-
+        
         public BurrowRpcServerCoordinator(T realInstance, string requestQueueName, string rabbitMqConnectionString = null, string serverId = null)
-            : this(realInstance, new ConstantRouteFinder("", requestQueueName, null), rabbitMqConnectionString, serverId)
+            : this(realInstance, new DefaultRpcRouteFinder<T>(requestQueueName), rabbitMqConnectionString, serverId)
         {
         }
 
-        public BurrowRpcServerCoordinator(T realInstance, IRouteFinder routeFinder, string rabbitMqConnectionString = null, string serverId = null)
+        public BurrowRpcServerCoordinator(T realInstance, IRpcRouteFinder routeFinder, string rabbitMqConnectionString = null, string serverId = null)
         {
             _rabbitMqConnectionString = InternalDependencies.RpcQueueHelper.TryGetValidConnectionString(rabbitMqConnectionString);
             if (realInstance == null)
@@ -31,6 +30,7 @@ namespace Burrow.RPC
             {
                 throw new ArgumentNullException("routeFinder");
             }
+
             _realInstance = realInstance;
             _routeFinder = routeFinder;
             _serverId = serverId;
@@ -39,25 +39,26 @@ namespace Burrow.RPC
         private void Init()
         {
             _tunnel = RabbitTunnel.Factory.Create(_rabbitMqConnectionString);
-            _tunnel.SetRouteFinder(_routeFinder);
+            _tunnel.SetRouteFinder(new RpcRouteFinderAdapter(_routeFinder));
             _tunnel.SetSerializer(Global.DefaultSerializer);
 
-            _subscriptionName = typeof (T).Name + (string.IsNullOrEmpty(_serverId) ? "" : "." + _serverId);
-
-            var routingKey = _routeFinder.FindQueueName<RpcRequest>(typeof(T).Name);
-            var requestQueueName = _routeFinder.FindQueueName<RpcRequest>(_subscriptionName);
-            var requestExchange = _routeFinder.FindExchangeName<RpcRequest>();
-
-            if (!string.IsNullOrEmpty(requestExchange))
+            if ( _routeFinder.CreateExchangeAndQueue)
             {
+                var routingKey = _routeFinder.RequestQueue;
+                var requestQueueName = _routeFinder.RequestQueue;
+                var requestExchange = _routeFinder.RequestExchangeName;
+
                 Action<IModel> createRequestQueues = channel =>
                 {
                     var arguments = new Dictionary<string, object>();
-                    var autoDeleteLoadBalanceRequestQueue = !string.IsNullOrEmpty(_serverId);
+                    var autoDeleteLoadBalanceRequestQueue = !string.IsNullOrEmpty(_serverId) && !string.IsNullOrEmpty(requestExchange);
 
                     channel.QueueDeclare(requestQueueName, true, false, autoDeleteLoadBalanceRequestQueue, arguments);
-                    channel.ExchangeDeclare(requestExchange, ExchangeType.Direct, true, false, null);
-                    channel.QueueBind(requestQueueName, requestExchange, routingKey);
+                    if (!string.IsNullOrEmpty(requestExchange))
+                    {
+                        channel.ExchangeDeclare(requestExchange, _routeFinder.RequestExchangeType, true, false, null);
+                        channel.QueueBind(requestQueueName, requestExchange, routingKey);
+                    }
                 };
                 InternalDependencies.RpcQueueHelper.CreateQueues(_rabbitMqConnectionString, createRequestQueues);
             }
@@ -66,7 +67,7 @@ namespace Burrow.RPC
         public void Start()
         {
             Init();
-            _tunnel.SubscribeAsync<RpcRequest>(_subscriptionName, HandleMesage);
+            _tunnel.SubscribeAsync<RpcRequest>(_serverId ?? typeof(T).Name, HandleMesage);
         }
 
         internal void HandleMesage(RpcRequest msg)

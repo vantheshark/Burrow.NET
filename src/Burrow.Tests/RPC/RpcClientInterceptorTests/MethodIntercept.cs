@@ -17,7 +17,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
             // Arrange
             var coordinator = Substitute.For<IRpcClientCoordinator>();
             var interceptor = new RpcClientInterceptor(coordinator);
-            var service = RpcClientFactory.Create<ISomeService>(interceptor);
+            var service = RpcFactory.CreateClient<ISomeService>(interceptor);
             int totalCount;
 
             // Assert
@@ -36,7 +36,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
                            ChangedParams = new Dictionary<string, object> { { "result", "out string" } }
                        });
             var interceptor = new RpcClientInterceptor(coordinator);
-            var service = RpcClientFactory.Create<ISomeService>(interceptor);
+            var service = RpcFactory.CreateClient<ISomeService>(interceptor);
 
             // Assert
             string outValue;
@@ -60,7 +60,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
                            ChangedParams = new Dictionary<string, object>{{"totalCount", 1000}}
                        });
             var interceptor = new RpcClientInterceptor(coordinator);
-            var service = RpcClientFactory.Create<ISomeService>(interceptor);
+            var service = RpcFactory.CreateClient<ISomeService>(interceptor);
             int totalCount;
 
             // Assert
@@ -83,7 +83,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
                            ReturnValue = new List<SomeMessage> { new SomeMessage() }
                        });
             var interceptor = new RpcClientInterceptor(coordinator);
-            var service = RpcClientFactory.Create<ISomeService>(interceptor);
+            var service = RpcFactory.CreateClient<ISomeService>(interceptor);
             int totalCount;
 
             // Assert
@@ -98,7 +98,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
             coordinator.Send(Arg.Any<RpcRequest>())
                        .Returns(new RpcResponse());
             var interceptor = new RpcClientInterceptor(coordinator);
-            var service = RpcClientFactory.Create<ISomeService>(interceptor);
+            var service = RpcFactory.CreateClient<ISomeService>(interceptor);
 
             // Assert
             var msg = new SomeMessage();
@@ -119,7 +119,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
                            Exception = new Exception()
                        });
             var interceptor = new RpcClientInterceptor(coordinator);
-            var service = RpcClientFactory.Create<ISomeService>(interceptor);
+            var service = RpcFactory.CreateClient<ISomeService>(interceptor);
 
             // Assert
             string outValue;
@@ -137,7 +137,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
                            ChangedParams = new Dictionary<string, object> { { "message", new SomeMessage{Money = "$1000"} } }
                        });
             var interceptor = new RpcClientInterceptor(coordinator);
-            var service = RpcClientFactory.Create<ISomeService>(interceptor);
+            var service = RpcFactory.CreateClient<ISomeService>(interceptor);
 
             // Action
             var message = new SomeMessage();

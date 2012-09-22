@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Burrow.RpcTestClient
 {
@@ -16,7 +17,7 @@ namespace Burrow.RpcTestClient
 
         public void TryParse(out string result)
         {
-            result = "100";
+            result = DateTime.Now.ToString(CultureInfo.InvariantCulture);
         }
 
         public IEnumerable<SomeMessage> Get(int page, int pageSize, out int totalCount)

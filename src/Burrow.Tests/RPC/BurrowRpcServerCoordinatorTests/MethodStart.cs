@@ -25,7 +25,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
         public void Should_create_tunnel_and_set_serializer_and_route_finder()
         {
             // Arrange
-            var routeFinder = Substitute.For<IRouteFinder>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
             var instance = Substitute.For<ISomeService>();
             var server = new BurrowRpcServerCoordinator<ISomeService>(instance, routeFinder, "queue-connnection-string");
 
@@ -33,41 +33,90 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
             server.Start();
 
             // Assert
-            tunnel.Received(1).SetRouteFinder(routeFinder);
+            tunnel.Received(1).SetRouteFinder(Arg.Any<IRouteFinder>());
             tunnel.Received(1).SetSerializer(Arg.Any<ISerializer>());
         }
 
         [TestMethod]
-        public void Should_create_balance_request_queue_if_exchange_is_not_empty()
+        public void Should_create_exchange_and_auto_delete_request_queue_if_provide_serverId_and_exchange_not_empty()
         {
             // Arrange
             var model = Substitute.For<IModel>();
-            var routeFinder = Substitute.For<IRouteFinder>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
             var instance = Substitute.For<ISomeService>();
-            var server = new BurrowRpcServerCoordinator<ISomeService>(instance, routeFinder, "queue-connnection-string", "10");
+            var server = new BurrowRpcServerCoordinator<ISomeService>(instance, routeFinder, "queue-connnection-string", "serverId");
             InternalDependencies.RpcQueueHelper = Substitute.For<IRpcQueueHelper>();
             InternalDependencies.RpcQueueHelper
                 .When(x => x.CreateQueues(Arg.Any<string>(), Arg.Any<Action<IModel>>()))
                 .Do(callInfo => callInfo.Arg<Action<IModel>>()(model));
 
-            routeFinder.FindQueueName<RpcRequest>("ISomeService").Returns("ISomeService.RequestQueue");
-            routeFinder.FindQueueName<RpcRequest>("ISomeService.10").Returns("ISomeService.10.RequestQueue");
-            routeFinder.FindExchangeName<RpcRequest>().Returns("ISomeService.Exchange");
+            routeFinder.RequestQueue.Returns("ISomeService.serverId.RequestQueue");
+            routeFinder.RequestExchangeType.Returns("direct");
+            routeFinder.RequestExchangeName.Returns("ISomeService.Exchange");
+            routeFinder.CreateExchangeAndQueue.Returns(true);
 
             // Action
             server.Start();
 
             // Assert
-            model.Received(1).QueueDeclare("ISomeService.10.RequestQueue", true, false, true, Arg.Any<IDictionary>());
+            model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, true, Arg.Any<IDictionary>());
             model.Received(1).ExchangeDeclare("ISomeService.Exchange", "direct", true, false, null);
-            model.Received(1).QueueBind("ISomeService.10.RequestQueue", "ISomeService.Exchange", "ISomeService.RequestQueue");
+            model.Received(1).QueueBind("ISomeService.serverId.RequestQueue", "ISomeService.Exchange", "ISomeService.serverId.RequestQueue");
+        }
+
+        [TestMethod]
+        public void Should_create_durable_request_queue_if_not_provide_server_id()
+        {
+            // Arrange
+            var model = Substitute.For<IModel>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
+            var instance = Substitute.For<ISomeService>();
+            var server = new BurrowRpcServerCoordinator<ISomeService>(instance, routeFinder, "queue-connnection-string");
+            InternalDependencies.RpcQueueHelper = Substitute.For<IRpcQueueHelper>();
+            InternalDependencies.RpcQueueHelper
+                .When(x => x.CreateQueues(Arg.Any<string>(), Arg.Any<Action<IModel>>()))
+                .Do(callInfo => callInfo.Arg<Action<IModel>>()(model));
+
+            routeFinder.RequestQueue.Returns("ISomeService.serverId.RequestQueue");
+            routeFinder.RequestExchangeType.Returns("direct");
+            routeFinder.RequestExchangeName.Returns("ISomeService.Exchange");
+            routeFinder.CreateExchangeAndQueue.Returns(true);
+
+            // Action
+            server.Start();
+
+            // Assert
+            model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, false, Arg.Any<IDictionary>());
+        }
+
+        [TestMethod]
+        public void Should_create_durable_request_queue_if_provide_server_id_but_exchange_name_is_null()
+        {
+            // Arrange
+            var model = Substitute.For<IModel>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
+            var instance = Substitute.For<ISomeService>();
+            var server = new BurrowRpcServerCoordinator<ISomeService>(instance, routeFinder, "queue-connnection-string", "serverId");
+            InternalDependencies.RpcQueueHelper = Substitute.For<IRpcQueueHelper>();
+            InternalDependencies.RpcQueueHelper
+                .When(x => x.CreateQueues(Arg.Any<string>(), Arg.Any<Action<IModel>>()))
+                .Do(callInfo => callInfo.Arg<Action<IModel>>()(model));
+
+            routeFinder.RequestQueue.Returns("ISomeService.serverId.RequestQueue");
+            routeFinder.CreateExchangeAndQueue.Returns(true);
+
+            // Action
+            server.Start();
+
+            // Assert
+            model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, false, Arg.Any<IDictionary>());
         }
 
         [TestMethod]
         public void Should_subscribe_to_request_queue()
         {
             // Arrange
-            var routeFinder = Substitute.For<IRouteFinder>();
+            var routeFinder = Substitute.For<IRpcRouteFinder>();
             var instance = Substitute.For<ISomeService>();
             var server = new BurrowRpcServerCoordinator<ISomeService>(instance, routeFinder, "queue-connnection-string");
 

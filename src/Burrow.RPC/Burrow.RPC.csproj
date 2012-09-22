@@ -56,8 +56,10 @@
   <ItemGroup>
     <Compile Include="AsyncAttribute.cs" />
     <Compile Include="BurrowRpcClientCoordinator.cs" />
-    <Compile Include="BurrowRpcLoadBalancerRouteFinder.cs" />
-    <Compile Include="BurrowRpcRouteFinder.cs" />
+    <Compile Include="IRpcRouteFinder.cs" />
+    <Compile Include="RpcRouteFinderAdapter.cs" />
+    <Compile Include="DefaultFanoutRpcRequestRouteFinder.cs" />
+    <Compile Include="DefaultRpcRouteFinder.cs" />
     <Compile Include="IAsyncCallbackEvents.cs" />
     <Compile Include="IMethodFilter.cs" />
     <Compile Include="InternalDependencies.cs" />
@@ -66,7 +68,7 @@
     <Compile Include="RpcClientInterceptor.cs" />
     <Compile Include="IRpcClientCoordinator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RpcClientFactory.cs" />
+    <Compile Include="RpcFactory.cs" />
     <Compile Include="RpcRequest.cs" />
     <Compile Include="RpcResponse.cs" />
     <Compile Include="BurrowRpcServerCoordinator.cs" />
