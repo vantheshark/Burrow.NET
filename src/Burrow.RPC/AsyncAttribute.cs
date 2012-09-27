@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Burrow.RPC
 {
     /// <summary>
-    /// Use this attribute to decorate on method which does not have return type to make the rpc call asynchronously
+    /// Use this attribute to decorate on a void method which does not have any 'out' parameter to make the asynchronous rpc call 
     /// </summary>
     [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.Method)]

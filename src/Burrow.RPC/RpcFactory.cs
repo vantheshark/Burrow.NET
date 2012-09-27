@@ -64,13 +64,13 @@ namespace Burrow.RPC
         }
 
         /// <summary>
-        /// Create Rpc server using a realImplementation which will handle fanout rpc request
+        /// Create Rpc server using a realImplementation which will handle 'fanout' rpc request
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="realImplementation"></param>
         /// <param name="requestQueueName"> </param>
         /// <param name="rabbitMqConnectionString"></param>
-        /// <param name="serverId">If provided, the DefaultFanoutRpcRequestRouteFinder will be use for route finder in case route finder is null</param>
+        /// <param name="serverId"></param>
         /// <returns></returns>
         public static IRpcServerCoordinator CreateFanoutServer<T>(T realImplementation, string requestQueueName = null, string rabbitMqConnectionString = null, string serverId = null) where T : class
         {

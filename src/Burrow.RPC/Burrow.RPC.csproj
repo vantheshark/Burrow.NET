@@ -60,7 +60,6 @@
     <Compile Include="RpcRouteFinderAdapter.cs" />
     <Compile Include="DefaultFanoutRpcRequestRouteFinder.cs" />
     <Compile Include="DefaultRpcRouteFinder.cs" />
-    <Compile Include="IAsyncCallbackEvents.cs" />
     <Compile Include="IMethodFilter.cs" />
     <Compile Include="InternalDependencies.cs" />
     <Compile Include="IRpcServerCoordinator.cs" />

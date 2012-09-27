@@ -8,17 +8,17 @@ namespace Burrow.RPC
         bool CreateExchangeAndQueue { get; }
 
         /// <summary>
-        /// Default should be empty as it's the built-in exchange
+        /// Default can be empty as the empty exchange is the built-in exchange
         /// </summary>
         string RequestExchangeName { get; }
 
         /// <summary>
-        /// Either direct or fanout
+        /// Should be either direct or fanout
         /// </summary>
         string RequestExchangeType { get; }
         
         /// <summary>
-        /// If RequestExchangeName is empty, Burrow.RPC will route the RpcRequest object to this queue by publishing the msg to the empty exchange with the routing key is this queue
+        /// If RequestExchangeName is empty, Burrow.RPC will route the RpcRequest object to this queue by publishing the msg to the empty exchange with the routing key is equal to this queue name
         /// </summary>
         string RequestQueue { get; }
 

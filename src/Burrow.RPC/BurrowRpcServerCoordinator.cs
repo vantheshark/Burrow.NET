@@ -70,7 +70,7 @@ namespace Burrow.RPC
             _tunnel.SubscribeAsync<RpcRequest>(_serverId ?? typeof(T).Name, HandleMesage);
         }
 
-        internal void HandleMesage(RpcRequest msg)
+        public void HandleMesage(RpcRequest msg)
         {
             if (msg.UtcExpiryTime != null && msg.UtcExpiryTime < DateTime.UtcNow)
             {
