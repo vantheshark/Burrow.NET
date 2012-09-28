@@ -23,7 +23,7 @@ namespace Burrow.RPC
 
         public new virtual string RequestExchangeName
         {
-            get { return string.Format("Burrow.Exchange.Rpc.{0}.Requests", typeof (T).Name); }
+            get { return string.Format("Burrow.Exchange.FANOUT.Rpc.{0}.Requests", typeof (T).Name); }
         }
 
         public new string RequestExchangeType

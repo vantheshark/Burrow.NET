@@ -14,10 +14,8 @@
     <releaseNotes></releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP Burrow.RPC RPC</tags>
-    <dependencies>
-		<dependency id="RabbitMQ.Client" version="2.8.6" />
-		<dependency id="Burrow.NET" version="1.0.15" />
-		<dependency id="Newtonsoft.Json" version="4.5.9" />
+    <dependencies>		
+		<dependency id="Burrow.NET" version="1.0.15" />		
     </dependencies>
   </metadata>
 </package>
