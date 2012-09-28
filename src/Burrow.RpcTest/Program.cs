@@ -43,7 +43,7 @@ namespace Burrow.RpcTestClient
             Console.WriteLine();
             Global.DefaultWatcher.InfoFormat("   1/ First, it'll create the queues for requests and responses");
             Global.DefaultWatcher.InfoFormat("   2/ Then it'll send the request to the request queue");
-            Global.DefaultWatcher.InfoFormat("      and wait for response if the method is decorated with Async attribute");
+            Global.DefaultWatcher.InfoFormat("      and wait for response if the method is Sync");
             
             Console.WriteLine();
             Global.DefaultWatcher.InfoFormat("Press anykey to run...");

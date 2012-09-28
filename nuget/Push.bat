@@ -3,8 +3,11 @@
 @echo:
 DIR /B *.nupkg
 @echo:
+SETLOCAL
+SET VERSION=1.0.15
 pause
-REM nuget Burrow.NET*.nupkg
-REM nuget Burrow.Extras*.nupkg
-REM nuget Burrow.RPC*.nupkg
+nuget push Burrow.NET.%VERSION%.nupkg
+nuget push Burrow.Extras.%VERSION%.nupkg
+nuget push Burrow.RPC.%VERSION%.nupkg
 pause
+ENDLOCAL
