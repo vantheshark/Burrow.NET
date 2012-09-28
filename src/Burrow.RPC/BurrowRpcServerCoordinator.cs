@@ -5,6 +5,10 @@ using RabbitMQ.Client;
 
 namespace Burrow.RPC
 {
+    /// <summary>
+    /// Default impelementation of IRpcServerCoordinator which can handle RPC request by subscribing to a request queue in RabbitMQ server
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class BurrowRpcServerCoordinator<T> : IRpcServerCoordinator where T : class
     {
         private readonly string _serverId;

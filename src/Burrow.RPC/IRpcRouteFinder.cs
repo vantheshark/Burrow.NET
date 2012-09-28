@@ -1,5 +1,9 @@
 namespace Burrow.RPC
 {
+    /// <summary>
+    /// This route finder is created for RPC communication.
+    /// Implement this interface if you want to use custom naming conventions for your Response/Request queue
+    /// </summary>
     public interface IRpcRouteFinder
     {
         /// <summary>

@@ -6,6 +6,9 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Burrow.RPC
 {
+    /// <summary>
+    /// Helper interface to create queues and resolve rabbitmq connection string
+    /// </summary>
     public interface IRpcQueueHelper
     {
         void CreateQueues(string connectionString, Action<IModel> createExchangesAndQueues);

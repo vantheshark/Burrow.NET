@@ -10,7 +10,6 @@ namespace Burrow.RPC
     {
         private readonly IRpcClientCoordinator _clientCoordinator;
         private readonly List<IMethodFilter> _methodFilters;
-        internal static IMethodMatcher MethodMatcher = new MethodMatcher();
 
         public RpcClientInterceptor(IRpcClientCoordinator clientCoordinator, params IMethodFilter[] methodFilters)
         {
@@ -40,7 +39,7 @@ namespace Burrow.RPC
                 Params = args,
                 MemberType = method.MemberType,
                 MethodName = method.Name,
-                MethodSignature = MethodMatcher.GetMethodSignature(method),
+                MethodSignature = InternalDependencies.MethodMatcher.GetMethodSignature(method),
                 DeclaringType = method.DeclaringType.FullName,
             };
 

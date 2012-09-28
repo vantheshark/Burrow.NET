@@ -2,6 +2,10 @@ using RabbitMQ.Client;
 
 namespace Burrow.RPC
 {
+    /// <summary>
+    /// A default rpc route finder using Fanout Exchange for the Requests
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class DefaultFanoutRpcRequestRouteFinder<T> : DefaultRpcRouteFinder<T> where T : class
     {
         private readonly string _serverId;
@@ -17,12 +21,12 @@ namespace Burrow.RPC
         {
         }
 
-        public override string RequestExchangeName
+        public new virtual string RequestExchangeName
         {
             get { return string.Format("Burrow.Exchange.Rpc.{0}.Requests", typeof (T).Name); }
         }
 
-        public override string RequestExchangeType
+        public new string RequestExchangeType
         {
             get { return ExchangeType.Fanout; }
         }

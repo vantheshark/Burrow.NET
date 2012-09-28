@@ -1,6 +1,10 @@
 
 namespace Burrow.RPC
 {
+    /// <summary>
+    /// A default rpc route finder using default built-in "empty" exchange for sending requests/response directly to the queue name
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class DefaultRpcRouteFinder<T> : IRpcRouteFinder where T : class
     {
         protected readonly string _requestQueueName;
@@ -8,7 +12,7 @@ namespace Burrow.RPC
 
         /// <summary> 
         /// </summary>
-        /// <param name="requestQueueName"> </param>
+        /// <param name="requestQueueName">if provided, it will be used as the request queue name. Otherwise the default conventional queue will be used</param>
         /// <param name="clientName">anything that can make the response queue unique</param>
         public DefaultRpcRouteFinder(string requestQueueName = null, string clientName = null)
         {
@@ -16,17 +20,17 @@ namespace Burrow.RPC
             _clientName = clientName;
         }
 
-        public virtual bool CreateExchangeAndQueue
+        public bool CreateExchangeAndQueue
         {
             get { return true; }
         }
 
-        public virtual string RequestExchangeName
+        public string RequestExchangeName
         {
             get { return string.Empty; }
         }
 
-        public virtual string RequestExchangeType
+        public string RequestExchangeType
         {
             get { return null; }
         }

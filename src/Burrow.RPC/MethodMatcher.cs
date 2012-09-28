@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Burrow.RPC
 {
+    /// <summary>
+    /// Implement this interface to find a method info from the request which will be used to invoke a method on real instance of the RpcServer
+    /// </summary>
     public interface IMethodMatcher
     {
         MethodInfo Match<T>(RpcRequest request) where T : class;

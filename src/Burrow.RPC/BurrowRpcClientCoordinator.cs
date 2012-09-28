@@ -6,6 +6,10 @@ using RabbitMQ.Client;
 
 namespace Burrow.RPC
 {
+    /// <summary>
+    /// Default implementation of IRpcClientCoordinator which sends requests to RabbitMQ server
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class BurrowRpcClientCoordinator<T> : IRpcClientCoordinator where T : class
     {
         private readonly string _rabbitMqConnectionString;

@@ -2,6 +2,9 @@ using System;
 
 namespace Burrow.RPC
 {
+    /// <summary>
+    /// As this library based on Burrow.NET, this adaptor is used to adapt the RpcRouteFinder to traditional IRouteFinder
+    /// </summary>
     internal class RpcRouteFinderAdapter : IRouteFinder
     {
         private readonly IRpcRouteFinder _routeFinder;

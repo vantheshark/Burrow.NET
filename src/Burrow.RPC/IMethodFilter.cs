@@ -5,12 +5,22 @@ using System.Reflection;
 
 namespace Burrow.RPC
 {
+    /// <summary>
+    /// Implement this interface to determine whether a method is valid, async.
+    /// </summary>
     public interface IMethodFilter
     {
         bool IsAsync(MethodInfo method, Attribute[] attributes);
         void CheckValid(MethodInfo method, Attribute[] attributes, bool methodIsAsync);
     }
 
+
+    /// <summary>
+    /// Default implementation of IMethodFilter which will recornize a method as async if it's void method and decorated with AsyncAttribute
+    /// <para>
+    /// A method will be consider valid if it does not contain any event in it's param and it's not async when it has return type or out param 
+    /// </para>
+    /// </summary>
     internal class DefaultMethodFilter : IMethodFilter
     {
         internal static readonly ConcurrentDictionary<MethodInfo, Exception> CheckedMethodCaches = new ConcurrentDictionary<MethodInfo, Exception>();
