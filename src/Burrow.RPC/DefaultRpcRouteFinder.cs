@@ -20,17 +20,17 @@ namespace Burrow.RPC
             _clientName = clientName;
         }
 
-        public bool CreateExchangeAndQueue
+        public virtual bool CreateExchangeAndQueue
         {
             get { return true; }
         }
 
-        public string RequestExchangeName
+        public virtual string RequestExchangeName
         {
             get { return string.Empty; }
         }
 
-        public string RequestExchangeType
+        public virtual string RequestExchangeType
         {
             get { return null; }
         }

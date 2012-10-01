@@ -21,12 +21,12 @@ namespace Burrow.RPC
         {
         }
 
-        public new virtual string RequestExchangeName
+        public override string RequestExchangeName
         {
             get { return string.Format("Burrow.Exchange.FANOUT.Rpc.{0}.Requests", typeof (T).Name); }
         }
 
-        public new string RequestExchangeType
+        public override string RequestExchangeType
         {
             get { return ExchangeType.Fanout; }
         }

@@ -12,7 +12,7 @@ using RabbitMQ.Client.Events;
 namespace Burrow.Tests.Extras.Internal.PriorityMessageHandlerTests
 {
     [TestClass]
-    public class MethodDoTheJob
+    public class MethodHandleMessage
     {
         [TestMethod]
         public void Should_invoke_the_callback_with_MessageDeliverEventArgs_that_has_PriorityValue()
@@ -32,12 +32,13 @@ namespace Burrow.Tests.Extras.Internal.PriorityMessageHandlerTests
                                                                      Substitute.For<IRabbitWatcher>());
 
             // Action
-            handler.PublicDoTheJob(new BasicDeliverEventArgs{BasicProperties = properties});
+            bool handled;
+            handler.PublicHandleMessage(new BasicDeliverEventArgs { BasicProperties = properties }, out handled);
 
             // Assert
             Assert.IsNotNull(evt);
             Assert.AreEqual((uint)10, evt.MessagePriority);
-
+            Assert.IsTrue(handled);
         }
     }
 
@@ -49,9 +50,9 @@ namespace Burrow.Tests.Extras.Internal.PriorityMessageHandlerTests
         {
         }
 
-        public void PublicDoTheJob(BasicDeliverEventArgs eventArgs)
+        public void PublicHandleMessage(BasicDeliverEventArgs eventArgs, out bool handled)
         {
-            DoTheJob(eventArgs);
+            HandleMessage(eventArgs, out handled);
         }
     }
 }

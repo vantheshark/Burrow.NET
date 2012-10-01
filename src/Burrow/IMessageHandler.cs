@@ -5,6 +5,8 @@ namespace Burrow
 {
     public delegate void MessageHandlingEvent(BasicDeliverEventArgs eventArgs);
 
+    public delegate void MessageWasNotHandledEvent(BasicDeliverEventArgs eventArgs);
+
     public interface IMessageHandler
     {
         /// <summary>
@@ -26,5 +28,13 @@ namespace Burrow
         /// Once the message is finished successfully or not, this event should be fired at the end
         /// </summary>
         event MessageHandlingEvent HandlingComplete;
+
+
+        /// <summary>
+        /// If there is something wrong before the msg is delivered to client code, this event should be raised.
+        /// This can happen in method BeforeHandlingMessage or there is an error in object deserializing
+        /// https://github.com/vanthoainguyen/Burrow.NET/issues/4
+        /// </summary>
+        event MessageWasNotHandledEvent MessageWasNotHandled;
     }
 }

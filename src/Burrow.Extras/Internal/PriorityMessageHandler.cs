@@ -26,7 +26,7 @@ namespace Burrow.Extras.Internal
         {
         }
 
-        protected override void DoTheJob(BasicDeliverEventArgs eventArgs)
+        protected override void HandleMessage(BasicDeliverEventArgs eventArgs, out bool msgHandled)
         {
             var priority = PriorityMessageHandler.GetMsgPriority(eventArgs);
             var currentThread = System.Threading.Thread.CurrentThread;
@@ -53,6 +53,7 @@ namespace Burrow.Extras.Internal
                                  eventArgs.ConsumerTag,
                                  Math.Max(priority, 0));
 #endif
+            msgHandled = true;
         }
     }
 }

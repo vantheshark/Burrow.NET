@@ -17,7 +17,7 @@ namespace Burrow.Tests.RPC.DefaultFanoutRpcRequestRouteFinderTests
             var exchangeName = routeFinder.RequestExchangeName;
 
             // Assert
-            Assert.AreEqual("Burrow.Exchange.Rpc.ISomeService.Requests", exchangeName);
+            Assert.AreEqual("Burrow.Exchange.FANOUT.Rpc.ISomeService.Requests", exchangeName);
         }
     }
 }

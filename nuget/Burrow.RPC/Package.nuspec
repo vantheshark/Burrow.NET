@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Burrow.RPC</id>
-    <version>1.0.15</version>
+    <version>1.0.16</version>
     <authors>Van Thoai Nguyen</authors>
     <owners>Van Thoai Nguyen</owners>
     <licenseUrl>http://sam.zoy.org/wtfpl/COPYING</licenseUrl>
@@ -11,11 +11,12 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 	<summary>Burrow.RPC helps implement RPC-style service</summary>    
 	<description>Burrow.RPC helps implement RPC-style service using RabbitMQ and Burrow.NET</description>
-    <releaseNotes></releaseNotes>
+    <releaseNotes>- Fix important bug of not autoack when serialization error: https://github.com/vanthoainguyen/Burrow.NET/issues/4
+</releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP Burrow.RPC RPC</tags>
     <dependencies>		
-		<dependency id="Burrow.NET" version="1.0.15" />		
+		<dependency id="Burrow.NET" version="1.0.16" />		
     </dependencies>
   </metadata>
 </package>

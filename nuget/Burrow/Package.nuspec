@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Burrow.NET</id>
-    <version>1.0.15</version>
+    <version>1.0.16</version>
     <authors>Van Thoai Nguyen</authors>
     <owners>Van Thoai Nguyen</owners>
     <licenseUrl>http://sam.zoy.org/wtfpl/COPYING</licenseUrl>
@@ -11,10 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 	<summary>Burrow.NET is a simple .NET client library for RabbitMQ</summary>    
 	<description>Burrow.NET is a simple library created based on some EasyNetQ ideas, it's a thin wrapper of RabbitMQ.Client for .NET. Basically, if you just need to put your message or subscribe messages from RabbitMQ server, you found the right place. With Burrow.NET, you can easily customize almost everything start with exchange and queue name, changing the way to serialize your object, inject custom error handling strategies, etc.</description>
-    <releaseNotes>- Fix method SetSerializer on RabbitTunnel to make serializer change to all dependencies
-- Implement Burrow.RPC
-- Fix a bug that execute the subscriptions twice when the connection to server has been establised before when a new tunnel want to publish a new message. Can reproduce this bug by create a tunnel, publish or subscribe. Create another tunnel on same app domain, subscribe, then publish. The second tunnel will run the subscription again as the dedicated channel is not created.
-- Add IsDebugEnable on IRabbitWatcher, sorry for that if you have to change your custom watcher implementation.
+    <releaseNotes>- Fix important bug of not autoack when serialization error: https://github.com/vanthoainguyen/Burrow.NET/issues/4
 </releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP</tags>

@@ -61,6 +61,7 @@
     <Compile Include="BadMessageHandlerExceptionTests\PropertyMessage.cs" />
     <Compile Include="BurrowConsumerTests\BurrowConsumerForTest.cs" />
     <Compile Include="BurrowConsumerTests\Constructor.cs" />
+    <Compile Include="BurrowConsumerTests\MessageWasNotHandled.cs" />
     <Compile Include="BurrowConsumerTests\MethodHandleMessageDelivery.cs" />
     <Compile Include="BurrowConsumerTests\MethodDoAck.cs" />
     <Compile Include="BurrowConsumerTests\MethodWaitAndHandleMessageDelivery.cs" />
@@ -95,7 +96,7 @@
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodReady.cs" />
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodWhenChannelShutdown.cs" />
     <Compile Include="Extras\Internal\PriorityComparerTests\MethodCompare.cs" />
-    <Compile Include="Extras\Internal\PriorityMessageHandlerTests\MethodDoTheJob.cs" />
+    <Compile Include="Extras\Internal\PriorityMessageHandlerTests\MethodHandleMessage.cs" />
     <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\RabbitTunnelWithPriorityQueuesSupportForTest.cs" />
     <Compile Include="Extras\PriorityQueuesRabbitSetupTests\MethodDestroy.cs" />
     <Compile Include="Extras\PriorityQueuesRabbitSetupTests\MethodSetupExchangeAndQueueFor.cs" />

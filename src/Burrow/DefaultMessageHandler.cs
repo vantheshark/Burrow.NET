@@ -17,6 +17,7 @@ namespace Burrow
         protected readonly ISerializer _messageSerializer;
 
         public event MessageHandlingEvent HandlingComplete;
+        public event MessageWasNotHandledEvent MessageWasNotHandled;
 
         public DefaultMessageHandler(string subscriptionName, 
                                      Action<T, MessageDeliverEventArgs> msgHandlingAction,
@@ -109,10 +110,11 @@ namespace Burrow
         {
             Task.Factory.StartNew(() =>
             {
+                bool msgHandled = false;
                 try
                 {
                     BeforeHandlingMessage(eventArgs);
-                    DoTheJob(eventArgs);
+                    HandleMessage(eventArgs, out msgHandled);
                 }
                 catch (Exception ex)
                 {
@@ -131,7 +133,7 @@ namespace Burrow
                 }
                 finally
                 {
-                    CleanUp(eventArgs);
+                    CleanUp(eventArgs, msgHandled);
                 }
                 
             }, Global.DefaultTaskCreationOptionsProvider());
@@ -141,7 +143,8 @@ namespace Burrow
         /// This method is actually invoke the callback providded to ITunnel when you subcribe to the queue
         /// </summary>
         /// <param name="eventArgs"></param>
-        protected virtual void DoTheJob(BasicDeliverEventArgs eventArgs)
+        /// <param name="msgHandled">If message is delivered to client, set to true</param>
+        protected virtual void HandleMessage(BasicDeliverEventArgs eventArgs, out bool msgHandled)
         {
             var currentThread = Thread.CurrentThread;
             currentThread.IsBackground = true;
@@ -154,12 +157,15 @@ namespace Burrow
 #endif
             CheckMessageType(eventArgs.BasicProperties);
             var message = _messageSerializer.Deserialize<T>(eventArgs.Body);
+
+            
             _msgHandlingAction(message, new MessageDeliverEventArgs
             {
                 ConsumerTag = eventArgs.ConsumerTag,
                 DeliveryTag = eventArgs.DeliveryTag,
                 SubscriptionName = _subscriptionName,
             });
+            msgHandled = true;
 #if DEBUG
             _watcher.DebugFormat("5. The task to execute the provided callback with DTag: {0} by CTag: {1} has been finished successfully.",
                                  eventArgs.DeliveryTag,
@@ -171,8 +177,22 @@ namespace Burrow
         /// This method is doing the dirty clean up job: Call the AfterHandlingMessage & fire HandlingComplete event
         /// </summary>
         /// <param name="eventArgs"></param>
-        internal void CleanUp(BasicDeliverEventArgs eventArgs)
+        /// <param name="msgHandled"> </param>
+        internal void CleanUp(BasicDeliverEventArgs eventArgs, bool msgHandled)
         {
+            if (!msgHandled && MessageWasNotHandled != null)
+            {
+                try
+                {
+                    MessageWasNotHandled(eventArgs);
+                }
+                catch (Exception exceptionWhenFiringMessageWasNotDeliveredEvent)
+                {
+                    _watcher.ErrorFormat("There is an error when trying to fire MessageWasNotDelivered event");
+                    _watcher.Error(exceptionWhenFiringMessageWasNotDeliveredEvent);
+                }
+            }
+
             try
             {
                 AfterHandlingMessage(eventArgs);

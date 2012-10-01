@@ -56,6 +56,8 @@ namespace Burrow
 
             _messageHandler = messageHandler;
             _messageHandler.HandlingComplete += MessageHandlerHandlingComplete;
+            _messageHandler.MessageWasNotHandled += MessageWasNotHandled;
+            
             Task.Factory.StartNew(() =>
             {
                 try
@@ -131,6 +133,22 @@ namespace Burrow
                 Dispose();
             }
         }
+
+        private void MessageWasNotHandled(BasicDeliverEventArgs eventArgs)
+        {
+            try
+            {
+                if (!_autoAck && !_disposed)
+                {
+                    DoAck(eventArgs, this);
+                }
+            }
+            catch(Exception ex)
+            {
+                _watcher.Error(ex);
+            }
+        }
+
 
         private void MessageHandlerHandlingComplete(BasicDeliverEventArgs eventArgs)
         {
