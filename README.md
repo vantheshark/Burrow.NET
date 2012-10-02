@@ -66,7 +66,7 @@ Some blog posts:
 * [Things you can easily change in Burrow.NET](http://thoai-nguyen.blogspot.com.au/2012/06/things-you-can-change-in-burrownet.html)
 * [Programmatically create RabbitMQ Exchange and Queue with Burrow.NET](http://thoai-nguyen.blogspot.com.au/2012/06/programmatically-rabbitmq-exchange.html)
 * [Priority With RabbitMQ implementation in .NET](http://thoai-nguyen.blogspot.com.au/2012/07/priority-queue-rabbitmq-burrownet.html)
-* [Implement RPC service using Burrow.NET and RabbitMQ (To be finished)](http://thoai-nguyen.blogspot.com.au)
+* [Implement RPC service using Burrow.NET and RabbitMQ](http://thoai-nguyen.blogspot.com.au/2012/10/rpc-with-burrownet-and-rabbitmq.html)
 
 Nuget library is also added at http://nuget.org/packages/Burrow.NET
 
