@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Burrow.RPC</name>
+    </assembly>
+    <members>
+        <member name="T:Burrow.RPC.RpcRouteFinderAdapter">
+            <summary>
+            As this library based on Burrow.NET, this adaptor is used to adapt the RpcRouteFinder to traditional IRouteFinder
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.AsyncAttribute">
+            <summary>
+            Use this attribute to decorate on a void method which does not have any 'out' parameter to make the asynchronous rpc call 
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.RpcResponse">
+            <summary>
+            A wrapper object that contain information about a result of RPC call sent from server
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.RpcResponse.Exception">
+            <summary>
+            Any serializable exception from the server if set will be thrown in the client
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.RpcResponse.ReturnValue">
+            <summary>
+            The return value of RPC call if the method has return value
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.RpcResponse.ChangedParams">
+            <summary>
+            Any changes in byref/out params
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.RpcRequest">
+            <summary>
+            A wrapper object that keep all information of a RPC method request from client
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.RpcRequest.ResponseAddress">
+            <summary>
+            The unique response queue that the client will subscribe to for the response.
+            If the client interface is singleton, there should be 1 responseaddress. Otherwise, every instance of the same interface should have
+            different response address.
+            This value is set from UniqueResponseQueue property of the provided RpcRouteFinder
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.RpcRequest.Params">
+            <summary>
+            the parameters of the called method. The list of params should be kept in correct order as all of them will be passed to the method in the exact order
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.RpcRequest.MethodSignature">
+            <summary>
+            A unique or hash string. It's used to retrive the method info from the Request
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.DefaultRpcRouteFinder`1">
+            <summary>
+            A default rpc route finder using default built-in "empty" exchange for sending requests/response directly to the queue name
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:Burrow.RPC.IRpcRouteFinder">
+            <summary>
+            This route finder is created for RPC communication.
+            Implement this interface if you want to use custom naming conventions for your Response/Request queue
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.IRpcRouteFinder.CreateExchangeAndQueue">
+            <summary>
+            If set to true, the library will create exchange and queue for you
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.IRpcRouteFinder.RequestExchangeName">
+            <summary>
+            Default can be empty as the empty exchange is the built-in exchange
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.IRpcRouteFinder.RequestExchangeType">
+            <summary>
+            Should be either direct or fanout
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.IRpcRouteFinder.RequestQueue">
+            <summary>
+            If RequestExchangeName is empty, Burrow.RPC will route the RpcRequest object to this queue by publishing the msg to the empty exchange with the routing key is equal to this queue name
+            </summary>
+        </member>
+        <member name="P:Burrow.RPC.IRpcRouteFinder.UniqueResponseQueue">
+            <summary>
+            The response queue must be unique per instance of the RPC client
+            <para>If you have 2 instances of the rpc clients, these instances should subscribe to different response queue as the responses from the rpc server must be routed to correct client</para>
+            </summary>
+        </member>
+        <member name="M:Burrow.RPC.DefaultRpcRouteFinder`1.#ctor(System.String,System.String)">
+            <summary> 
+            </summary>
+            <param name="requestQueueName">if provided, it will be used as the request queue name. Otherwise the default conventional queue will be used</param>
+            <param name="clientName">anything that can make the response queue unique</param>
+        </member>
+        <member name="T:Burrow.RPC.BurrowRpcServerCoordinator`1">
+            <summary>
+            Default impelementation of IRpcServerCoordinator which can handle RPC request by subscribing to a request queue in RabbitMQ server
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:Burrow.RPC.IRpcServerCoordinator">
+            <summary>
+            A RPC server should implement this interface to handle RPC request
+            I don't really think you need to do that if you use this library as the default implementation is pretty enough
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.DefaultFanoutRpcRequestRouteFinder`1">
+            <summary>
+            A default rpc route finder using Fanout Exchange for the Requests
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:Burrow.RPC.RpcTimeToLiveAttribute">
+            <summary>
+            Use this attribute to decorate on method to attach a expiry time on the request
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.InternalDependencies">
+            <summary>
+            An internal static endpoint provides some helpers for the library.
+            Using this way to reduce the amount of dependencies to the public classes but still allows unit testing ;)
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.BurrowRpcClientCoordinator`1">
+            <summary>
+            Default implementation of IRpcClientCoordinator which sends requests to RabbitMQ server
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:Burrow.RPC.IRpcClientCoordinator">
+            <summary>
+            Implement this interface to send Request to server
+            </summary>
+        </member>
+        <member name="M:Burrow.RPC.RpcFactory.CreateClient``1(Burrow.RPC.IRpcRouteFinder,System.String,Burrow.RPC.IMethodFilter[])">
+            <summary>
+            Create Rpc client using dynamic proxy without providing a real implementatin of generic interface
+            </summary>
+            <typeparam name="T">the interface which we use for RPC call</typeparam>
+            <param name="routeFinder">Provide a valid route finder to route your request to correct targets, default will be DefaultRpcRouteFinder</param>
+            <param name="rabbitMqConnectionString"></param>
+            <param name="filters">custom filters to determine whether a method is valid/async for RPC call</param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.RPC.RpcFactory.CreateClient``1(Burrow.RPC.IRpcClientCoordinator,Burrow.RPC.IMethodFilter[])">
+            <summary>
+            Create Rpc client using dynamic proxy without providing a rea implementatin of generic interface
+            </summary>
+            <typeparam name="T">the interface which we use for RPC call</typeparam>
+            <param name="coordinator">an implementation of rpc client coordinator which can send requests to server</param>
+            <param name="filters">custom filters to determine whether a method is valid/async for RPC call</param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.RPC.RpcFactory.CreateServer``1(``0,Burrow.RPC.IRpcRouteFinder,System.String,System.String)">
+            <summary>
+            Create Rpc server using a realImplementation which will handle rpc request
+            </summary>
+            <typeparam name="T">the interface which we use for RPC call</typeparam>
+            <param name="realImplementation">an instance of the class implemented the generic interface, it will eventually handle the rpc method call from the client</param>
+            <param name="routeFinder">If null, the DefaultRpcRouteFinder will be used and client/server will contact to each other directly through default built-in exchange</param>
+            <param name="rabbitMqConnectionString"></param>
+            <param name="serverId">will be used to determine whether the request queue is durable. It is also used as the subscription name when the server subscribe to request queue</param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.RPC.RpcFactory.CreateServer``1(``0,System.String,System.String,System.String)">
+            <summary>
+            Create Rpc server using a realImplementation which will handle rpc request and using DefaultFanoutRpcRequestRouteFinder
+            </summary>
+            <typeparam name="T">the interface which we use for RPC call</typeparam>
+            <param name="realImplementation">an instance of the class implemented the generic interface, it will eventually handle the rpc method call from the client</param>
+            <param name="requestQueueName">If provided, the value will be used as the request queue name, otherwise default value will be used</param>
+            <param name="rabbitMqConnectionString"></param>
+            <param name="serverId">will be used to determine whether the request queue is durable. It is also used as the subscription name when the server subscribe to request queue</param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.RPC.RpcFactory.CreateFanoutServer``1(``0,System.String,System.String,System.String)">
+            <summary>
+            Create Rpc server using a realImplementation which will handle 'fanout' rpc request
+            </summary>
+            <typeparam name="T">the interface which we use for RPC call</typeparam>
+            <param name="realImplementation">an instance of the class implemented the generic interface, it will eventually handle the rpc method call from the client</param>
+            <param name="requestQueueName">if provided, this value will be used as the request queue name</param>
+            <param name="rabbitMqConnectionString"></param>
+            <param name="serverId">will be used to determine whether the request queue is durable. It is also used as the subscription name when the server subscribe to request queue<para>
+            Otherwise, the request will name will be generated based on provided serverId and name of the generic T type.
+            </para></param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.RPC.RpcFactory.RegisterMethodMatcher(Burrow.RPC.IMethodMatcher)">
+            <summary>
+            Change the IMethodMatcher of the library if you wish to but I don't think of any good reason to do that ;) 
+            </summary>
+            <param name="methodMatcher"></param>
+        </member>
+        <member name="M:Burrow.RPC.RpcFactory.RegisterHelper(Burrow.RPC.IRpcQueueHelper)">
+            <summary>
+            Change the IRpcQueueHelper of the library if you wish to but I don't think of any good reason to do that ;)
+            </summary>
+            <param name="helper"></param>
+        </member>
+        <member name="T:Burrow.RPC.IRpcQueueHelper">
+            <summary>
+            Helper interface to create queues and resolve rabbitmq connection string
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.RpcWaitHandler">
+            <summary>
+            This class is used to block the client thread code when wait for the response from server if the method is sync
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.IMethodFilter">
+            <summary>
+            Implement this interface to determine whether a method is valid, async.
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.DefaultMethodFilter">
+            <summary>
+            Default implementation of IMethodFilter which will recornize a method as async if it's void method and decorated with AsyncAttribute
+            <para>
+            A method will be consider valid if it does not contain any event in it's param and it's not async when it has return type or out param 
+            </para>
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.IMethodMatcher">
+            <summary>
+            Implement this interface to find a method info from the request which will be used to invoke a method on real instance of the RpcServer
+            </summary>
+        </member>
+    </members>
+</doc>

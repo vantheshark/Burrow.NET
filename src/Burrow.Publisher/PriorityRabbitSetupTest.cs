@@ -1,5 +1,4 @@
-﻿using System;
-using System.Configuration;
+﻿using System.Configuration;
 using Burrow.Extras;
 using Burrow.Publisher.Models;
 
@@ -7,6 +6,7 @@ namespace Burrow.Publisher
 {
     public static class PriorityRabbitSetupTest
     {
+        private static string _connectionString = ConfigurationManager.ConnectionStrings["RabbitMQ"].ToString();
         private class TestRouteFinder : IRouteFinder
         {
             public string FindExchangeName<T>()
@@ -27,26 +27,32 @@ namespace Burrow.Publisher
             }
         }
 
-        private static readonly ExchangeSetupData ExchangeSetupData = new HeaderExchangeSetupData();
-        private static readonly QueueSetupData QueueSetupData = new PriorityQueueSetupData(3)
+        private const string SubscriptionName = "BurrowTestApp";
+        
+        private static readonly RouteSetupData RouteSetupData = new RouteSetupData
         {
-            SubscriptionName = "BurrowTestApp",
-            MessageTimeToLive = 1000 * 3600
+            RouteFinder = new TestRouteFinder(),
+            ExchangeSetupData = new HeaderExchangeSetupData(),
+            QueueSetupData = new PriorityQueueSetupData(3)
+            {
+                MessageTimeToLive = 1000 * 3600,
+                DeadLetterExchange = "",
+                DeadLetterRoutingKey = "Burrow.Queue.Error" // Publishing dead letter message to empty exchange with the routing key like this will eventually make the msg go to that error queue
+            },
+            SubscriptionName = SubscriptionName
         };
 
         public static void CreateExchangesAndQueues()
         {
-            Func<string, string, IRouteFinder> factory = (environment, exchangeType) => new TestRouteFinder();
-            var setup = new PriorityQueuesRabbitSetup(factory, Global.DefaultWatcher, ConfigurationManager.ConnectionStrings["RabbitMQ"].ToString(), "TEST");
-            setup.SetupExchangeAndQueueFor<Bunny>(ExchangeSetupData, QueueSetupData);
+            var setup = new PriorityQueuesRabbitSetup(_connectionString);
+            setup.CreateRoute<Bunny>(RouteSetupData);
 
         }
 
         public static void DestroyExchangesAndQueues()
         {
-            Func<string, string, IRouteFinder> factory = (environment, exchangeType) => new TestRouteFinder();
-            var setup = new PriorityQueuesRabbitSetup(factory, Global.DefaultWatcher, ConfigurationManager.ConnectionStrings["RabbitMQ"].ToString(), "TEST");
-            setup.Destroy<Bunny>(ExchangeSetupData, QueueSetupData);
+            var setup = new PriorityQueuesRabbitSetup(_connectionString);
+            setup.DestroyRoute<Bunny>(RouteSetupData);
         }
     }
 }

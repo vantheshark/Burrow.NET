@@ -60,7 +60,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
 
             var connectionFactory = CreateMockConnectionFactory("/");
             connectionFactory.When(x => x.CreateConnection())
-                             .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<IDictionary>(), Substitute.For<IDictionary>()); });
+                             .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<IDictionary>(), Substitute.For<IDictionary>(), Substitute.For<Exception>()); });
             var durableConnection = new DurableConnection(retryPolicy, Substitute.For<IRabbitWatcher>(), connectionFactory);
             // Action
             durableConnection.Connect();

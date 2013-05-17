@@ -12,6 +12,28 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
     [TestClass]
     public class MethodSetupExchangeAndQueueFor
     {
+        private IRouteFinder _routeFinder = Substitute.For<IRouteFinder>();
+        private RouteSetupData _routeSetupData;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _routeFinder.FindExchangeName<Customer>().Returns("Exchange.Customer");
+            _routeFinder.FindQueueName<Customer>(null).ReturnsForAnyArgs("Queue.Customer");
+            _routeFinder.FindRoutingKey<Customer>().Returns("Customer");
+
+            _routeSetupData = new RouteSetupData
+            {
+                RouteFinder = _routeFinder,
+                ExchangeSetupData = new ExchangeSetupData(),
+                QueueSetupData = new QueueSetupData
+                {
+                    AutoExpire = 10000,
+                    MessageTimeToLive = 10000000
+                }
+            };
+        }
+
         [TestMethod]
         public void Should_create_exchange_queues_and_bind_them()
         {
@@ -20,16 +42,12 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new ExchangeSetupData(), new QueueSetupData
-            {
-                AutoExpire = 10000,
-                MessageTimeToLive = 10000000
-            });
+            setup.CreateRoute<Customer>(_routeSetupData);
 
             // Assert
-            model.Received().ExchangeDeclare("Exchange.Customer", "direct", true, false, null);
-            model.Received().QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary>());
-            model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer");
+            model.Received().ExchangeDeclare("Exchange.Customer", "direct", true, false, _routeSetupData.ExchangeSetupData.Arguments);
+            model.Received().QueueDeclare("Queue.Customer", true, false, false, _routeSetupData.QueueSetupData.Arguments);
+            model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer", _routeSetupData.OptionalBindingData);
         }
 
         [TestMethod]
@@ -45,11 +63,11 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.CreateRoute<Customer>(_routeSetupData);
             
             // Assert
-            model.Received().QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary>());
-            model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer");
+            model.Received().QueueDeclare("Queue.Customer", true, false, false, _routeSetupData.QueueSetupData.Arguments);
+            model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer", _routeSetupData.OptionalBindingData);
         }
 
         [TestMethod]
@@ -65,10 +83,10 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.CreateRoute<Customer>(_routeSetupData);
 
             // Assert
-            model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer");
+            model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer", _routeSetupData.OptionalBindingData);
         }
 
         [TestMethod]
@@ -83,7 +101,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.CreateRoute<Customer>(_routeSetupData);
         }
 
         [TestMethod]
@@ -98,7 +116,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.CreateRoute<Customer>(_routeSetupData);
         }
 
         [TestMethod]
@@ -114,7 +132,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.CreateRoute<Customer>(_routeSetupData);
         }
 
         [TestMethod]
@@ -129,7 +147,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.CreateRoute<Customer>(_routeSetupData);
         }
 
         [TestMethod]
@@ -144,7 +162,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.CreateRoute<Customer>(_routeSetupData);
         }
     }
 }

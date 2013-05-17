@@ -1,5 +1,4 @@
-﻿using System;
-using Burrow.Extras;
+﻿using Burrow.Extras;
 using NSubstitute;
 using RabbitMQ.Client;
 
@@ -7,13 +6,15 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
 {
     public class RabbitSetupForTest : RabbitSetup
     {
-        public IRabbitWatcher Watcher { get; set; }
-
-        public RabbitSetupForTest(Func<string, string, IRouteFinder> routeFinderFactory, IRabbitWatcher watcher, string connectionString, string environment)
-            : base(routeFinderFactory, watcher, connectionString, environment)
+        public RabbitSetupForTest(string connectionString) : base(connectionString)
         {
-            Watcher = watcher;
         }
+
+        public RabbitSetupForTest(IRabbitWatcher watcher, string connectionString) : base(watcher, connectionString)
+        {
+        }
+
+        public IRabbitWatcher Watcher { get; set; }
 
         public ConnectionFactory ConnectionFactory
         {
@@ -24,16 +25,13 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
         {
             var connection = Substitute.For<IConnection>();
             connection.CreateModel().Returns(model);
-            var routeFinder = Substitute.For<IRouteFinder>();
-            routeFinder.FindExchangeName<Customer>().Returns("Exchange.Customer");
-            routeFinder.FindQueueName<Customer>(null).ReturnsForAnyArgs("Queue.Customer");
-            routeFinder.FindRoutingKey<Customer>().Returns("Customer");
+            
 
             var connectionFactory = Substitute.For<ConnectionFactory>();
             connectionFactory.CreateConnection().Returns(connection);
-            Func<string, string, IRouteFinder> factory = (x, y) => routeFinder;
             var watcher = Substitute.For<IRabbitWatcher>();
-            var setup = new RabbitSetupForTest(factory, watcher, "", "UNITTEST") { ConnectionFactory = connectionFactory };
+            var setup = new RabbitSetupForTest(watcher, "host=testhost;username=guest;password=guest") { ConnectionFactory = connectionFactory };
+            setup.Watcher = watcher;
             return setup;
         }
 

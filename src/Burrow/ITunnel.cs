@@ -13,10 +13,24 @@ namespace Burrow
         /// </summary>
         event Action<Subscription> ConsumerDisconnected;
 
+        /// <summary>
+        /// Determine whether a connection is open
+        /// </summary>
         bool IsOpened { get; }
 
+        /// <summary>
+        /// Publish a message
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="rabbit"></param>
         void Publish<T>(T rabbit);
 
+        /// <summary>
+        /// Publish a message using routing key
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="rabbit"></param>
+        /// <param name="routingKey"></param>
         void Publish<T>(T rabbit, string routingKey);
         
         /// <summary>
@@ -55,10 +69,30 @@ namespace Burrow
         /// <returns>Subscription object which can be used to send Ack or NoAck message to server by the delivery tag received in the callback</returns>
         Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize = null);
 
+        /// <summary>
+        /// Change the route finder of current tunnel
+        /// </summary>
+        /// <param name="routeFinder"></param>
         void SetRouteFinder(IRouteFinder routeFinder);
 
+        /// <summary>
+        /// Change serializer of current tunnel
+        /// </summary>
+        /// <param name="serializer"></param>
         void SetSerializer(ISerializer serializer);
 
+        /// <summary>
+        /// Change persisten mode
+        /// </summary>
+        /// <param name="persistentMode"></param>
         void SetPersistentMode(bool persistentMode);
+
+        /// <summary>
+        /// Return message count of a current queue whose name is determined by type of message T and its subscriptionName
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="subscriptionName"></param>
+        /// <returns></returns>
+        uint GetMessageCount<T>(string subscriptionName);
     }
 }

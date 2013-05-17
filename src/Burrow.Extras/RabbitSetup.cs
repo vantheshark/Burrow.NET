@@ -1,30 +1,35 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 namespace Burrow.Extras
 {
+    /// <summary>
+    /// A helper class to create/destroy Exchange/Queue
+    /// </summary>
     public class RabbitSetup
     {
-        protected readonly Func<string, string, IRouteFinder> _routeFinderFactory;
         protected readonly IRabbitWatcher _watcher;
-        protected readonly string _environment;
         protected ConnectionFactory _connectionFactory;
 
         /// <summary>
         /// Initialize an instance of RabbitSetup class to use for setting up exchanges and queues in RabbitMQ server
         /// </summary>
-        /// <param name="routeFinderFactory">a factory object to create an instance of routefinder for provided ENVIRONMENT and EXCHANGE type</param>
+        /// <param name="connectionString"></param>
+        public RabbitSetup(string connectionString)
+            : this(Global.DefaultWatcher, connectionString)
+        {
+        }
+
+        /// <summary>
+        /// Initialize an instance of RabbitSetup class to use for setting up exchanges and queues in RabbitMQ server
+        /// </summary>
         /// <param name="watcher"></param>
         /// <param name="connectionString">RabbitMQ connection string</param>
-        /// <param name="environment">TEST, DEV, PROD or anything that can be involved when generating the exchange and queue names</param>
-        public RabbitSetup(Func<string, string, IRouteFinder> routeFinderFactory, IRabbitWatcher watcher, string connectionString, string environment)
+        public RabbitSetup(IRabbitWatcher watcher, string connectionString)
         {
-            _routeFinderFactory = routeFinderFactory;
             _watcher = watcher;
-            _environment = environment;
 
             var connectionValues = new ConnectionString(connectionString);
             _connectionFactory = new ConnectionFactory
@@ -36,34 +41,38 @@ namespace Burrow.Extras
             };
         }
 
-        public void SetupExchangeAndQueueFor<T>(ExchangeSetupData exchange, QueueSetupData queue)
+        /// <summary>
+        /// Create Exchange and queue using RouteSetupData
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="routeSetupData"></param>
+        public void CreateRoute<T>(RouteSetupData routeSetupData)
         {
-            var routeFinder = _routeFinderFactory(_environment, exchange.ExchangeType);
-            var queueName = routeFinder.FindQueueName<T>(queue.SubscriptionName);
-            var exchangeName = routeFinder.FindExchangeName<T>();
-            var routingKey = queue.RoutingKey ?? routeFinder.FindRoutingKey<T>();
+            var queueName = routeSetupData.RouteFinder.FindQueueName<T>(routeSetupData.SubscriptionName);
+            var exchangeName = routeSetupData.RouteFinder.FindExchangeName<T>();
+            var routingKey = routeSetupData.RouteFinder.FindRoutingKey<T>();
 
             using (var connection = _connectionFactory.CreateConnection())
             {
                 using (var model = connection.CreateModel())
                 {
                     // Declare Exchange
-                    DeclareExchange(exchange, model, exchangeName);
+                    DeclareExchange(routeSetupData.ExchangeSetupData, model, exchangeName);
                 }
                 using (var model = connection.CreateModel())
                 {
                     // Declare Queue
-                    DeclareQueue<T>(queue, queueName, model);
+                    DeclareQueue<T>(routeSetupData.QueueSetupData, queueName, model);
                 }
                 using (var model = connection.CreateModel())
                 {
                     // Bind Queue to Exchange
-                    BindQueue<T>(model, queue, exchangeName, queueName, routingKey);
+                    BindQueue<T>(model, routeSetupData.QueueSetupData, exchangeName, queueName, routingKey, routeSetupData.OptionalBindingData);
                 }
             }
         }
 
-        protected virtual void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
+        protected virtual void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey, IDictionary bindingData = null)
         {
             if (string.IsNullOrEmpty(exchangeName))
             {
@@ -73,7 +82,7 @@ namespace Burrow.Extras
 
             try
             {
-                model.QueueBind(queueName, exchangeName, routingKey);
+                model.QueueBind(queueName, exchangeName, routingKey, bindingData);
             }
             catch (Exception ex)
             {
@@ -85,16 +94,8 @@ namespace Burrow.Extras
         {
             try
             {
-                IDictionary arguments = new Dictionary<string, object>();
-                if (queue.MessageTimeToLive > 0)
-                {
-                    arguments.Add("x-message-ttl", queue.MessageTimeToLive);
-                }
-                if (queue.AutoExpire > 0)
-                {
-                    arguments.Add("x-expires", queue.AutoExpire);
-                }
-                model.QueueDeclare(queueName, queue.Durable, false, queue.AutoDelete, arguments);
+                SetQueueSetupArguments(queue);
+                model.QueueDeclare(queueName, queue.Durable, false, queue.AutoDelete, queue.Arguments);
             }
             catch (OperationInterruptedException oie)
             {
@@ -110,6 +111,26 @@ namespace Burrow.Extras
             catch (Exception ex)
             {
                 _watcher.Error(ex);
+            }
+        }
+
+        protected void SetQueueSetupArguments(QueueSetupData queue)
+        {
+            if (queue.MessageTimeToLive > 0)
+            {
+                queue.Arguments["x-message-ttl"] = queue.MessageTimeToLive;
+            }
+            if (queue.AutoExpire > 0)
+            {
+                queue.Arguments["x-expires"] = queue.AutoExpire;
+            }
+            if (queue.DeadLetterExchange != null)
+            {
+                queue.Arguments["x-dead-letter-exchange"] = queue.DeadLetterExchange;
+            }
+            if (queue.DeadLetterRoutingKey != null)
+            {
+                queue.Arguments["x-dead-letter-routing-key"] = queue.DeadLetterRoutingKey;
             }
         }
 
@@ -122,7 +143,7 @@ namespace Burrow.Extras
             }
             try
             {
-                model.ExchangeDeclare(exchangeName, exchange.ExchangeType, exchange.Durable, exchange.AutoDelete, null);
+                model.ExchangeDeclare(exchangeName, exchange.ExchangeType, exchange.Durable, exchange.AutoDelete, exchange.Arguments);
             }
             catch (OperationInterruptedException oie)
             {
@@ -141,18 +162,22 @@ namespace Burrow.Extras
             }
         }
 
-        public virtual void Destroy<T>(ExchangeSetupData exchange, QueueSetupData queue)
+        /// <summary>
+        /// Delete exchange and queue which suppose to be created by RouteSetupData
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="routeSetupData"></param>
+        public virtual void DestroyRoute<T>(RouteSetupData routeSetupData)
         {
-            var conventions = _routeFinderFactory(_environment, exchange.ExchangeType);
-            var queueName = conventions.FindQueueName<T>(queue.SubscriptionName);
-            var exchangeName = conventions.FindExchangeName<T>();
+            var queueName = routeSetupData.RouteFinder.FindQueueName<T>(routeSetupData.SubscriptionName);
+            var exchangeName = routeSetupData.RouteFinder.FindExchangeName<T>();
 
             using (var connection = _connectionFactory.CreateConnection())
             {
                 using (var model = connection.CreateModel())
                 {
                     // Delete Queue
-                    DeleteQueue<T>(model, queue, queueName);
+                    DeleteQueue<T>(model, routeSetupData.QueueSetupData, queueName);
                 }
 
                 using (var model = connection.CreateModel())
@@ -180,6 +205,8 @@ namespace Burrow.Extras
                 }
             }
         }
+
+
 
         protected virtual void DeleteQueue<T>(IModel model, QueueSetupData queue, string queueName)
         {

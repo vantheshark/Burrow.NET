@@ -17,6 +17,9 @@ namespace Burrow.Subscriber
             var tunnel = RabbitTunnel.Factory.WithPrioritySupport()
                                      .Create().WithPrioritySupport();
 
+            var totalMsg = tunnel.GetMessageCount<Bunny>("BurrowTestApp", maxPriorityLevel);
+            Console.WriteLine(string.Format("There are total {0} messages in all priority queues", totalMsg));
+
             // SubscribeAsync auto Ack
             tunnel.SubscribeAsync<Bunny>("BurrowTestApp", maxPriorityLevel, ProcessMessage);
         }
@@ -39,7 +42,7 @@ namespace Burrow.Subscriber
         private static void ProcessMessage(Bunny bunny)
         {
             var rand = new Random((int)DateTime.Now.Ticks);
-            var processingTime = rand.Next(50, 100);
+            var processingTime = rand.Next(10, 100);
             System.Threading.Thread.Sleep(processingTime);
             Console.WriteLine("Processed msg [{0}], priority [{1}] in [{2}] ms\n", bunny.Name, bunny.Age, processingTime);
         }

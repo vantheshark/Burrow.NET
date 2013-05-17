@@ -20,7 +20,7 @@ I was so lucky to have 2 chances to work with RabbitMQ in my 2 recent projects. 
 
 Alright, to publish a message, you just need something like:
 
-```clj
+```c#
 var tunnel = RabbitTunnel.Factory.Create();
 tunnel.Publish(new OrderDetail
 {	
@@ -32,7 +32,7 @@ tunnel.Publish(new OrderDetail
 
 To subscribe:
 
-```clj
+```c#
 var tunnel = RabbitTunnel.Factory.Create();
 tunnel.SubscribeAsync<OrderDetail>("SubscriptionKey", msg =>
 {

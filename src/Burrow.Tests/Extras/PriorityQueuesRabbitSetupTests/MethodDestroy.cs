@@ -12,6 +12,32 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
     [TestClass]
     public class MethodDestroy
     {
+        private IRouteFinder _routeFinder = Substitute.For<IRouteFinder>();
+        private RouteSetupData _normalRouteSetupData;
+        private RouteSetupData _priorityRouteSetupData;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _routeFinder.FindExchangeName<Customer>().Returns("Exchange.Customer");
+            _routeFinder.FindQueueName<Customer>(null).ReturnsForAnyArgs("Queue.Customer");
+            _routeFinder.FindRoutingKey<Customer>().Returns("Customer");
+
+            _normalRouteSetupData = new RouteSetupData
+            {
+                RouteFinder = _routeFinder,
+                ExchangeSetupData = new ExchangeSetupData(),
+                QueueSetupData = new QueueSetupData()
+            };
+
+            _priorityRouteSetupData = new RouteSetupData
+            {
+                RouteFinder = _routeFinder,
+                ExchangeSetupData = new HeaderExchangeSetupData(),
+                QueueSetupData = new PriorityQueueSetupData(3)
+            };
+        }
+
         [TestMethod]
         public void Should_act_as_deleting_normal_queue_if_not_provide_PriorityQueueSetupData()
         {
@@ -20,7 +46,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.DestroyRoute<Customer>(_normalRouteSetupData);
 
             // Assert
             model.Received().QueueDelete("Queue.Customer");
@@ -34,7 +60,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new HeaderExchangeSetupData(), new PriorityQueueSetupData(3));
+            setup.DestroyRoute<Customer>(_priorityRouteSetupData);
 
             // Assert
             model.Received().QueueDelete("Queue.Customer_Priority0");
@@ -55,7 +81,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new HeaderExchangeSetupData(), new PriorityQueueSetupData(3));
+            setup.DestroyRoute<Customer>(_priorityRouteSetupData);
             model.Received().QueueDelete("Queue.Customer_Priority0");
             model.Received().QueueDelete("Queue.Customer_Priority1");
             model.Received().QueueDelete("Queue.Customer_Priority2");
@@ -74,7 +100,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new HeaderExchangeSetupData(), new PriorityQueueSetupData(3));
+            setup.DestroyRoute<Customer>(_priorityRouteSetupData);
         }
 
         [TestMethod]
@@ -89,7 +115,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new HeaderExchangeSetupData(), new PriorityQueueSetupData(3));
+            setup.DestroyRoute<Customer>(_priorityRouteSetupData);
         }
     }
 }

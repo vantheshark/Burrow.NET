@@ -11,6 +11,24 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
     [TestClass]
     public class MethodDestroy
     {
+        private IRouteFinder _routeFinder = Substitute.For<IRouteFinder>();
+        private RouteSetupData _routeSetupData;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _routeFinder.FindExchangeName<Customer>().Returns("Exchange.Customer");
+            _routeFinder.FindQueueName<Customer>(null).ReturnsForAnyArgs("Queue.Customer");
+            _routeFinder.FindRoutingKey<Customer>().Returns("Customer");
+
+            _routeSetupData = new RouteSetupData
+                                 {
+                                     RouteFinder = _routeFinder,
+                                     ExchangeSetupData = new ExchangeSetupData(),
+                                     QueueSetupData = new QueueSetupData()
+                                 };
+        }
+        
         [TestMethod]
         public void Should_destroy_exchange_queues()
         {
@@ -19,7 +37,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.DestroyRoute<Customer>(_routeSetupData);
 
             // Assert
             model.Received().QueueDelete("Queue.Customer");
@@ -38,7 +56,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.DestroyRoute<Customer>(_routeSetupData);
 
             // Assert
             model.Received().ExchangeDelete("Exchange.Customer");
@@ -56,7 +74,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.DestroyRoute<Customer>(_routeSetupData);
         }
 
         [TestMethod]
@@ -71,7 +89,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.DestroyRoute<Customer>(_routeSetupData);
         }
 
         [TestMethod]
@@ -86,7 +104,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.DestroyRoute<Customer>(_routeSetupData);
         }
 
         [TestMethod]
@@ -101,7 +119,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.DestroyRoute<Customer>(_routeSetupData);
         }
 
         [TestMethod]
@@ -116,7 +134,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.Destroy<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.DestroyRoute<Customer>(_routeSetupData);
         }
     }
 }

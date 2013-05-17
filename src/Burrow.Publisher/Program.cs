@@ -15,7 +15,7 @@ namespace Burrow.Publisher
             PublishingTest.PrintHelp();
 
             #region -- Run this test to create and destroy exchange, queues programatically --
-            //RabbitSetupTest.CreateExchangesAndQueues();
+            RabbitSetupTest.CreateExchangesAndQueues();
             //Console.Write("Press anykey to destroy them!");
             //Console.ReadKey();
             //RabbitSetupTest.DestroyExchangesAndQueues();
@@ -29,7 +29,7 @@ namespace Burrow.Publisher
             #endregion
 
             #region -- Run this test to create and destroy PRIORITY exchange, queues programatically --
-            PriorityRabbitSetupTest.CreateExchangesAndQueues();
+            //PriorityRabbitSetupTest.CreateExchangesAndQueues();
             //Console.Write("Press anykey to destroy them!");
             //Console.ReadKey();
             //PriorityRabbitSetupTest.DestroyExchangesAndQueues();
@@ -37,13 +37,13 @@ namespace Burrow.Publisher
             
             
             #region -- Run this test to publish normal messages to queue --
-            //Console.WriteLine("Press anykey to publish messages ..."); Console.ReadKey();
-            //PublishingTest.Publish(2, 1000);
+            Console.WriteLine("Press anykey to publish messages ..."); Console.ReadKey();
+            PublishingTest.Publish(2, 1000);
             #endregion
 
             #region -- Run this test to publish PRIORITY messages to queue --
             //Console.WriteLine("Press anykey to publish messages ..."); Console.ReadKey();
-            PublishingTest.PublishRandomPriorityMessages(3);
+            //PublishingTest.PublishRandomPriorityMessages(3);
             #endregion
 
 

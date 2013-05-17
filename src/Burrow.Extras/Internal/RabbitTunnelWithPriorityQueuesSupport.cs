@@ -103,6 +103,32 @@ namespace Burrow.Extras.Internal
             return CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 
+        public uint GetMessageCount<T>(string subscriptionName, uint maxPriorityLevel)
+        {
+            uint count = 0;
+            try
+            {
+                lock (_tunnelGate)
+                {
+                    EnsurePublishChannelIsCreated();
+                    for (uint level = 0; level <= maxPriorityLevel; level++)
+                    {
+                        var queueName = GetPriorityQueueName<T>(subscriptionName, level);
+                        var result = _dedicatedPublishingChannel.QueueDeclarePassive(queueName);
+                        if (result != null)
+                        {
+                            count += result.MessageCount;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _watcher.Error(ex);
+            }
+            return count;
+        }
+
         private CompositeSubscription CreateSubscription<T>(string subscriptionName, uint maxPriorityLevel, Func<IModel, string, IBasicConsumer> createConsumer, Type comparerType)
         {
             var comparer = TryGetComparer(comparerType);
@@ -118,7 +144,7 @@ namespace Burrow.Extras.Internal
 
                 Action subscriptionAction = () =>
                 {
-                    subscription.QueueName = _routeFinder.FindQueueName<T>(subscriptionName) + PriorityQueuesRabbitSetup.GlobalPriorityQueueSuffix.Get(typeof(T), priority);
+                    subscription.QueueName = GetPriorityQueueName<T>(subscriptionName, priority);
                     if (string.IsNullOrEmpty(subscription.ConsumerTag))
                     {
                         // Keep the key here because it's used for the key indexes of internal cache
@@ -169,6 +195,11 @@ namespace Burrow.Extras.Internal
                 compositeSubscription.AddSubscription(subscription);
             }
             return compositeSubscription;
+        }
+
+        private string GetPriorityQueueName<T>(string subscriptionName, uint priority)
+        {
+            return _routeFinder.FindQueueName<T>(subscriptionName) + PriorityQueuesRabbitSetup.GlobalPriorityQueueSuffix.Get(typeof(T), priority);
         }
 
         private IComparer<GenericPriorityMessage<BasicDeliverEventArgs>> TryGetComparer(Type comparerType)

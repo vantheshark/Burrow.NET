@@ -14,15 +14,39 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
     [TestClass]
     public class MethodSetupExchangeAndQueueFor
     {
+        private IRouteFinder _routeFinder = Substitute.For<IRouteFinder>();
+        private RouteSetupData _priorityRouteSetupData;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _routeFinder.FindExchangeName<Customer>().Returns("Exchange.Customer");
+            _routeFinder.FindQueueName<Customer>(null).ReturnsForAnyArgs("Queue.Customer");
+            _routeFinder.FindRoutingKey<Customer>().Returns("Customer");
+
+            _priorityRouteSetupData = new RouteSetupData
+            {
+                RouteFinder = _routeFinder,
+                ExchangeSetupData = new HeaderExchangeSetupData(),
+                QueueSetupData = new PriorityQueueSetupData(3)
+            };
+        }
+
         [TestMethod, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_try_to_create_not_header_exchange()
         {
             // Arrange
             var model = Substitute.For<IModel>();
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
+            var normalRouteSetupData = new RouteSetupData
+            {
+                RouteFinder = _routeFinder,
+                ExchangeSetupData = new ExchangeSetupData(),
+                QueueSetupData = new QueueSetupData()
+            };
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new ExchangeSetupData(), new QueueSetupData());
+            setup.CreateRoute<Customer>(normalRouteSetupData);
         }
 
 
@@ -32,18 +56,24 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             // Arrange
             var model = Substitute.For<IModel>();
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
+            var normalRouteSetupData = new RouteSetupData
+            {
+                RouteFinder = _routeFinder,
+                ExchangeSetupData = new HeaderExchangeSetupData(),
+                QueueSetupData = new QueueSetupData
+                {
+                    AutoExpire = 10000,
+                    MessageTimeToLive = 10000000
+                }
+            };
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new HeaderExchangeSetupData(), new QueueSetupData
-            {
-                AutoExpire = 10000,
-                MessageTimeToLive = 10000000
-            });
+            setup.CreateRoute<Customer>(normalRouteSetupData);
 
             // Assert
-            model.Received().ExchangeDeclare("Exchange.Customer", "headers", true, false, null);
+            model.Received().ExchangeDeclare("Exchange.Customer", "headers", true, false, Arg.Any<IDictionary>());
             model.Received().QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary>());
-            model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer");
+            model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer", normalRouteSetupData.OptionalBindingData);
         }
 
         [TestMethod]
@@ -56,12 +86,13 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             {
                 return "all".Equals(arg["x-match"]) && priority.ToString(CultureInfo.InvariantCulture).Equals(arg["Priority"]);
             };
+
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new HeaderExchangeSetupData(), new PriorityQueueSetupData(3));
+            setup.CreateRoute<Customer>(_priorityRouteSetupData);
             
 
             // Assert
-            model.Received().ExchangeDeclare("Exchange.Customer", "headers", true, false, null);
+            model.Received().ExchangeDeclare("Exchange.Customer", "headers", true, false, Arg.Any<IDictionary>());
             model.Received().QueueDeclare("Queue.Customer_Priority0", true, false, false, Arg.Any<IDictionary>());
             model.Received().QueueDeclare("Queue.Customer_Priority1", true, false, false, Arg.Any<IDictionary>());
             model.Received().QueueDeclare("Queue.Customer_Priority2", true, false, false, Arg.Any<IDictionary>());
@@ -83,13 +114,10 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
                 throw new Exception();
             });
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
-            Func<IDictionary, int, bool> eval = (arg, priority) =>
-            {
-                return "all".Equals(arg["x-match"]) && priority.ToString(CultureInfo.InvariantCulture).Equals(arg["Priority"]);
-            };
-            // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new HeaderExchangeSetupData(), new PriorityQueueSetupData(3));
+            Func<IDictionary, int, bool> eval = (arg, priority) => "all".Equals(arg["x-match"]) && priority.ToString(CultureInfo.InvariantCulture).Equals(arg["Priority"]);
 
+            // Action
+            setup.CreateRoute<Customer>(_priorityRouteSetupData);
 
             // Assert
             model.Received().QueueBind("Queue.Customer_Priority0", "Exchange.Customer", "Customer", Arg.Is<IDictionary>(x => eval(x, 0)));
@@ -109,7 +137,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             });
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new HeaderExchangeSetupData(), new PriorityQueueSetupData(3));
+            setup.CreateRoute<Customer>(_priorityRouteSetupData);
         }
 
         [TestMethod]
@@ -124,7 +152,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new HeaderExchangeSetupData(), new PriorityQueueSetupData(3));
+            setup.CreateRoute<Customer>(_priorityRouteSetupData);
         }
 
         [TestMethod]
@@ -139,7 +167,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
 
             // Action
-            setup.SetupExchangeAndQueueFor<Customer>(new HeaderExchangeSetupData(), new PriorityQueueSetupData(3));
+            setup.CreateRoute<Customer>(_priorityRouteSetupData);
         }
     }
 }

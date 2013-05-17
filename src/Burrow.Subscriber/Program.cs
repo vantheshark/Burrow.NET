@@ -11,7 +11,9 @@ namespace Burrow.Subscriber
             PrintHelp();
 
             #region -- Run this test to start subscribe from normal queue --
-            //TestSubscribing.Start(); 
+            // This test also demonstrate the "DeadLetter" feature. Make sure queue "Burrow.Queue.Error" has already existed as DeadLetter msg will go to that queue
+            // If queue "Burrow.Queue.Error" does not exist, try to create it from http://localhost:55672/#/queues
+            TestSubscribing.Start(); 
             #endregion
 
             #region -- Run this test to start subscribe from PRIORITY queues --
@@ -19,7 +21,7 @@ namespace Burrow.Subscriber
             #endregion
 
             #region -- Run this test to start subscribe from PRIORITY queues async --
-            TestSubscribingFromPriorityQueues.StartAsync();
+            //TestSubscribingFromPriorityQueues.StartAsync();
             #endregion
 
 

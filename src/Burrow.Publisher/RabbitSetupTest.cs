@@ -1,5 +1,4 @@
-﻿using System;
-using System.Configuration;
+﻿using System.Configuration;
 using Burrow.Extras;
 using Burrow.Publisher.Models;
 
@@ -7,6 +6,21 @@ namespace Burrow.Publisher
 {
     public static class RabbitSetupTest
     {
+        private const string SubscriptionName = "BurrowTestApp";
+        private static string _connectionString = ConfigurationManager.ConnectionStrings["RabbitMQ"].ToString();
+        private static readonly RouteSetupData RouteSetupData = new RouteSetupData
+        {
+            RouteFinder = new TestRouteFinder(),
+            ExchangeSetupData = new ExchangeSetupData(),
+            QueueSetupData = new QueueSetupData
+            {
+                MessageTimeToLive = 100000
+            },
+            SubscriptionName = SubscriptionName
+        };
+
+        
+
         private class TestRouteFinder : IRouteFinder
         {
             public string FindExchangeName<T>()
@@ -27,42 +41,50 @@ namespace Burrow.Publisher
             }
         }
 
-        private static readonly ExchangeSetupData ExchangeSetupData = new ExchangeSetupData();
-        
-
-        private static readonly QueueSetupData QueueSetupData = new QueueSetupData
-        {
-            SubscriptionName = "BurrowTestApp",
-            MessageTimeToLive = 100000
-        };
 
         public static void CreateExchangesAndQueues()
         {
-            Func<string, string, IRouteFinder> factory = (x, y) => new TestRouteFinder();
-            var setup = new RabbitSetup(factory, Global.DefaultWatcher, ConfigurationManager.ConnectionStrings["RabbitMQ"].ToString(), "TEST");
-            setup.SetupExchangeAndQueueFor<Bunny>(ExchangeSetupData, QueueSetupData);
-
+            var setup = new RabbitSetup(_connectionString);
+            setup.CreateRoute<Bunny>(RouteSetupData);
         }
 
         public static void DestroyExchangesAndQueues()
         {
-            Func<string, string, IRouteFinder> factory = (x, y) => new TestRouteFinder();
-            var setup = new RabbitSetup(factory, Global.DefaultWatcher, ConfigurationManager.ConnectionStrings["RabbitMQ"].ToString(), "TEST");
-            setup.Destroy<Bunny>(ExchangeSetupData, QueueSetupData);
+            var setup = new RabbitSetup(_connectionString);
+            setup.DestroyRoute<Bunny>(RouteSetupData);
         }
 
         public static void CreateExchangesAndQueues(string exchangeName, string queueName, string routingKey)
         {
-            Func<string, string, IRouteFinder> factory = (x, y) => new ConstantRouteFinder(exchangeName, queueName, routingKey);
-            var setup = new RabbitSetup(factory, Global.DefaultWatcher, ConfigurationManager.ConnectionStrings["RabbitMQ"].ToString(), "TEST");
-            setup.SetupExchangeAndQueueFor<Bunny>(ExchangeSetupData, QueueSetupData);
+            var customRouteData = new RouteSetupData
+            {
+                RouteFinder = new ConstantRouteFinder(exchangeName, queueName, routingKey),
+                ExchangeSetupData = new ExchangeSetupData(),
+                QueueSetupData = new QueueSetupData
+                {
+                    MessageTimeToLive = 100000
+                },
+                SubscriptionName = SubscriptionName
+            };
+
+            var setup = new RabbitSetup(_connectionString);
+            setup.CreateRoute<Bunny>(customRouteData);
         }
 
         public static void DestroyExchangesAndQueues(string exchangeName, string queueName)
         {
-            Func<string, string, IRouteFinder> factory = (x, y) => new ConstantRouteFinder(exchangeName, queueName, null);
-            var setup = new RabbitSetup(factory, Global.DefaultWatcher, ConfigurationManager.ConnectionStrings["RabbitMQ"].ToString(), "TEST");
-            setup.Destroy<Bunny>(ExchangeSetupData, QueueSetupData);
+            var customRouteData = new RouteSetupData
+            {
+                RouteFinder = new ConstantRouteFinder(exchangeName, queueName, null),
+                ExchangeSetupData = new ExchangeSetupData(),
+                QueueSetupData = new QueueSetupData
+                {
+                    MessageTimeToLive = 100000
+                },
+                SubscriptionName = SubscriptionName
+            };
+            var setup = new RabbitSetup(_connectionString);
+            setup.DestroyRoute<Bunny>(customRouteData);
         }
     }
 }

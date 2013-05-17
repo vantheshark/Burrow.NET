@@ -424,6 +424,28 @@ namespace Burrow
             _setPersistent = persistentMode;
         }
 
+        public uint GetMessageCount<T>(string subscriptionName)
+        {
+            try
+            {
+                lock (_tunnelGate)
+                {
+                    EnsurePublishChannelIsCreated();
+                    var result = _dedicatedPublishingChannel.QueueDeclarePassive(_routeFinder.FindQueueName<T>(subscriptionName));
+                    if (result != null)
+                    {
+                        return result.MessageCount;
+                    }
+                    return 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                _watcher.Error(ex);
+                return 0;
+            }
+        }
+
         public void Dispose()
         {
             //NOTE: Sometimes, disposing the channel blocks current thread

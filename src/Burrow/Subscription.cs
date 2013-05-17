@@ -9,7 +9,7 @@ namespace Burrow
 {
     public class Subscription
     {
-        public const string CloseByApplication = "Closed by application";
+        internal const string CloseByApplication = "Closed by application";
 
         private IModel _channel;
         public string QueueName { get; set; }

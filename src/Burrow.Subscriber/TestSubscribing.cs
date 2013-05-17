@@ -25,13 +25,22 @@ namespace Burrow.Subscriber
             Subscription subscription = null;
             subscription = tunnel.SubscribeAsync<Bunny>("BurrowTestApp", (bunny, subscriptionData) =>
             {
+                var error = false;
                 try
                 {
                     ProcessMessage(bunny);
                 }
+                catch(Exception)
+                {
+                    error = true;
+                    if (subscription != null)
+                    {
+                        subscription.Nack(subscriptionData.DeliveryTag, false); // To deliver dead letter to 
+                    }
+                }
                 finally
                 {
-                    if (subscription != null)
+                    if (subscription != null && !error)
                     {
                         subscription.Ack(subscriptionData.DeliveryTag);
                     }

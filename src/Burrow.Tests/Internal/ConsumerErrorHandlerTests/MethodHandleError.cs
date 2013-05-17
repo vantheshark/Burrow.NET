@@ -45,7 +45,7 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
             IConnection connection;
             var connectionFactory = CreateMockConnectionFactory("/", out connection);
             connection.When(x => x.CreateModel())
-                      .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<IDictionary>(), Substitute.For<IDictionary>()); });
+                      .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<IDictionary>(), Substitute.For<IDictionary>(), Substitute.For<Exception>()); });
             var handler = new ConsumerErrorHandler(connectionFactory, Substitute.For<ISerializer>(), watcher);
 
             // Action

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using Burrow.Extras.Internal;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 namespace Burrow.Extras
@@ -12,12 +13,15 @@ namespace Burrow.Extras
     {
         internal static volatile IPriorityQueueSuffix GlobalPriorityQueueSuffix = new PriorityQueueSuffix();
 
-        public PriorityQueuesRabbitSetup(Func<string, string, IRouteFinder> routeFinderFactory, IRabbitWatcher watcher, string connectionString, string environment) 
-            : base(routeFinderFactory, watcher, connectionString, environment)
+        public PriorityQueuesRabbitSetup(string connectionString) : base(connectionString)
         {
         }
 
-        protected override void DeclareExchange(ExchangeSetupData exchange, RabbitMQ.Client.IModel model, string exchangeName)
+        public PriorityQueuesRabbitSetup(IRabbitWatcher watcher, string connectionString) : base(watcher, connectionString)
+        {
+        }
+
+        protected override void DeclareExchange(ExchangeSetupData exchange, IModel model, string exchangeName)
         {
             if (exchange != null && exchange.ExchangeType == "headers")
             {
@@ -29,7 +33,7 @@ namespace Burrow.Extras
             }
         }
 
-        protected override void BindQueue<T>(RabbitMQ.Client.IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
+        protected override void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey, IDictionary bindingData = null)
         {
             if (queue is PriorityQueueSetupData)
             {
@@ -38,10 +42,10 @@ namespace Burrow.Extras
                 {
                     try
                     {
-                        IDictionary arguments = new HybridDictionary();
-                        arguments.Add("x-match", "all");
-                        arguments.Add("Priority", i.ToString(CultureInfo.InvariantCulture));
-                        arguments.Add("RoutingKey", routingKey);
+                        IDictionary arguments = GetArgumentDictionary(bindingData);
+                        arguments["x-match"] = "all";
+                        arguments["Priority"]  = i.ToString(CultureInfo.InvariantCulture);
+                        arguments["RoutingKey"] = routingKey;
                         //http://www.rabbitmq.com/tutorials/amqp-concepts.html
                         //http://lostechies.com/derekgreer/2012/03/28/rabbitmq-for-windows-exchange-types/
                         model.QueueBind(GetPriorityQueueName<T>(queueName, i), exchangeName, routingKey/*It'll be ignored as AMQP spec*/, arguments);
@@ -54,26 +58,33 @@ namespace Burrow.Extras
             }
             else
             {
-                base.BindQueue<T>(model, queue, exchangeName, queueName, routingKey);
+                base.BindQueue<T>(model, queue, exchangeName, queueName, routingKey, bindingData);
             }
         }
+
+        private IDictionary GetArgumentDictionary(IDictionary originalDictionary)
+        {
+            var dic = new Dictionary<object, object>();
+            if (originalDictionary == null)
+            {
+                return dic;
+            }
+            foreach (var key in originalDictionary)
+            {
+                dic[key] = originalDictionary[key];
+            }
+            return dic;
+        }
+        
 
         private string GetPriorityQueueName<T>(string originalQueueName, uint priority)
         {
             return string.Format("{0}{1}", originalQueueName, GlobalPriorityQueueSuffix.Get(typeof(T), priority));
         }
 
-        protected override void DeclareQueue<T>(QueueSetupData queue, string queueName, RabbitMQ.Client.IModel model)
+        protected override void DeclareQueue<T>(QueueSetupData queue, string queueName, IModel model)
         {
-            IDictionary arguments = new Dictionary<string, object>();
-            if (queue.MessageTimeToLive > 0)
-            {
-                arguments.Add("x-message-ttl", queue.MessageTimeToLive);
-            }
-            if (queue.AutoExpire > 0)
-            {
-                arguments.Add("x-expires", queue.AutoExpire);
-            }
+            SetQueueSetupArguments(queue);
 
             if (queue is PriorityQueueSetupData)
             {
@@ -82,8 +93,7 @@ namespace Burrow.Extras
                 {
                     try
                     {
-                        model.QueueDeclare(GetPriorityQueueName<T>(queueName, i), queue.Durable, false,
-                                           queue.AutoDelete, arguments);
+                        model.QueueDeclare(GetPriorityQueueName<T>(queueName, i), queue.Durable, false, queue.AutoDelete, queue.Arguments);
                     }
                     catch (OperationInterruptedException oie)
                     {
@@ -108,7 +118,7 @@ namespace Burrow.Extras
             }
         }
 
-        protected override void DeleteQueue<T>(RabbitMQ.Client.IModel model, QueueSetupData queue, string queueName)
+        protected override void DeleteQueue<T>(IModel model, QueueSetupData queue, string queueName)
         {
 
             if (queue is PriorityQueueSetupData)
