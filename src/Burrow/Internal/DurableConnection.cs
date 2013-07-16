@@ -1,22 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 namespace Burrow.Internal
 {
+    /// <summary>
+    /// A default implementation of <see cref="IDurableConnection"/>.
+    /// It will try to create connection to RabbitMQ server and retry if connection drops
+    /// </summary>
     public class DurableConnection : IDurableConnection
     {
-        //One AppDomain should create only 1 connection to server except connect to different virtual hosts
-        internal static volatile Dictionary<string, IConnection> SharedConnections = new Dictionary<string, IConnection>();
-
         private readonly IRetryPolicy _retryPolicy;
         private readonly IRabbitWatcher _watcher;
-        private static readonly object _syncConnection = new object();
+
+        /// <summary>
+        /// An event that will be fired if Connection established
+        /// </summary>
         public event Action Connected;
+        /// <summary>
+        /// An event that will be fired if Connection droped
+        /// </summary>
         public event Action Disconnected;
 
+        /// <summary>
+        /// Initialize a <see cref="DurableConnection"/> object
+        /// </summary>
+        /// <param name="retryPolicy"></param>
+        /// <param name="watcher"></param>
+        /// <param name="connectionFactory"></param>
         public DurableConnection(IRetryPolicy retryPolicy, IRabbitWatcher watcher, ConnectionFactory connectionFactory)
         {
             if (retryPolicy == null)
@@ -34,82 +47,111 @@ namespace Burrow.Internal
 
             _retryPolicy = retryPolicy;
             _watcher = watcher;
-            ConnectionFactory = connectionFactory;
+            _connectionFactory = ManagedConnectionFactory.CreateFromConnectionFactory(connectionFactory);
         }
 
-        public void Connect()
+        /// <summary>
+        /// Try to connect to rabbitmq server, retry if it cann't connect to the broker.
+        /// </summary>
+        public virtual void Connect()
         {
             try
             {
-                lock (_syncConnection)
+                Monitor.Enter(ManagedConnectionFactory.SyncConnection);
                 {
                     if (IsConnected || _retryPolicy.IsWaiting)
                     {
                         return;
                     }
 
-                    _watcher.DebugFormat("Trying to connect to endpoint: {0}", ConnectionFactory.Endpoint);
+                    _watcher.DebugFormat("Trying to connect to endpoint: '{0}'", ConnectionFactory.Endpoint);
                     var newConnection = ConnectionFactory.CreateConnection();
                     newConnection.ConnectionShutdown += SharedConnectionShutdown;
-                    //Console.WriteLine(ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost);
-                    SharedConnections.Add(ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost, newConnection);
-                    if (Connected != null)
-                    {
-                        Connected();
-                    }
 
+                    FireConnectedEvent();
                     _retryPolicy.Reset();
                     _watcher.InfoFormat("Connected to RabbitMQ. Broker: '{0}', VHost: '{1}'", ConnectionFactory.Endpoint, ConnectionFactory.VirtualHost);
                 }
             }
+            catch (ConnectFailureException connectFailureException)
+            {
+                HandleConnectionException(connectFailureException);
+            }
             catch (BrokerUnreachableException brokerUnreachableException)
             {
-                _watcher.ErrorFormat("Failed to connect to Broker: '{0}', VHost: '{1}'. Retrying in {2} ms\n" +
+                HandleConnectionException(brokerUnreachableException);
+            }
+            finally
+            {
+                Monitor.Exit(ManagedConnectionFactory.SyncConnection);
+            }
+        }
+
+        private void HandleConnectionException(Exception ex)
+        {
+            _watcher.ErrorFormat("Failed to connect to Broker: '{0}', VHost: '{1}'. Retrying in {2} ms\n" +
                     "Check HostName, VirtualHost, Username and Password.\n" +
                     "ExceptionMessage: {3}",
                     ConnectionFactory.HostName,
                     ConnectionFactory.VirtualHost,
                     _retryPolicy.DelayTime,
-                    brokerUnreachableException.Message);
+                    ex.Message);
 
-                _retryPolicy.WaitForNextRetry(Connect);
+            _retryPolicy.WaitForNextRetry(Connect);
+        }
+
+        protected void FireConnectedEvent()
+        {
+            if (Connected != null)
+            {
+                Connected();
             }
         }
 
-        private void SharedConnectionShutdown(IConnection connection, ShutdownEventArgs reason)
+        protected void FireDisconnectedEvent()
         {
-            if (Disconnected != null) Disconnected();
-
-            _watcher.WarnFormat("Disconnected from RabbitMQ Broker");
-
-            foreach(var c in SharedConnections)
+            if (Disconnected != null)
             {
-                if (c.Key == ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost)
-                {
-                    SharedConnections.Remove(c.Key);
-                    break;
-                }
+                Disconnected();
             }
+        }
 
+        protected void SharedConnectionShutdown(IConnection connection, ShutdownEventArgs reason)
+        {
+            FireDisconnectedEvent();
+            _watcher.WarnFormat("Disconnected from RabbitMQ Broker '{0}': {1}", connection.Endpoint, reason != null ? reason.ReplyText : "");
             if (reason != null && reason.ReplyText != "Connection disposed by application" && reason.ReplyText != Subscription.CloseByApplication)
             {
                 _retryPolicy.WaitForNextRetry(Connect);
             }
         }
 
+        /// <summary>
+        /// Determine whether it is an alive connection
+        /// </summary>
         public bool IsConnected
         {
             get 
-            { 
-                return SharedConnections.Any(c => c.Key == ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost 
-                                               && ConnectionFactory.Endpoint.ToString().Equals(c.Value.Endpoint.ToString())
-                                               && c.Value != null 
-                                               && c.Value.IsOpen); 
+            {
+                return ManagedConnectionFactory.SharedConnections
+                                               .Any(c => c.Key == ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost && 
+                                                         ConnectionFactory.Endpoint.ToString().Equals(c.Value.Endpoint.ToString()) && 
+                                                         c.Value != null && c.Value.IsOpen); 
             }
         }
+        /// <summary>
+        /// Return current ConnectionFactory
+        /// </summary>
+        public virtual ConnectionFactory ConnectionFactory
+        {
+            get { return _connectionFactory; }
+        }
+        private readonly ConnectionFactory _connectionFactory;
 
-        public ConnectionFactory ConnectionFactory { get; protected set; }
-
+        /// <summary>
+        /// Create a RabbitMQ channel
+        /// </summary>
+        /// <returns></returns>
         public IModel CreateChannel()
         {
             if (!IsConnected)
@@ -122,14 +164,14 @@ namespace Burrow.Internal
                 throw new Exception("Cannot connect to Rabbit server.");
             }
 
-            var connection = SharedConnections[ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost];
+            var connection = ManagedConnectionFactory.SharedConnections[ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost];
             var channel = connection.CreateModel();
             return channel;
         }
  
         public void Dispose()
         {
-            //Should not dispose connection here since other tunnel might use it
+            //Should not dispose any connections here since other tunnel might use one of them
             //try
             //{
             //    CloseAllConnections();
@@ -138,16 +180,6 @@ namespace Burrow.Internal
             //{
             //    _watcher.Error(ex);
             //}
-        }
-
-        internal static void CloseAllConnections()
-        {
-            SharedConnections.Values.ToList().ForEach(c =>
-            {
-                c.Close(200, "Connection disposed by application");
-                c.Dispose();
-            });
-            SharedConnections.Clear();
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Burrow.Internal;
 
 namespace Burrow.Extras
@@ -23,13 +24,33 @@ namespace Burrow.Extras
             return Create(connectionString, _burrowResolver.Resolve<IRabbitWatcher>() ?? Global.DefaultWatcher);
         }
 
-        public override ITunnel Create(string hostName, string virtualHost, string username, string password, IRabbitWatcher watcher)
+        public override ITunnel Create(string connectionString, IRabbitWatcher watcher)
+        {
+            var clusterConnections = connectionString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            if (clusterConnections.Length > 1)
+            {
+                var factories = clusterConnections.Select(x => new ManagedConnectionFactory(new ConnectionString(x)))
+                                                  .ToList();
+
+                var rabbitWatcher = watcher ?? _burrowResolver.Resolve<IRabbitWatcher>() ?? Global.DefaultWatcher;
+                var serializer = _burrowResolver.Resolve<ISerializer>() ?? Global.DefaultSerializer;
+                var haConnection = new HaConnection(new DefaultRetryPolicy(), rabbitWatcher, factories);
+                return Create(haConnection, serializer, rabbitWatcher);
+            }
+
+
+            var cnn = new ConnectionString(connectionString);
+            return Create(cnn.Host, cnn.Port, cnn.VirtualHost, cnn.UserName, cnn.Password, watcher);
+        }
+
+        public override ITunnel Create(string hostName, int port, string virtualHost, string username, string password, IRabbitWatcher watcher)
         {
             var rabbitWatcher = watcher ?? _burrowResolver.Resolve<IRabbitWatcher>() ?? Global.DefaultWatcher;
             var serializer = _burrowResolver.Resolve<ISerializer>() ?? Global.DefaultSerializer;
-            var connectionFactory = new RabbitMQ.Client.ConnectionFactory
+            var connectionFactory = new ManagedConnectionFactory
                                         {
                                             HostName = hostName,
+                                            Port = port,
                                             VirtualHost = virtualHost,
                                             UserName = username,
                                             Password = password
@@ -38,24 +59,28 @@ namespace Burrow.Extras
                                                           rabbitWatcher, 
                                                           connectionFactory);
 
+            return Create(durableConnection, serializer, rabbitWatcher);
+        }
+
+        private ITunnel Create(DurableConnection durableConnection, ISerializer serializer, IRabbitWatcher rabbitWatcher)
+        {
             var abc = new ObjectObserver<IObserver<ISerializer>>();
-            
+
             Func<IConsumerErrorHandler> errorHandler = () =>
             {
-                var handdler = new ConsumerErrorHandler(connectionFactory, serializer, rabbitWatcher);
+                var handdler = new ConsumerErrorHandler(() => durableConnection.ConnectionFactory, serializer, rabbitWatcher);
                 abc.FireEvent(handdler);
                 return handdler;
             };
 
             Func<IMessageHandlerFactory> handlerFactory = () =>
             {
-                var factory = new DefaultMessageHandlerFactory(_burrowResolver.Resolve<IConsumerErrorHandler>() ?? errorHandler(), 
-                                                               serializer, 
+                var factory = new DefaultMessageHandlerFactory(_burrowResolver.Resolve<IConsumerErrorHandler>() ?? errorHandler(),
+                                                               serializer,
                                                                rabbitWatcher);
                 abc.FireEvent(factory);
                 return factory;
             };
-
 
             Func<IConsumerManager> consumerManager = () =>
             {
@@ -75,10 +100,10 @@ namespace Burrow.Extras
                                           Global.DefaultPersistentMode);
 
             abc.ObjectCreated += tunnel.AddSerializerObserver;
-            
-            return tunnel;
 
+            return tunnel;
         }
+
 
         [ExcludeFromCodeCoverage]
         private class ObjectObserver<T>

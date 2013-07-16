@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Burrow.Internal;
+using RabbitMQ.Client;
 
 namespace Burrow
 {
     /// <summary>
-    /// This class is responsible for creating ITunnel.
-    /// Any derived of this class will automatically registered itself as the default TunnelFactory in the library ;)
+    /// This class is responsible for creating <see cref="ITunnel"/>.
+    /// Any derived of this class except will automatically registered itself as the default TunnelFactory in the library ;)
     /// </summary>
     public class TunnelFactory 
     {
@@ -28,7 +30,7 @@ namespace Burrow
         /// </summary>
         public void CloseAllConnections()
         {
-            DurableConnection.CloseAllConnections();
+            ManagedConnectionFactory.CloseAllConnections();
         }
         
         [ExcludeFromCodeCoverage]
@@ -54,34 +56,51 @@ namespace Burrow
 
         public virtual ITunnel Create(string connectionString, IRabbitWatcher watcher)
         {
-            var connectionValues = new ConnectionString(connectionString);
+            var clusterConnections = connectionString.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+            if (clusterConnections.Length > 1)
+            {
+                var factories = clusterConnections.Select(x => new ManagedConnectionFactory(new ConnectionString(x)))
+                                                  .ToList();
 
-            return Create(connectionValues.Host,
-                          connectionValues.VirtualHost,
-                          connectionValues.UserName,
-                          connectionValues.Password,
-                          watcher);
+                var rabbitWatcher = watcher ?? Global.DefaultWatcher;
+                var haConnection = new HaConnection(new DefaultRetryPolicy(), rabbitWatcher, factories);
+                return Create(haConnection, rabbitWatcher);
+            }
+
+
+            var connectionValues = new ConnectionString(connectionString);
+            return Create(new ManagedConnectionFactory(connectionValues), watcher);
         }
 
-        public virtual ITunnel Create(string hostName, string virtualHost, string username, string password, IRabbitWatcher watcher)
+        public virtual ITunnel Create(string hostName, int port, string virtualHost, string username, string password, IRabbitWatcher watcher)
         {
-            var rabbitWatcher = watcher ?? Global.DefaultWatcher;
-            var connectionFactory = new RabbitMQ.Client.ConnectionFactory
+            var connectionFactory = new ManagedConnectionFactory
                                         {
                                             HostName = hostName,
+                                            Port = port,
                                             VirtualHost = virtualHost,
                                             UserName = username,
                                             Password = password
                                         };
+            return Create(connectionFactory, watcher);
+        }
 
+        private ITunnel Create(ConnectionFactory connectionFactory, IRabbitWatcher watcher)
+        {
+            var rabbitWatcher = watcher ?? Global.DefaultWatcher;
             var durableConnection = new DurableConnection(new DefaultRetryPolicy(), rabbitWatcher, connectionFactory);
-            var errorHandler = new ConsumerErrorHandler(connectionFactory, Global.DefaultSerializer, rabbitWatcher);
+            return Create(durableConnection, rabbitWatcher);
+        }
+
+        private ITunnel Create(IDurableConnection durableConnection, IRabbitWatcher rabbitWatcher)
+        {
+            var errorHandler = new ConsumerErrorHandler(() => durableConnection.ConnectionFactory, Global.DefaultSerializer, rabbitWatcher);
             var msgHandlerFactory = new DefaultMessageHandlerFactory(errorHandler, Global.DefaultSerializer, rabbitWatcher);
             var consumerManager = new ConsumerManager(rabbitWatcher, msgHandlerFactory, Global.DefaultSerializer);
 
             var tunnel = new RabbitTunnel(consumerManager,
-                                          rabbitWatcher, 
-                                          new DefaultRouteFinder(), 
+                                          rabbitWatcher,
+                                          new DefaultRouteFinder(),
                                           durableConnection,
                                           Global.DefaultSerializer,
                                           Global.DefaultCorrelationIdGenerator,

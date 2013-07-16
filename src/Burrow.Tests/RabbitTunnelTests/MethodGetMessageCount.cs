@@ -32,6 +32,30 @@ namespace Burrow.Tests.RabbitTunnelTests
             // Assert
             Assert.AreEqual((uint)100, count);
         }
+
+        [TestMethod]
+        public void Should_catch_all_exception_and_return_0()
+        {
+            // Arrange
+            var newChannel = Substitute.For<IModel>();
+            newChannel.IsOpen.Returns(true);
+            newChannel.When(x => x.QueueDeclarePassive(Arg.Any<string>()))
+                      .Do(callInfo => { throw new Exception("Some errors happen");});
+            
+            var routeFinder = Substitute.For<IRouteFinder>();
+            var durableConnection = Substitute.For<IDurableConnection>();
+            durableConnection.IsConnected.Returns(true);
+            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            durableConnection.CreateChannel().Returns(newChannel);
+            var tunnel = new RabbitTunnel(routeFinder, durableConnection);
+
+            // Action
+            var count = tunnel.GetMessageCount<Customer>("subscriptionName");
+
+            // Assert
+            Assert.AreEqual((uint)0, count);
+            newChannel.Received(1).QueueDeclarePassive(Arg.Any<string>());
+        }
     }
 }
 // ReSharper restore InconsistentNaming

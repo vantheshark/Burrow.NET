@@ -10,8 +10,8 @@
 	<iconUrl>http://i39.tinypic.com/fcnr7.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 	<summary>Burrow.RPC helps implement RPC-style service</summary>    
-	<description>Burrow.RPC helps implement RPC-style service using RabbitMQ and Burrow.NET. This package is optional</description>
-    <releaseNotes>Fix a bug in PriorityTunnelFactory which should have used PriorityMessageHandlerFactory instead of DefaultMessageHandlerFactory. Support built-in DeadLetter and Count total message in queue</releaseNotes>
+	<description>Burrow.RPC helps implement RPC-style service using RabbitMQ and Burrow.NET. This package is optional. YOU DON'T NEED TO DOWNLOAD BURROW.RPC IF YOU DON'T USE RPC IN YOUR CODE.</description>
+    <releaseNotes>Support fail over to different nodes with HaConnection</releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP Burrow.RPC RPC</tags>
     <dependencies>		

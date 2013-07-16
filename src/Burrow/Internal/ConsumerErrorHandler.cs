@@ -11,7 +11,7 @@ namespace Burrow.Internal
     {
         private readonly string _errorQueue;
         private readonly string _errorExchange;
-        private readonly ConnectionFactory _connectionFactory;
+        private readonly Func<ConnectionFactory> _connectionFactory;
         private readonly IRabbitWatcher _watcher;
         private readonly object _channelGate = new object();
 
@@ -19,7 +19,7 @@ namespace Burrow.Internal
         private bool _errorQueueDeclared;
         private bool _errorQueueBound;
 
-        public ConsumerErrorHandler(ConnectionFactory connectionFactory, ISerializer serializer, IRabbitWatcher watcher)
+        public ConsumerErrorHandler(Func<ConnectionFactory> connectionFactory, ISerializer serializer, IRabbitWatcher watcher)
         {
             if (connectionFactory == null)
             {
@@ -89,13 +89,13 @@ namespace Burrow.Internal
             return _serializer.Serialize(error);
         }
 
-        private string CreateConnectionCheckMessage()
+        private string CreateConnectionCheckMessage(ConnectionFactory factory)
         {
             return
                 "Please check connection string and that the RabbitMQ Service is running at the specified endpoint.\n" +
-                string.Format("\tHostname: '{0}'\n", _connectionFactory.HostName) +
-                string.Format("\tVirtualHost: '{0}'\n", _connectionFactory.VirtualHost) +
-                string.Format("\tUserName: '{0}'\n", _connectionFactory.UserName) +
+                string.Format("\tHostname: '{0}'\n", factory.HostName) +
+                string.Format("\tVirtualHost: '{0}'\n", factory.VirtualHost) +
+                string.Format("\tUserName: '{0}'\n", factory.UserName) +
                 "Failed to write error message to error queue";
         }
 
@@ -105,9 +105,16 @@ namespace Burrow.Internal
 
         public virtual void HandleError(BasicDeliverEventArgs deliverEventArgs, Exception exception)
         {
+            ConnectionFactory factory = null;
             try
             {
-                using (var connection = _connectionFactory.CreateConnection())
+                factory = _connectionFactory();
+                if (factory == null)
+                {
+                    throw new NullReferenceException("Cannot resolve ConnectionFactory");
+                }
+
+                using (var connection = factory.CreateConnection())
                 using (var model = connection.CreateModel())
                 {
                     lock (_channelGate)
@@ -120,10 +127,15 @@ namespace Burrow.Internal
                     model.BasicPublish(_errorExchange, string.Empty, properties, messageBody);
                 }
             }
+            catch (ConnectFailureException)
+            {
+                // thrown if the broker is unreachable during initial creation.
+                _watcher.ErrorFormat("ConsumerErrorHandler: cannot connect to Broker.\n" + CreateConnectionCheckMessage(factory));
+            }
             catch (BrokerUnreachableException)
             {
                 // thrown if the broker is unreachable during initial creation.
-                _watcher.ErrorFormat("ConsumerErrorHandler: cannot connect to Broker.\n" + CreateConnectionCheckMessage());
+                _watcher.ErrorFormat("ConsumerErrorHandler: cannot connect to Broker.\n" + CreateConnectionCheckMessage(factory));
             }
             catch (OperationInterruptedException interruptedException)
             {
@@ -131,7 +143,7 @@ namespace Burrow.Internal
                 _watcher.ErrorFormat(
                     "ConsumerErrorHandler: Broker connection was closed while attempting to publish Error message.\n" +
                     string.Format("Message was: '{0}'\n", interruptedException.Message) +
-                    CreateConnectionCheckMessage());
+                    CreateConnectionCheckMessage(factory));
             }
             catch (Exception unexpecctedException)
             {

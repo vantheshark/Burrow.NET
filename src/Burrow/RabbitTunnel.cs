@@ -39,7 +39,7 @@ namespace Burrow
         public RabbitTunnel(IRouteFinder routeFinder,
                             IDurableConnection connection)
             : this(new ConsumerManager(Global.DefaultWatcher, 
-                                       new DefaultMessageHandlerFactory(new ConsumerErrorHandler(connection.ConnectionFactory, 
+                                       new DefaultMessageHandlerFactory(new ConsumerErrorHandler(() => connection.ConnectionFactory, 
                                                                                                  Global.DefaultSerializer, 
                                                                                                  Global.DefaultWatcher), 
                                                                         Global.DefaultSerializer,

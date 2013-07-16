@@ -22,13 +22,13 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
         {
             // Arrange
             IConnection connection;
-            var connectionFactory = CreateMockConnectionFactory("/", out connection);
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/", out connection);
             var model = Substitute.For<IModel>();
             connection.CreateModel().Returns(model);
             var basicProperies = Substitute.For<IBasicProperties>();
             model.CreateBasicProperties().Returns(basicProperies);
 
-            var handler = new ConsumerErrorHandler(connectionFactory, Substitute.For<ISerializer>(), Substitute.For<IRabbitWatcher>());
+            var handler = new ConsumerErrorHandler(() => connectionFactory, Substitute.For<ISerializer>(), Substitute.For<IRabbitWatcher>());
 
             // Action
             handler.HandleError(new BasicDeliverEventArgs{Body = new byte[0], BasicProperties = basicProperies}, new Exception());
@@ -38,15 +38,15 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
         }
 
         [TestMethod]
-        public void Should_should_catch_BrokerUnreachableException()
+        public void Should_catch_BrokerUnreachableException()
         {
             // Arrange
             var watcher = Substitute.For<IRabbitWatcher>();
             IConnection connection;
-            var connectionFactory = CreateMockConnectionFactory("/", out connection);
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/", out connection);
             connection.When(x => x.CreateModel())
                       .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<IDictionary>(), Substitute.For<IDictionary>(), Substitute.For<Exception>()); });
-            var handler = new ConsumerErrorHandler(connectionFactory, Substitute.For<ISerializer>(), watcher);
+            var handler = new ConsumerErrorHandler(() => connectionFactory, Substitute.For<ISerializer>(), watcher);
 
             // Action
             handler.HandleError(new BasicDeliverEventArgs { Body = new byte[0] }, new Exception());
@@ -56,15 +56,15 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
         }
 
         [TestMethod]
-        public void Should_should_catch_OperationInterruptedException()
+        public void Should_catch_OperationInterruptedException()
         {
             // Arrange
             var watcher = Substitute.For<IRabbitWatcher>();
             IConnection connection;
-            var connectionFactory = CreateMockConnectionFactory("/", out connection);
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/", out connection);
             connection.When(x => x.CreateModel())
                       .Do(callInfo => { throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "Shutdown ;)"));});
-            var handler = new ConsumerErrorHandler(connectionFactory, Substitute.For<ISerializer>(), watcher);
+            var handler = new ConsumerErrorHandler(() => connectionFactory, Substitute.For<ISerializer>(), watcher);
 
             // Action
             handler.HandleError(new BasicDeliverEventArgs { Body = new byte[0] }, new Exception());
@@ -74,15 +74,47 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
         }
 
         [TestMethod]
-        public void Should_should_catch_other_exceptions()
+        public void Should_catch_other_exceptions()
         {
             // Arrange
             var watcher = Substitute.For<IRabbitWatcher>();
             IConnection connection;
-            var connectionFactory = CreateMockConnectionFactory("/", out connection);
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/", out connection);
             connection.When(x => x.CreateModel())
                       .Do(callInfo => { throw new Exception("unexpecctedException"); });
-            var handler = new ConsumerErrorHandler(connectionFactory, Substitute.For<ISerializer>(), watcher);
+            var handler = new ConsumerErrorHandler(() => connectionFactory, Substitute.For<ISerializer>(), watcher);
+
+            // Action
+            handler.HandleError(new BasicDeliverEventArgs { Body = new byte[0] }, new Exception());
+
+            // Assert
+            watcher.Received().ErrorFormat(Arg.Any<string>(), Arg.Any<object[]>());
+        }
+
+        [TestMethod]
+        public void Should_catch_ConnectFailureException_exceptions()
+        {
+            // Arrange
+            var watcher = Substitute.For<IRabbitWatcher>();
+            IConnection connection;
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/", out connection);
+            connection.When(x => x.CreateModel())
+                      .Do(callInfo => { throw new ConnectFailureException("Connect Failure", Substitute.For<Exception>()); });
+            var handler = new ConsumerErrorHandler(() => connectionFactory, Substitute.For<ISerializer>(), watcher);
+
+            // Action
+            handler.HandleError(new BasicDeliverEventArgs { Body = new byte[0] }, new Exception());
+
+            // Assert
+            watcher.Received().ErrorFormat(Arg.Any<string>(), Arg.Any<object[]>());
+        }
+
+        [TestMethod]
+        public void Should_log_error_if_cannot_resolve_ConnectionFactory()
+        {
+            // Arrange
+            var watcher = Substitute.For<IRabbitWatcher>();
+            var handler = new ConsumerErrorHandler(() => null, Substitute.For<ISerializer>(), watcher);
 
             // Action
             handler.HandleError(new BasicDeliverEventArgs { Body = new byte[0] }, new Exception());

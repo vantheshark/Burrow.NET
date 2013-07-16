@@ -17,13 +17,15 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             var retryPolicy = Substitute.For<IRetryPolicy>();
             var watcher = Substitute.For<IRabbitWatcher>();
             IConnection rmqConnection;
-            var connectionFactory = CreateMockConnectionFactory("/", out rmqConnection);
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/", out rmqConnection);
+
             var channel = Substitute.For<IModel>();
             rmqConnection.CreateModel().Returns(channel);
 
             var durableConnection = new DurableConnection(retryPolicy, watcher, connectionFactory);
+            durableConnection.Connect();
             durableConnection.CreateChannel();
-            Assert.AreEqual(1, DurableConnection.SharedConnections.Count);
+            Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
 
 
             // Action
@@ -32,31 +34,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             //Assert
             rmqConnection.DidNotReceive().Close(Arg.Any<ushort>(), Arg.Any<string>());
             rmqConnection.DidNotReceive().Dispose();
-            Assert.AreEqual(1, DurableConnection.SharedConnections.Count);
-        }
-
-        [TestMethod, Ignore/* Since we don't dispose connections to rabbitmq here*/]
-        public void Should_catch_all_exceptions()
-        {
-            // Arrange
-            var retryPolicy = Substitute.For<IRetryPolicy>();
-            var watcher = Substitute.For<IRabbitWatcher>();
-            IConnection rmqConnection;
-            var connectionFactory = CreateMockConnectionFactory("/", out rmqConnection);
-            var channel = Substitute.For<IModel>();
-            rmqConnection.CreateModel().Returns(channel);
-            rmqConnection.When(x => x.Dispose())
-                         .Do(callInfo => { throw new Exception("Can't dispose :D");});
-            var durableConnection = new DurableConnection(retryPolicy, watcher, connectionFactory);
-            durableConnection.CreateChannel();
-            Assert.AreEqual(1, DurableConnection.SharedConnections.Count);
-
-
-            // Action
-            durableConnection.Dispose();
-
-            //Assert
-            watcher.Received().Error(Arg.Is<Exception>(x => x.Message == "Can't dispose :D"));
+            Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
         }
     }
 }

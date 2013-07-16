@@ -22,7 +22,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
         public void LockThread()
         {
             sync.WaitOne();
-            DurableConnection.SharedConnections.Clear();
+            ManagedConnectionFactory.SharedConnections.Clear();
         }
 
         [TestCleanup]
@@ -36,7 +36,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
         {
             // Arrange
             var are = new AutoResetEvent(false);
-            var connectionFactory = CreateMockConnectionFactory("/");
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/");
             var durableConnection = new DurableConnection(Substitute.For<IRetryPolicy>(),
                                                           Substitute.For<IRabbitWatcher>(),
                                                           connectionFactory);
@@ -48,8 +48,25 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
 
             // Assert
             connectionFactory.Received(1).CreateConnection();
-            Assert.AreEqual(1, DurableConnection.SharedConnections.Count);
-            Assert.IsTrue(connectionFactory.Endpoint.Equals(DurableConnection.SharedConnections.First().Value.Endpoint));
+            Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
+            Assert.IsTrue(connectionFactory.Endpoint.Equals(ManagedConnectionFactory.SharedConnections.First().Value.Endpoint));
+        }
+
+        [TestMethod]
+        public void Should_catch_ConnectFailureException()
+        {
+            // Arrange
+            var retryPolicy = Substitute.For<IRetryPolicy>();
+
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/");
+            connectionFactory.When(x => x.CreateConnection())
+                             .Do(callInfo => { throw new ConnectFailureException("Network error", Substitute.For<Exception>()); });
+            var durableConnection = new DurableConnection(retryPolicy, Substitute.For<IRabbitWatcher>(), connectionFactory);
+            // Action
+            durableConnection.Connect();
+
+            // Assert
+            retryPolicy.Received(1).WaitForNextRetry(Arg.Any<Action>());
         }
 
         [TestMethod]
@@ -58,7 +75,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             // Arrange
             var retryPolicy = Substitute.For<IRetryPolicy>();
 
-            var connectionFactory = CreateMockConnectionFactory("/");
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/");
             connectionFactory.When(x => x.CreateConnection())
                              .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<IDictionary>(), Substitute.For<IDictionary>(), Substitute.For<Exception>()); });
             var durableConnection = new DurableConnection(retryPolicy, Substitute.For<IRabbitWatcher>(), connectionFactory);
@@ -73,7 +90,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
         public void Should_create_only_one_connection_to_the_same_endpoint()
         {
             // Arrange
-            var connectionFactory = CreateMockConnectionFactory("/");
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/");
             var durableConnection = new DurableConnection(Substitute.For<IRetryPolicy>(),
                                                           Substitute.For<IRabbitWatcher>(),
                                                           connectionFactory);
@@ -89,8 +106,8 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
 
             // Assert
             connectionFactory.Received(1).CreateConnection();
-            Assert.AreEqual(1, DurableConnection.SharedConnections.Count);
-            Assert.IsTrue(connectionFactory.Endpoint.Equals(DurableConnection.SharedConnections.First().Value.Endpoint));
+            Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
+            Assert.IsTrue(connectionFactory.Endpoint.Equals(ManagedConnectionFactory.SharedConnections.First().Value.Endpoint));
         }
 
 
@@ -98,12 +115,12 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
         public void Should_create_only_one_connection_to_the_each_endpoint()
         {
             // Arrange
-            var connectionFactory1 = CreateMockConnectionFactory("/");
+            var connectionFactory1 = CreateMockConnectionFactory<ManagedConnectionFactory>("/");
             var durableConnection1 = new DurableConnection(Substitute.For<IRetryPolicy>(),
                                                            Substitute.For<IRabbitWatcher>(),
                                                            connectionFactory1);
 
-            var connectionFactory2 = CreateMockConnectionFactory("/2ndVirtualHost");
+            var connectionFactory2 = CreateMockConnectionFactory<ManagedConnectionFactory>("/2ndVirtualHost");
             var durableConnection2 = new DurableConnection(Substitute.For<IRetryPolicy>(),
                                                            Substitute.For<IRabbitWatcher>(),
                                                            connectionFactory2);
@@ -120,7 +137,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             // Assert
             connectionFactory1.Received(1).CreateConnection();
             connectionFactory2.Received(1).CreateConnection();
-            Assert.AreEqual(2, DurableConnection.SharedConnections.Count);
+            Assert.AreEqual(2, ManagedConnectionFactory.SharedConnections.Count);
         }
 
         [TestMethod]
@@ -128,13 +145,13 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
         {
             // Arrange
             var endpoint1 = new AmqpTcpEndpoint("localhost", 5672);
-            var connectionFactory1 = CreateMockConnectionFactory("/", endpoint1);
+            var connectionFactory1 = CreateMockConnectionFactory<ManagedConnectionFactory>("/", endpoint1);
             var durableConnection1 = new DurableConnection(Substitute.For<IRetryPolicy>(),
                                                            Substitute.For<IRabbitWatcher>(),
                                                            connectionFactory1);
 
             var endpoint2 = new AmqpTcpEndpoint("localhost", 5673);
-            var connectionFactory2 = CreateMockConnectionFactory("/", endpoint2);
+            var connectionFactory2 = CreateMockConnectionFactory<ManagedConnectionFactory>("/", endpoint2);
             var durableConnection2 = new DurableConnection(Substitute.For<IRetryPolicy>(),
                                                            Substitute.For<IRabbitWatcher>(),
                                                            connectionFactory2);
@@ -151,7 +168,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             // Assert
             connectionFactory1.Received(1).CreateConnection();
             connectionFactory2.Received(1).CreateConnection();
-            Assert.AreEqual(2, DurableConnection.SharedConnections.Count);
+            Assert.AreEqual(2, ManagedConnectionFactory.SharedConnections.Count);
         }
     }
 }

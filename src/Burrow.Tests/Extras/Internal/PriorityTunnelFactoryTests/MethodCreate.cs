@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Burrow.Extras.Internal;
 using Burrow.Extras;
+using Burrow.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.PriorityTunnelFactoryTests
@@ -49,6 +50,22 @@ namespace Burrow.Tests.Extras.Internal.PriorityTunnelFactoryTests
 
             // Assert
             Assert.IsInstanceOfType(consumerManager.MessageHandlerFactory, typeof(PriorityMessageHandlerFactory));
+        }
+
+
+        [TestMethod]
+        public void Should_create_ha_connection_if_provide_cuslter_connection_string()
+        {
+            // Arrange
+            FieldInfo fi = typeof(RabbitTunnelWithPriorityQueuesSupport).GetField("_connection", BindingFlags.NonPublic | BindingFlags.Instance);
+            var factory = new PriorityTunnelFactory();
+
+            // Action
+            var tunnel = factory.Create("host=unreachable1.com;username=guest;password=guest|host=unreachable2.com;username=guest;password=guest|host=unreachable3.com;username=guest;password=guest");
+
+            // Assert
+            Assert.IsNotNull(fi);
+            Assert.IsTrue(fi.GetValue(tunnel) is HaConnection);
         }
     }
 }

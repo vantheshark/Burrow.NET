@@ -7,7 +7,7 @@ namespace Burrow
     /// Parses a connection string for the values required to connect to a RabbitMQ broker instance.
     /// 
     /// Connection string should look something like this:
-    /// host=192.168.1.1;virtualHost=MyVirtualHost;username=MyUsername;password=MyPassword
+    /// host=192.168.1.1;port=5672;virtualHost=MyVirtualHost;username=MyUsername;password=MyPassword
     /// </summary>
     public class ConnectionString
     {
@@ -33,27 +33,30 @@ namespace Burrow
 
                 _parametersDictionary.Add(keyValueParts[0], keyValueParts[1]);
             }
+
+            Port = int.Parse(GetValue("port", "5672"));
+            Host = GetValue("host", "localhost");
+            VirtualHost = GetValue("virtualHost", "/");
+            UserName = GetValue("username", "guest");
+            Password = GetValue("password", "guest");
+
+            if (Host.Contains(":"))
+            {
+                var index = Host.IndexOf(":", StringComparison.Ordinal);
+                Port = int.Parse(Host.Substring(index + 1));
+                Host = Host.Substring(0, index);
+            }
         }
 
-        public string Host
-        {
-            get { return GetValue("host", "localhost"); }
-        }
+        public int Port { get; private set; }
 
-        public string VirtualHost
-        {
-            get { return GetValue("virtualHost", "/"); }
-        }
+        public string Host { get; private set; }
 
-        public string UserName
-        {
-            get { return GetValue("username", "guest"); }
-        }
+        public string VirtualHost { get; private set; }
 
-        public string Password
-        {
-            get { return GetValue("password", "guest"); }
-        }
+        public string UserName { get; private set; }
+
+        public string Password { get; private set; }
 
         public string GetValue(string key)
         {
@@ -66,9 +69,9 @@ namespace Burrow
 
         public string GetValue(string key, string defaultValue)
         {
-            return _parametersDictionary.ContainsKey(key)
-                       ? _parametersDictionary[key]
-                       : defaultValue;
+            return _parametersDictionary.ContainsKey(key) && !string.IsNullOrEmpty(_parametersDictionary[key])
+                ? _parametersDictionary[key]
+                : defaultValue;
         }
     }
 }

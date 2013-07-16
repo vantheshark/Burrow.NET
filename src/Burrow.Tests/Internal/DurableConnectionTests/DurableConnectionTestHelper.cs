@@ -11,7 +11,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
         [TestCleanup]
         public void CleanUp()
         {
-            DurableConnection.SharedConnections.Values.ToList().ForEach(c =>
+            ManagedConnectionFactory.SharedConnections.Values.ToList().ForEach(c =>
             {
                 try
                 {
@@ -22,29 +22,38 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
                 {
                 }
             });
-            DurableConnection.SharedConnections.Clear();
+            ManagedConnectionFactory.SharedConnections.Clear();
             
         }
 
-        public static ConnectionFactory CreateMockConnectionFactory(string virtualHost, AmqpTcpEndpoint endpoint = null)
+        public static ConnectionFactory CreateMockConnectionFactory<T>(string virtualHost, AmqpTcpEndpoint endpoint = null) where T : ConnectionFactory
         {
             IConnection connection;
-            return CreateMockConnectionFactory(virtualHost, out connection, endpoint);
+            return CreateMockConnectionFactory<T>(virtualHost, out connection, endpoint);
         }
 
-        public static ConnectionFactory CreateMockConnectionFactory(string virtualHost, out IConnection connection, AmqpTcpEndpoint endpoint = null)
+        public static ConnectionFactory CreateMockConnectionFactory<T>(string virtualHost, out IConnection connection, AmqpTcpEndpoint endpoint = null) where T : ConnectionFactory
         {
-            connection = Substitute.For<IConnection>();
+            var conn = Substitute.For<IConnection>();
 
-            var connectionFactory = Substitute.For<ConnectionFactory>();
+            var connectionFactory = Substitute.For<T>();
             connectionFactory.VirtualHost = virtualHost;
-            connectionFactory.CreateConnection().Returns(connection);
+            if (typeof(T) == typeof(ManagedConnectionFactory))
+            {
+                connectionFactory.CreateConnection().Returns(conn)
+                                 .AndDoes(callInfo => (connectionFactory as ManagedConnectionFactory).SaveConnection(conn));
+            }
+            else
+            {
+                connectionFactory.CreateConnection().Returns(conn);
+            }
             if (endpoint != null)
             {
                 connectionFactory.Endpoint = endpoint;
             }
-            connection.Endpoint.Returns(connectionFactory.Endpoint);
-            connection.IsOpen.Returns(true);
+            conn.Endpoint.Returns(connectionFactory.Endpoint);
+            conn.IsOpen.Returns(true);
+            connection = conn;
 
             return connectionFactory;
         }

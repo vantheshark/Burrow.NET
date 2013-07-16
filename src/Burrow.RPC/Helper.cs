@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
+using Burrow.Internal;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
@@ -21,9 +22,10 @@ namespace Burrow.RPC
         public void CreateQueues(string connectionString, Action<IModel> createExchangesAndQueues)
         {
             var connectionValues = new ConnectionString(connectionString);
-            var connectionFactory = new ConnectionFactory
+            var connectionFactory = new ManagedConnectionFactory
             {
                 HostName = connectionValues.Host,
+                Port = connectionValues.Port,
                 VirtualHost = connectionValues.VirtualHost,
                 UserName = connectionValues.UserName,
                 Password = connectionValues.Password,

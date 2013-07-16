@@ -35,6 +35,7 @@ namespace Burrow.Extras
             _connectionFactory = new ConnectionFactory
             {
                 HostName = connectionValues.Host,
+                Port = connectionValues.Port,
                 VirtualHost = connectionValues.VirtualHost,
                 UserName = connectionValues.UserName,
                 Password = connectionValues.Password,

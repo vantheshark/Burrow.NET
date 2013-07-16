@@ -18,6 +18,13 @@ namespace Burrow.Tests.ConnectionStringTests
         {
             new ConnectionString("a=b;c=d=e");
         }
+
+        [TestMethod]
+        public void Should_be_able_to_regconize_the_port_number()
+        {
+            var connection = new ConnectionString("host=localhost:1234;username=guest;password=guest");
+            Assert.AreEqual(1234, connection.Port);
+        }
     }
 }
 // ReSharper restore InconsistentNaming}

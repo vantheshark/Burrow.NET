@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 	<summary>Burrow.Extras provides extra utilities for Burrow.NET</summary>    
 	<description>Burrow.Extras provide DependencyInjection TunnelFactory, JsonSerializer and RabbitSetup which help to create Exchanges and Queues programmatically. YOU DON'T NEED TO DOWNLOAD BURROW.RPC IF YOU DON'T USE RPC IN YOUR CODE.</description>
-    <releaseNotes>Fix a bug in PriorityTunnelFactory which should have used PriorityMessageHandlerFactory instead of DefaultMessageHandlerFactory. Support built-in DeadLetter and Count total message in queue. Huge refactoring for RabbitSetup class, made it easier to use</releaseNotes>
+    <releaseNotes>Support fail over to different nodes with HaConnection</releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP Burrow.Extras</tags>
     <dependencies>		

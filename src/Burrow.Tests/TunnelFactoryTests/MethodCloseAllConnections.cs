@@ -16,13 +16,13 @@ namespace Burrow.Tests.TunnelFactoryTests
             var retryPolicy = Substitute.For<IRetryPolicy>();
             var watcher = Substitute.For<IRabbitWatcher>();
             IConnection rmqConnection;
-            var connectionFactory = DurableConnectionTestHelper.CreateMockConnectionFactory("/", out rmqConnection);
+            var connectionFactory = DurableConnectionTestHelper.CreateMockConnectionFactory<ManagedConnectionFactory>("/", out rmqConnection);
             var channel = Substitute.For<IModel>();
             rmqConnection.CreateModel().Returns(channel);
 
             var durableConnection = new DurableConnection(retryPolicy, watcher, connectionFactory);
             durableConnection.CreateChannel();
-            Assert.AreEqual(1, DurableConnection.SharedConnections.Count);
+            Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
 
 
             // Action
@@ -31,7 +31,7 @@ namespace Burrow.Tests.TunnelFactoryTests
             //Assert
             rmqConnection.Received().Close(Arg.Any<ushort>(), Arg.Any<string>());
             rmqConnection.Received().Dispose();
-            Assert.AreEqual(0, DurableConnection.SharedConnections.Count);
+            Assert.AreEqual(0, ManagedConnectionFactory.SharedConnections.Count);
         }
     }
 }

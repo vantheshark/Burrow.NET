@@ -67,6 +67,9 @@
     <Compile Include="IMessageHandlerFactory.cs" />
     <Compile Include="Internal\BinarySerializer.cs" />
     <Compile Include="Internal\ConsoleWatcher.cs" />
+    <Compile Include="Internal\HaConnection.cs" />
+    <Compile Include="Internal\ManagedConnectionFactory.cs" />
+    <Compile Include="Internal\RoundRobinList.cs" />
     <Compile Include="Internal\SafeSemaphore.cs" />
     <Compile Include="ISerializer.cs" />
     <Compile Include="Internal\BurrowError.cs" />

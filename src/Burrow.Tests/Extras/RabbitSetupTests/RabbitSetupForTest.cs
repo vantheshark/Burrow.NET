@@ -35,7 +35,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             return setup;
         }
 
-        public new void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
+        public void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
         {
             base.BindQueue<T>(model, queue, exchangeName, queueName, routingKey);
         }

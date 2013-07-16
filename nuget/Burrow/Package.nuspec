@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 	<summary>Burrow.NET is a simple .NET client library for RabbitMQ</summary>    
 	<description>Burrow.NET is a simple library created based on some EasyNetQ ideas, it's a thin wrapper of RabbitMQ.Client for .NET. Basically, if you just need to put your message or subscribe messages from RabbitMQ server, you found the right place. With Burrow.NET, you can easily customize almost everything start with exchange and queue name, changing the way to serialize your object, inject custom error handling strategies, etc.</description>
-    <releaseNotes>Fix a bug in PriorityTunnelFactory which should have used PriorityMessageHandlerFactory instead of DefaultMessageHandlerFactory. Support built-in DeadLetter and Count total message in queue</releaseNotes>
+    <releaseNotes>Support fail over to different nodes with HaConnection</releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP</tags>
     <dependencies>
