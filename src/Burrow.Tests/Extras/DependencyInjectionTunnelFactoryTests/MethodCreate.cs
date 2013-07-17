@@ -1,4 +1,6 @@
-﻿using Burrow.Extras;
+﻿using System.Reflection;
+using Burrow.Extras;
+using Burrow.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -20,6 +22,7 @@ namespace Burrow.Tests.Extras.DependencyInjectionTunnelFactoryTests
             var tunnel = RabbitTunnel.Factory.Create();
 
             // Assert
+            Assert.IsTrue(RabbitTunnel.Factory is DependencyInjectionTunnelFactory);
             Assert.IsNotNull(tunnel);
         }
 
@@ -39,7 +42,31 @@ namespace Burrow.Tests.Extras.DependencyInjectionTunnelFactoryTests
             var tunnel = RabbitTunnel.Factory.Create("");
 
             // Assert
+            Assert.IsTrue(RabbitTunnel.Factory is DependencyInjectionTunnelFactory);
             Assert.IsInstanceOfType(tunnel, typeof(RabbitTunnel));
+        }
+
+
+        [TestMethod]
+        public void Should_create_tunnel_with_HaConnection_if_the_connectionString_says_so()
+        {
+            // Arrange
+            FieldInfo fi = typeof(RabbitTunnel).GetField("_connection", BindingFlags.NonPublic | BindingFlags.Instance);
+            var resolver = Substitute.For<IBurrowResolver>();
+            resolver.Resolve<IConsumerManager>().Returns((IConsumerManager)null);
+            resolver.Resolve<IMessageHandlerFactory>().Returns((IMessageHandlerFactory)null);
+            resolver.Resolve<IConsumerErrorHandler>().Returns((IConsumerErrorHandler)null);
+            resolver.Resolve<IRetryPolicy>().Returns((IRetryPolicy)null);
+
+            RabbitTunnel.Factory.RegisterResolver(resolver);
+
+            // Action
+            var tunnel = RabbitTunnel.Factory.Create("host=rabbitmq.com:5672;username=guest;password=guest|host=2nd.rabbitmq.com:5672;username=guest;password=guest", Substitute.For<IRabbitWatcher>());
+
+            // Assert
+            Assert.IsTrue(RabbitTunnel.Factory is DependencyInjectionTunnelFactory);
+            Assert.IsInstanceOfType(tunnel, typeof(RabbitTunnel));
+            Assert.IsTrue(fi.GetValue(tunnel) is HaConnection);
         }
     }
 }

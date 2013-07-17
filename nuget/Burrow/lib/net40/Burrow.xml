@@ -4,6 +4,280 @@
         <name>Burrow</name>
     </assembly>
     <members>
+        <member name="T:Burrow.Internal.JavaScriptSerializer">
+            <summary>
+            Much slower than JsonSerializer which can be found in Burrow.Extras package
+            </summary>
+        </member>
+        <member name="T:Burrow.Internal.DurableConnection">
+            <summary>
+            A default implementation of <see cref="T:Burrow.IDurableConnection"/>.
+            It will try to create connection to RabbitMQ server and retry if connection drops
+            </summary>
+        </member>
+        <member name="M:Burrow.Internal.DurableConnection.#ctor(Burrow.IRetryPolicy,Burrow.IRabbitWatcher,RabbitMQ.Client.ConnectionFactory)">
+            <summary>
+            Initialize a <see cref="T:Burrow.Internal.DurableConnection"/> object
+            </summary>
+            <param name="retryPolicy"></param>
+            <param name="watcher"></param>
+            <param name="connectionFactory"></param>
+        </member>
+        <member name="M:Burrow.Internal.DurableConnection.Connect">
+            <summary>
+            Try to connect to rabbitmq server, retry if it cann't connect to the broker.
+            </summary>
+        </member>
+        <member name="M:Burrow.Internal.DurableConnection.CreateChannel">
+            <summary>
+            Create a RabbitMQ channel
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="E:Burrow.Internal.DurableConnection.Connected">
+            <summary>
+            An event that will be fired if Connection established
+            </summary>
+        </member>
+        <member name="E:Burrow.Internal.DurableConnection.Disconnected">
+            <summary>
+            An event that will be fired if Connection droped
+            </summary>
+        </member>
+        <member name="P:Burrow.Internal.DurableConnection.IsConnected">
+            <summary>
+            Determine whether it is an alive connection
+            </summary>
+        </member>
+        <member name="P:Burrow.Internal.DurableConnection.ConnectionFactory">
+            <summary>
+            Return current ConnectionFactory
+            </summary>
+        </member>
+        <member name="M:Burrow.IRouteFinder.FindExchangeName``1">
+            <summary>
+            Find the exchange name based on the message type.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.IRouteFinder.FindRoutingKey``1">
+            <summary>
+            Find the routing key based on the message type.
+            </summary>
+            <typeparam name="T">AKA Topic</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.IRouteFinder.FindQueueName``1(System.String)">
+            <summary>
+            Find the queue name based on the message type and subscription name
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="subscriptionName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.IMessageHandler.HandleMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs)">
+            <summary>
+            This contain the logic flow to handle the message. This method should never thrown any exception if you are implementing it.
+            The default implementations will follow this rule
+            </summary>
+            <param name="eventArg"></param>
+        </member>
+        <member name="M:Burrow.IMessageHandler.HandleError(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Exception)">
+            <summary>
+            Provide the logic to handle the message once something goes wrong.
+            The default logic is implemented in ConsumerErrorHandler because this method simply delete the call to that class
+            </summary>
+            <param name="eventArg"></param>
+            <param name="excepton"></param>
+        </member>
+        <member name="E:Burrow.IMessageHandler.HandlingComplete">
+            <summary>
+            Once the message is finished successfully or not, this event should be fired at the end
+            </summary>
+        </member>
+        <member name="E:Burrow.IMessageHandler.MessageWasNotHandled">
+            <summary>
+            If there is something wrong before the msg is delivered to client code, this event should be raised.
+            This can happen in method BeforeHandlingMessage or there is an error in object deserializing
+            https://github.com/vanthoainguyen/Burrow.NET/issues/4
+            </summary>
+        </member>
+        <member name="M:Burrow.DefaultMessageHandler`1.BeforeHandlingMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs)">
+            <summary>
+            If you want to do anything before handling the message, speak now or forever hold your peace!
+            </summary>
+            <param name="eventArg"></param>
+        </member>
+        <member name="M:Burrow.DefaultMessageHandler`1.AfterHandlingMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs)">
+            <summary>
+            If you want to do anything before handling the message, speak now or forever hold your peace!
+            </summary>
+            <param name="eventArg"></param>
+        </member>
+        <member name="M:Burrow.DefaultMessageHandler`1.HandleError(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Exception)">
+            <summary>
+            This method provide the default implementation of error handling.
+            Infact, it delegates the implementation to ConsumerErrorHandler
+            </summary>
+            <param name="eventArg"></param>
+            <param name="exception"></param>
+        </member>
+        <member name="M:Burrow.DefaultMessageHandler`1.HandleMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs)">
+            <summary>
+            This method creates a background Task to handle the job.
+            It will catches all exceptions
+            </summary>
+            <param name="eventArgs"></param>
+        </member>
+        <member name="M:Burrow.DefaultMessageHandler`1.HandleMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Boolean@)">
+            <summary>
+            This method is actually invoke the callback providded to ITunnel when you subcribe to the queue
+            </summary>
+            <param name="eventArgs"></param>
+            <param name="msgHandled">If message is delivered to client, set to true</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Burrow.DefaultMessageHandler`1.CleanUp(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Boolean)" -->
+        <member name="P:Burrow.IRetryPolicy.DelayTime">
+            <summary>
+            In miliseconds
+            </summary>
+        </member>
+        <member name="F:Burrow.Global.DefaultTaskCreationOptionsProvider">
+            <summary>
+            When the MessageHandler handles the message using the callback, it will create a Task (TPL) for it.
+            So this instance will help the MessageHandler to determine which type of Thread to create, either from Threadpool or a dedicated Thread
+            The default value of this is an implementation that based on the available amount of worker threads in Threadpool to return the proper TaskCreationOption
+            <para>In Win32, the MaxWorker is 1023 while the number is quite high in Win64 bit. So if your app is running as 64 bits, you probably need to call ThreadPool.SetMaxThreads()
+            to a proper number or simply change the Global.DefaultTaskCreationOptionsProvider func to return TaskCreationOptions.LongRunning</para>
+            <para>The reason for this complexity is sometime your Task/ThreadPool is queued but cannot be started, probably the main application itself was creating so
+            many threads, or the ThreadPool is completly full or many workers have been queued and that problem can block everything</para>
+            </summary>
+        </member>
+        <member name="F:Burrow.Global.DefaultConsumerBatchSize">
+            <summary>
+            The higher the number is, the more threads a tunnel will create to consume messages in the queue.
+            If set to 1, it means the messages will be consumed sequently
+            This value is used by the TunnelFactory when it create a RabbitTunnel
+            This value is NOLONGER used to call IModel.BasicQos, if you want to do so, use PreFetchSize instead
+            </summary>
+        </member>
+        <member name="F:Burrow.Global.PreFetchSize">
+            This value is also used to call IModel.BasicQos, which eventually sets the maximum amount of messages stay on the Unacknowledged list when they are consumed
+            <para>If you app decides not to ack the message immediately but just queueing everything received from Burrow.NET and ack later once they're finished, you will not get morethan 
+            this number of messages in your internal queue because RabbitMQ.Client basically has a waithanler to block the consuming thread, only this number of messages can be dequeued.
+            If this is a potential problem, you have to ack atleast a message to receive a new one from RabbitMQ</para>
+        </member>
+        <member name="F:Burrow.Global.DefaultPersistentMode">
+            <summary>
+            Set to true will save the message to disk when it's published, default is true.
+            If its value is false, the messages will be removed when the server is restarted.
+            This value is used by the default TunnelFactory when it create a RabbitTunnel
+            </summary>
+        </member>
+        <member name="M:Burrow.IConsumerErrorHandler.HandleError(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Exception)">
+            <summary>
+            Provide an error handling strategy when there is an error processing the message
+            </summary>
+            <param name="deliverEventArgs"></param>
+            <param name="exception"></param>
+        </member>
+        <member name="T:Burrow.Internal.RoundRobinList`1">
+            <summary>
+            A list of T that can help you get next element in a round-robin style
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Burrow.Internal.RoundRobinList`1.#ctor(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Constructor
+            </summary>
+            <param name="list"></param>
+        </member>
+        <member name="M:Burrow.Internal.RoundRobinList`1.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:Burrow.Internal.RoundRobinList`1.Add(`0)">
+            <summary>
+            Add 1 element to list
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:Burrow.Internal.RoundRobinList`1.GetNext">
+            <summary>
+            Get next element
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Burrow.Internal.RoundRobinList`1.All">
+            <summary>
+            Return all element
+            </summary>
+        </member>
+        <member name="P:Burrow.Internal.RoundRobinList`1.Current">
+            <summary>
+            Get current element
+            </summary>
+        </member>
+        <member name="M:Burrow.IConsumerManager.CreateConsumer``1(RabbitMQ.Client.IModel,System.String,System.Action{``0})">
+            <summary>
+            Create a synchronous IBasicConsumer, this consumer should ack the message after handling it
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="channel"></param>
+            <param name="subscriptionName"></param>
+            <param name="onReceiveMessage"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.IConsumerManager.CreateConsumer``1(RabbitMQ.Client.IModel,System.String,System.Action{``0,Burrow.MessageDeliverEventArgs})">
+            <summary>
+            Create a synchronous IBasicConsumer this consumer should not ack the messages after handling it.
+            In fact, the system should act the messages later based on the information provided in MessageDeliverEventArgs
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="channel"></param>
+            <param name="subscriptionName"></param>
+            <param name="onReceiveMessage"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.IConsumerManager.CreateAsyncConsumer``1(RabbitMQ.Client.IModel,System.String,System.Action{``0},System.Nullable{System.UInt16})">
+            <summary>
+            Create a asynchronous IBasicConsumer which can start a number of batchSize threads to consume the queue, this consumer should ack the messages after handling them
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="channel"></param>
+            <param name="subscriptionName"></param>
+            <param name="onReceiveMessage"></param>
+            <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.IConsumerManager.CreateAsyncConsumer``1(RabbitMQ.Client.IModel,System.String,System.Action{``0,Burrow.MessageDeliverEventArgs},System.Nullable{System.UInt16})">
+            <summary>
+            Create a asynchronous IBasicConsumer which can start a number of batchSize threads to consume the queue, this consumer should not ack the messages after handling them.
+            In fact, the system should act the messages later based on the information provided in MessageDeliverEventArgs
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="channel"></param>
+            <param name="subscriptionName"></param>
+            <param name="onReceiveMessage"></param>
+            <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.IConsumerManager.ClearConsumers">
+            <summary>
+            Dispose/clear all created consumer once the connection to RabbitMQ server is dropped
+            </summary>
+        </member>
+        <member name="T:Burrow.ConnectionString">
+            <summary>
+            Parses a connection string for the values required to connect to a RabbitMQ broker instance.
+            
+            Connection string should look something like this:
+            host=192.168.1.1;port=5672;virtualHost=MyVirtualHost;username=MyUsername;password=MyPassword
+            </summary>
+        </member>
         <member name="T:Burrow.TunnelFactory">
             <summary>
             This class is responsible for creating <see cref="T:Burrow.ITunnel"/>.
@@ -13,11 +287,6 @@
         <member name="M:Burrow.TunnelFactory.CloseAllConnections">
             <summary>
             This method should only be called before close the main app. It will close all openning connections to RabbitMQ server
-            </summary>
-        </member>
-        <member name="T:Burrow.RabbitTunnel">
-            <summary>
-            This class responsible for publishing msgs and subsribe to queues
             </summary>
         </member>
         <member name="M:Burrow.ITunnel.Publish``1(``0)">
@@ -107,6 +376,19 @@
             Determine whether a connection is open
             </summary>
         </member>
+        <member name="T:Burrow.DefaultTaskCreationOptionProvider">
+            <summary>
+            This class try to find available Threads in Pool to determine whether using ThreadPool or Dedicated Thread by returning a proper TaskCreationOptions
+            In Win32, the MaxWorker is 1023 where the number is quite high in Win64 bit. So if your app is running as a 64 bit app, you properly need to call ThreadPool.SetMaxThreads()
+            to a proper number or simply change the Global.DefaultTaskCreationOptionsProvider func to return TaskCreationOptions.LongRunning which eventually make TPL create dedicated Thread 
+            instead of queue a worker in ThreadPool
+            </summary>
+        </member>
+        <member name="T:Burrow.RabbitTunnel">
+            <summary>
+            This class responsible for publishing msgs and subsribe to queues
+            </summary>
+        </member>
         <member name="M:Burrow.RabbitTunnel.OnMessageIsUnrouted(RabbitMQ.Client.IModel,RabbitMQ.Client.Events.BasicReturnEventArgs)">
             <summary>
             Note that for unroutable messages are not considered failures and are both Basic.Return’ed and
@@ -138,67 +420,6 @@
             Bear in mind that the connection may be established before somewhere in the application
             Burrow tries to ensure only 1 and 1 connection to server for 1 AppDomain
             </summary>
-        </member>
-        <member name="P:Burrow.IRetryPolicy.DelayTime">
-            <summary>
-            In miliseconds
-            </summary>
-        </member>
-        <member name="M:Burrow.IConsumerManager.CreateConsumer``1(RabbitMQ.Client.IModel,System.String,System.Action{``0})">
-            <summary>
-            Create a synchronous IBasicConsumer, this consumer should ack the message after handling it
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="channel"></param>
-            <param name="subscriptionName"></param>
-            <param name="onReceiveMessage"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Burrow.IConsumerManager.CreateConsumer``1(RabbitMQ.Client.IModel,System.String,System.Action{``0,Burrow.MessageDeliverEventArgs})">
-            <summary>
-            Create a synchronous IBasicConsumer this consumer should not ack the messages after handling it.
-            In fact, the system should act the messages later based on the information provided in MessageDeliverEventArgs
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="channel"></param>
-            <param name="subscriptionName"></param>
-            <param name="onReceiveMessage"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Burrow.IConsumerManager.CreateAsyncConsumer``1(RabbitMQ.Client.IModel,System.String,System.Action{``0},System.Nullable{System.UInt16})">
-            <summary>
-            Create a asynchronous IBasicConsumer which can start a number of batchSize threads to consume the queue, this consumer should ack the messages after handling them
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="channel"></param>
-            <param name="subscriptionName"></param>
-            <param name="onReceiveMessage"></param>
-            <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
-            <returns></returns>
-        </member>
-        <member name="M:Burrow.IConsumerManager.CreateAsyncConsumer``1(RabbitMQ.Client.IModel,System.String,System.Action{``0,Burrow.MessageDeliverEventArgs},System.Nullable{System.UInt16})">
-            <summary>
-            Create a asynchronous IBasicConsumer which can start a number of batchSize threads to consume the queue, this consumer should not ack the messages after handling them.
-            In fact, the system should act the messages later based on the information provided in MessageDeliverEventArgs
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="channel"></param>
-            <param name="subscriptionName"></param>
-            <param name="onReceiveMessage"></param>
-            <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
-            <returns></returns>
-        </member>
-        <member name="M:Burrow.IConsumerManager.ClearConsumers">
-            <summary>
-            Dispose/clear all created consumer once the connection to RabbitMQ server is dropped
-            </summary>
-        </member>
-        <member name="M:Burrow.IConsumerErrorHandler.HandleError(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Exception)">
-            <summary>
-            Provide an error handling strategy when there is an error processing the message
-            </summary>
-            <param name="deliverEventArgs"></param>
-            <param name="exception"></param>
         </member>
         <member name="M:Burrow.Subscription.Ack(System.UInt64)">
             <summary>
@@ -249,227 +470,6 @@
             Beware of using this method. It nacks all unacknowledged messages 
             </summary>
             <param name="requeue"></param>
-        </member>
-        <member name="M:Burrow.IRouteFinder.FindExchangeName``1">
-            <summary>
-            Find the exchange name based on the message type.
-            </summary>
-            <typeparam name="T"></typeparam>
-            <returns></returns>
-        </member>
-        <member name="M:Burrow.IRouteFinder.FindRoutingKey``1">
-            <summary>
-            Find the routing key based on the message type.
-            </summary>
-            <typeparam name="T">AKA Topic</typeparam>
-            <returns></returns>
-        </member>
-        <member name="M:Burrow.IRouteFinder.FindQueueName``1(System.String)">
-            <summary>
-            Find the queue name based on the message type and subscription name
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="subscriptionName"></param>
-            <returns></returns>
-        </member>
-        <member name="T:Burrow.Internal.RoundRobinList`1">
-            <summary>
-            A list of T that can help you get next element in a round-robin style
-            </summary>
-            <typeparam name="T"></typeparam>
-        </member>
-        <member name="M:Burrow.Internal.RoundRobinList`1.#ctor(System.Collections.Generic.IEnumerable{`0})">
-            <summary>
-            Constructor
-            </summary>
-            <param name="list"></param>
-        </member>
-        <member name="M:Burrow.Internal.RoundRobinList`1.#ctor">
-            <summary>
-            Constructor
-            </summary>
-        </member>
-        <member name="M:Burrow.Internal.RoundRobinList`1.Add(`0)">
-            <summary>
-            Add 1 element to list
-            </summary>
-            <param name="item"></param>
-        </member>
-        <member name="M:Burrow.Internal.RoundRobinList`1.GetNext">
-            <summary>
-            Get next element
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="P:Burrow.Internal.RoundRobinList`1.All">
-            <summary>
-            Return all element
-            </summary>
-        </member>
-        <member name="P:Burrow.Internal.RoundRobinList`1.Current">
-            <summary>
-            Get current element
-            </summary>
-        </member>
-        <member name="T:Burrow.Internal.DurableConnection">
-            <summary>
-            A default implementation of <see cref="T:Burrow.IDurableConnection"/>.
-            It will try to create connection to RabbitMQ server and retry if connection drops
-            </summary>
-        </member>
-        <member name="M:Burrow.Internal.DurableConnection.#ctor(Burrow.IRetryPolicy,Burrow.IRabbitWatcher,RabbitMQ.Client.ConnectionFactory)">
-            <summary>
-            Initialize a <see cref="T:Burrow.Internal.DurableConnection"/> object
-            </summary>
-            <param name="retryPolicy"></param>
-            <param name="watcher"></param>
-            <param name="connectionFactory"></param>
-        </member>
-        <member name="M:Burrow.Internal.DurableConnection.Connect">
-            <summary>
-            Try to connect to rabbitmq server, retry if it cann't connect to the broker.
-            </summary>
-        </member>
-        <member name="M:Burrow.Internal.DurableConnection.CreateChannel">
-            <summary>
-            Create a RabbitMQ channel
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="E:Burrow.Internal.DurableConnection.Connected">
-            <summary>
-            An event that will be fired if Connection established
-            </summary>
-        </member>
-        <member name="E:Burrow.Internal.DurableConnection.Disconnected">
-            <summary>
-            An event that will be fired if Connection droped
-            </summary>
-        </member>
-        <member name="P:Burrow.Internal.DurableConnection.IsConnected">
-            <summary>
-            Determine whether it is an alive connection
-            </summary>
-        </member>
-        <member name="P:Burrow.Internal.DurableConnection.ConnectionFactory">
-            <summary>
-            Return current ConnectionFactory
-            </summary>
-        </member>
-        <member name="T:Burrow.ConnectionString">
-            <summary>
-            Parses a connection string for the values required to connect to a RabbitMQ broker instance.
-            
-            Connection string should look something like this:
-            host=192.168.1.1;port=5672;virtualHost=MyVirtualHost;username=MyUsername;password=MyPassword
-            </summary>
-        </member>
-        <member name="M:Burrow.IMessageHandler.HandleMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs)">
-            <summary>
-            This contain the logic flow to handle the message. This method should never thrown any exception if you are implementing it.
-            The default implementations will follow this rule
-            </summary>
-            <param name="eventArg"></param>
-        </member>
-        <member name="M:Burrow.IMessageHandler.HandleError(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Exception)">
-            <summary>
-            Provide the logic to handle the message once something goes wrong.
-            The default logic is implemented in ConsumerErrorHandler because this method simply delete the call to that class
-            </summary>
-            <param name="eventArg"></param>
-            <param name="excepton"></param>
-        </member>
-        <member name="E:Burrow.IMessageHandler.HandlingComplete">
-            <summary>
-            Once the message is finished successfully or not, this event should be fired at the end
-            </summary>
-        </member>
-        <member name="E:Burrow.IMessageHandler.MessageWasNotHandled">
-            <summary>
-            If there is something wrong before the msg is delivered to client code, this event should be raised.
-            This can happen in method BeforeHandlingMessage or there is an error in object deserializing
-            https://github.com/vanthoainguyen/Burrow.NET/issues/4
-            </summary>
-        </member>
-        <member name="M:Burrow.DefaultMessageHandler`1.BeforeHandlingMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs)">
-            <summary>
-            If you want to do anything before handling the message, speak now or forever hold your peace!
-            </summary>
-            <param name="eventArg"></param>
-        </member>
-        <member name="M:Burrow.DefaultMessageHandler`1.AfterHandlingMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs)">
-            <summary>
-            If you want to do anything before handling the message, speak now or forever hold your peace!
-            </summary>
-            <param name="eventArg"></param>
-        </member>
-        <member name="M:Burrow.DefaultMessageHandler`1.HandleError(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Exception)">
-            <summary>
-            This method provide the default implementation of error handling.
-            Infact, it delegates the implementation to ConsumerErrorHandler
-            </summary>
-            <param name="eventArg"></param>
-            <param name="exception"></param>
-        </member>
-        <member name="M:Burrow.DefaultMessageHandler`1.HandleMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs)">
-            <summary>
-            This method creates a background Task to handle the job.
-            It will catches all exceptions
-            </summary>
-            <param name="eventArgs"></param>
-        </member>
-        <member name="M:Burrow.DefaultMessageHandler`1.HandleMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Boolean@)">
-            <summary>
-            This method is actually invoke the callback providded to ITunnel when you subcribe to the queue
-            </summary>
-            <param name="eventArgs"></param>
-            <param name="msgHandled">If message is delivered to client, set to true</param>
-        </member>
-        <!-- Badly formed XML comment ignored for member "M:Burrow.DefaultMessageHandler`1.CleanUp(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Boolean)" -->
-        <member name="T:Burrow.DefaultTaskCreationOptionProvider">
-            <summary>
-            This class try to find available Threads in Pool to determine whether using ThreadPool or Dedicated Thread by returning a proper TaskCreationOptions
-            In Win32, the MaxWorker is 1023 where the number is quite high in Win64 bit. So if your app is running as a 64 bit app, you properly need to call ThreadPool.SetMaxThreads()
-            to a proper number or simply change the Global.DefaultTaskCreationOptionsProvider func to return TaskCreationOptions.LongRunning which eventually make TPL create dedicated Thread 
-            instead of queue a worker in ThreadPool
-            </summary>
-        </member>
-        <member name="T:Burrow.Internal.JavaScriptSerializer">
-            <summary>
-            Much slower than JsonSerializer which can be found in Burrow.Extras package
-            </summary>
-        </member>
-        <member name="F:Burrow.Global.DefaultTaskCreationOptionsProvider">
-            <summary>
-            When the MessageHandler handles the message using the callback, it will create a Task (TPL) for it.
-            So this instance will help the MessageHandler to determine which type of Thread to create, either from Threadpool or a dedicated Thread
-            The default value of this is an implementation that based on the available amount of worker threads in Threadpool to return the proper TaskCreationOption
-            <para>In Win32, the MaxWorker is 1023 while the number is quite high in Win64 bit. So if your app is running as 64 bits, you probably need to call ThreadPool.SetMaxThreads()
-            to a proper number or simply change the Global.DefaultTaskCreationOptionsProvider func to return TaskCreationOptions.LongRunning</para>
-            <para>The reason for this complexity is sometime your Task/ThreadPool is queued but cannot be started, probably the main application itself was creating so
-            many threads, or the ThreadPool is completly full or many workers have been queued and that problem can block everything</para>
-            </summary>
-        </member>
-        <member name="F:Burrow.Global.DefaultConsumerBatchSize">
-            <summary>
-            The higher the number is, the more threads a tunnel will create to consume messages in the queue.
-            If set to 1, it means the messages will be consumed sequently
-            This value is used by the TunnelFactory when it create a RabbitTunnel
-            This value is NOLONGER used to call IModel.BasicQos, if you want to do so, use PreFetchSize instead
-            </summary>
-        </member>
-        <member name="F:Burrow.Global.PreFetchSize">
-            This value is also used to call IModel.BasicQos, which eventually sets the maximum amount of messages stay on the Unacknowledged list when they are consumed
-            <para>If you app decides not to ack the message immediately but just queueing everything received from Burrow.NET and ack later once they're finished, you will not get morethan 
-            this number of messages in your internal queue because RabbitMQ.Client basically has a waithanler to block the consuming thread, only this number of messages can be dequeued.
-            If this is a potential problem, you have to ack atleast a message to receive a new one from RabbitMQ</para>
-        </member>
-        <member name="F:Burrow.Global.DefaultPersistentMode">
-            <summary>
-            Set to true will save the message to disk when it's published, default is true.
-            If its value is false, the messages will be removed when the server is restarted.
-            This value is used by the default TunnelFactory when it create a RabbitTunnel
-            </summary>
         </member>
     </members>
 </doc>

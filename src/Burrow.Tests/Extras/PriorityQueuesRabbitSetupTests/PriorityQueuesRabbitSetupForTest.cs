@@ -19,14 +19,16 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             set { _connectionFactory = value; }
         }
 
-        public static PriorityQueuesRabbitSetupForTest CreateRabbitSetup(IModel model)
+        public static PriorityQueuesRabbitSetupForTest CreateRabbitSetup(IModel model, IRabbitWatcher watcher = null)
         {
             var connection = Substitute.For<IConnection>();
             connection.CreateModel().Returns(model);
             
             var connectionFactory = Substitute.For<ConnectionFactory>();
             connectionFactory.CreateConnection().Returns(connection);
-            var setup = new PriorityQueuesRabbitSetupForTest("") { ConnectionFactory = connectionFactory };
+            var setup = watcher == null
+                      ? new PriorityQueuesRabbitSetupForTest("") { ConnectionFactory = connectionFactory }
+                      : new PriorityQueuesRabbitSetupForTest(watcher, "") { ConnectionFactory = connectionFactory };
             return setup;
         }
     }

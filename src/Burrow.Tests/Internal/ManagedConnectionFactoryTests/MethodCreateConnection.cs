@@ -30,12 +30,32 @@ namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
             Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
         }
 
+        [TestMethod]
+        public void Should_save_created_connection2()
+        {
+            // Arrange
+            var connection = Substitute.For<IConnection>();
+            connection.IsOpen.Returns(true);
+            var factory = Substitute.For<ManagedConnectionFactory>();
+            factory.HostName = "localhost";
+            factory.VirtualHost = "/virtualhost";
+            factory.CreateConnection(Arg.Any<int>()).Returns(connection)
+                                      .AndDoes(callInfo => factory.SaveConnection(connection));
+
+            // Action
+            factory.CreateConnection(2);
+
+            // Assert
+            Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
+        }
+
 
         [TestMethod]
         public void Should_clear_existing_connection_from_shared_connection_list_if_connection_is_dropped_by_peer()
         {
             var connection = Substitute.For<IConnection>();
             connection.IsOpen.Returns(true);
+            
             var factory = Substitute.For<ManagedConnectionFactory>();
             factory.HostName = "localhost";
             factory.VirtualHost = "/virtualhost";

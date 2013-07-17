@@ -164,6 +164,22 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             // Action
             setup.CreateRoute<Customer>(_routeSetupData);
         }
+
+        [TestMethod]
+        public void Should_apply_DeadLetter_params()
+        {
+            // Arrange
+            var model = Substitute.For<IModel>();
+            var setup = RabbitSetupForTest.CreateRabbitSetup(model);
+            _routeSetupData.QueueSetupData.DeadLetterExchange = "DeadLetterExchange.Name";
+            _routeSetupData.QueueSetupData.DeadLetterRoutingKey = "DeadLetterRoutingKey.Name";
+
+            // Action
+            setup.CreateRoute<Customer>(_routeSetupData);
+
+            // Assert
+            model.Received(1).QueueDeclare(Arg.Any<string>(), true, false, false, Arg.Is<IDictionary>(dic => dic.Count == 4));
+        }
     }
 }
 // ReSharper restore InconsistentNaming

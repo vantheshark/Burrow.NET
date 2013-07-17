@@ -37,7 +37,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
 
         public void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey)
         {
-            base.BindQueue<T>(model, queue, exchangeName, queueName, routingKey);
+            base.BindQueue<T>(model, queue, exchangeName, queueName, routingKey, queue.Arguments);
         }
 
         public new void DeclareExchange(ExchangeSetupData exchange, IModel model, string exchangeName)

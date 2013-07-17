@@ -81,7 +81,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
         {
             // Arrange
             var model = Substitute.For<IModel>();
-            var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
+            var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model, Substitute.For<IRabbitWatcher>());
             Func<IDictionary,int, bool> eval = (arg, priority) => 
             {
                 return "all".Equals(arg["x-match"]) && priority.ToString(CultureInfo.InvariantCulture).Equals(arg["Priority"]);

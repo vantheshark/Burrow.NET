@@ -103,6 +103,7 @@
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodWhenChannelShutdown.cs" />
     <Compile Include="Extras\Internal\PriorityComparerTests\MethodCompare.cs" />
     <Compile Include="Extras\Internal\PriorityMessageHandlerTests\MethodHandleMessage.cs" />
+    <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\MethodGetMessageCount.cs" />
     <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\RabbitTunnelWithPriorityQueuesSupportForTest.cs" />
     <Compile Include="Extras\PriorityQueuesRabbitSetupTests\MethodDestroy.cs" />
     <Compile Include="Extras\PriorityQueuesRabbitSetupTests\MethodSetupExchangeAndQueueFor.cs" />

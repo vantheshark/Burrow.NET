@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
-using Burrow.Extras.Internal;
 using Burrow.Extras;
+using Burrow.Extras.Internal;
 using Burrow.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 // ReSharper disable InconsistentNaming
@@ -31,10 +31,13 @@ namespace Burrow.Tests.Extras.Internal.PriorityTunnelFactoryTests
             RabbitTunnel.Factory.RegisterResolver(NSubstitute.Substitute.For<IBurrowResolver>());
 
             // Action
-            var tunnel = factory.Create("");
+            var tunnel1 = factory.Create("");
+            var tunnel2 = factory.Create("hostname", 5672, "/", "user", "pass", null);
 
             // Assert
-            Assert.IsInstanceOfType(tunnel, typeof(RabbitTunnel));
+            Assert.IsTrue(RabbitTunnel.Factory is DependencyInjectionTunnelFactory);
+            Assert.IsInstanceOfType(tunnel1, typeof(RabbitTunnel));
+            Assert.IsInstanceOfType(tunnel2, typeof(RabbitTunnel));
             RabbitTunnel.Factory = bak;
         }
 
