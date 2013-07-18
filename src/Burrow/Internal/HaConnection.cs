@@ -7,6 +7,9 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Burrow.Internal
 {
+    /// <summary>
+    /// This implementation will provide the ability to fail over to different node if it cannot connect to a node in the cluster
+    /// </summary>
     public class HaConnection : DurableConnection
     {
         private readonly IRetryPolicy _retryPolicy;
@@ -14,6 +17,13 @@ namespace Burrow.Internal
         private readonly RoundRobinList<ConnectionFactory> _connectionFactories;
         private int _nodeTried;
 
+        /// <summary>
+        /// Initialize a <see cref="HaConnection"/> with a list of <see cref="ManagedConnectionFactory"/>
+        /// These connection factories are responsibile for creating <see cref="IConnection"/> to nodes in the clusters
+        /// </summary>
+        /// <param name="retryPolicy"></param>
+        /// <param name="watcher"></param>
+        /// <param name="connectionFactories"></param>
         public HaConnection(IRetryPolicy retryPolicy, IRabbitWatcher watcher, IList<ManagedConnectionFactory> connectionFactories)
             : base(retryPolicy, watcher, connectionFactories.FirstOrDefault())
         {            

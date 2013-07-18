@@ -1,5 +1,4 @@
-﻿using System;
-using Burrow.Internal;
+﻿using Burrow.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RabbitMQ.Client;
@@ -23,9 +22,10 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             rmqConnection.CreateModel().Returns(channel);
 
             var durableConnection = new DurableConnection(retryPolicy, watcher, connectionFactory);
+            var count = ManagedConnectionFactory.SharedConnections.Count;
             durableConnection.Connect();
             durableConnection.CreateChannel();
-            Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
+            Assert.AreEqual(count + 1, ManagedConnectionFactory.SharedConnections.Count);
 
 
             // Action
@@ -34,7 +34,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             //Assert
             rmqConnection.DidNotReceive().Close(Arg.Any<ushort>(), Arg.Any<string>());
             rmqConnection.DidNotReceive().Dispose();
-            Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
+            Assert.AreEqual(count + 1, ManagedConnectionFactory.SharedConnections.Count);
         }
     }
 }

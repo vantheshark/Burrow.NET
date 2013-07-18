@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Burrow.Internal;
 using Burrow.Tests.Internal.DurableConnectionTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

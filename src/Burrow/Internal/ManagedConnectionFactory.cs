@@ -5,10 +5,20 @@ using RabbitMQ.Client;
 
 namespace Burrow.Internal
 {
+    /// <summary>
+    /// A simple wrapper of <see cref="ConnectionFactory"/> which will store any created <see cref="IConnection"/>
+    /// to memory and share them within the AppDomain.
+    /// The purpose of this is keeping the amount of connection to RabbitMQ server as low as possible
+    /// </summary>
     public class ManagedConnectionFactory : ConnectionFactory
     {
         internal static readonly object SyncConnection = new object();
 
+        /// <summary>
+        /// Create a <see cref="ManagedConnectionFactory"/> from a known <see cref="ConnectionFactory"/>
+        /// </summary>
+        /// <param name="connectionFactory"></param>
+        /// <returns></returns>
         public static ManagedConnectionFactory CreateFromConnectionFactory(ConnectionFactory connectionFactory)
         {
             return connectionFactory is ManagedConnectionFactory
@@ -16,10 +26,16 @@ namespace Burrow.Internal
                        : new ManagedConnectionFactory(connectionFactory);
         }
 
+        /// <summary>
+        /// Initialize a <see cref="ManagedConnectionFactory"/>
+        /// </summary>
         public ManagedConnectionFactory()
         {
         }
 
+        /// <summary>
+        /// Initialize a <see cref="ManagedConnectionFactory"/> from a <see cref="ConnectionString"/> object
+        /// </summary>
         public ManagedConnectionFactory(ConnectionString connectionString)
         {
             if (connectionString == null)
@@ -34,6 +50,11 @@ namespace Burrow.Internal
             Password = connectionString.Password;
         }
 
+        /// <summary>
+        /// Create a <see cref="ManagedConnectionFactory"/> from a known <see cref="ConnectionFactory"/>
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <returns></returns>
         public ManagedConnectionFactory(ConnectionFactory factory)
         {
             AuthMechanisms = factory.AuthMechanisms;
