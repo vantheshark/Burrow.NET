@@ -56,7 +56,7 @@ Beside Burrow.NET, I have implemented Burrow.Extras and Burrow.RPC which provide
 
 ##3. DOCUMENT
 
-Documentation can be found at github wiki page: https://github.com/vanthoainguyen/Burrow.NET/wiki/Get-started-with-Burrow.NET    
+Documentation can be found at github wiki page: https://github.com/vanthoainguyen/Burrow.NET/wiki/_pages    
 
 Some blog posts:
 
@@ -67,6 +67,7 @@ Some blog posts:
 * [Programmatically create RabbitMQ Exchange and Queue with Burrow.NET](http://thoai-nguyen.blogspot.com.au/2012/06/programmatically-rabbitmq-exchange.html)
 * [Priority With RabbitMQ implementation in .NET](http://thoai-nguyen.blogspot.com.au/2012/07/priority-queue-rabbitmq-burrownet.html)
 * [Implement RPC service using Burrow.NET and RabbitMQ](http://thoai-nguyen.blogspot.com.au/2012/10/rpc-with-burrownet-and-rabbitmq.html)
+* [Monitor RabbitMQ queues & count total messages](http://thoai-nguyen.blogspot.com.au/2013/07/monitor-rabbitmq-queues-count-message.html)
 
 Nuget library is also added at http://nuget.org/packages/Burrow.NET
 
