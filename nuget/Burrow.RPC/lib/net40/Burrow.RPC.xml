@@ -15,6 +15,34 @@
             Helper interface to create queues and resolve rabbitmq connection string
             </summary>
         </member>
+        <member name="M:Burrow.RPC.IRpcQueueHelper.CreateQueues(System.String,System.Action{RabbitMQ.Client.IModel})">
+            <summary>
+            Create queues required by Burrow.RPC library
+            </summary>
+            <param name="connectionString"></param>
+            <param name="createExchangesAndQueues"></param>
+        </member>
+        <member name="M:Burrow.RPC.IRpcQueueHelper.TryGetValidConnectionString(System.String)">
+            <summary>
+            Try to get connection string from configuration file if not provided
+            </summary>
+            <param name="preferConnectionString">If provided, it will be used</param>
+            <returns></returns>
+        </member>
+        <member name="M:Burrow.RPC.Helper.CreateQueues(System.String,System.Action{RabbitMQ.Client.IModel})">
+            <summary>
+            Create queues required by Burrow.RPC library
+            </summary>
+            <param name="connectionString"></param>
+            <param name="createExchangesAndQueues"></param>
+        </member>
+        <member name="M:Burrow.RPC.Helper.TryGetValidConnectionString(System.String)">
+            <summary>
+            Try to get connection string from configuration file if not provided
+            </summary>
+            <param name="preferConnectionString">If provided, it will be used</param>
+            <returns></returns>
+        </member>
         <member name="M:Burrow.RPC.RpcFactory.CreateClient``1(Burrow.RPC.IRpcRouteFinder,System.String,Burrow.RPC.IMethodFilter[])">
             <summary>
             Create Rpc client using dynamic proxy without providing a real implementatin of generic interface

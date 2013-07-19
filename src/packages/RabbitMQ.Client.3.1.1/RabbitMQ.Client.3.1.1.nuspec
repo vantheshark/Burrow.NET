@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>RabbitMQ.Client</id>
-    <version>3.0.4</version>
+    <version>3.1.1</version>
     <title>RabbitMQ.Client</title>
     <authors>SpringSource joefitzgerald</authors>
     <owners>SpringSource joefitzgerald</owners>
@@ -13,8 +13,5 @@
     <description>The RabbitMQ .NET client is an implementation of an AMQP client library for C# (and, implicitly, other .NET languages), and a binding exposing AMQP services via Microsoft's Windows Communication Foundation (WCF).</description>
     <language>en-US</language>
     <tags>RabbitMQ Client AMQP SpringSource vmware</tags>
-    <references>
-      <reference file="RabbitMQ.Client.dll" />
-    </references>
   </metadata>
 </package>

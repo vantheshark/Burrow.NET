@@ -14,11 +14,6 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
         {
         }
 
-        public ConnectionFactory ConnectionFactory
-        {
-            set { _connectionFactory = value; }
-        }
-
         public static PriorityQueuesRabbitSetupForTest CreateRabbitSetup(IModel model, IRabbitWatcher watcher = null)
         {
             var connection = Substitute.For<IConnection>();

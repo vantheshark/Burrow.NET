@@ -16,11 +16,6 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
 
         public IRabbitWatcher Watcher { get; set; }
 
-        public ConnectionFactory ConnectionFactory
-        {
-            set { _connectionFactory = value; }
-        }
-
         public static RabbitSetupForTest CreateRabbitSetup(IModel model)
         {
             var connection = Substitute.For<IConnection>();

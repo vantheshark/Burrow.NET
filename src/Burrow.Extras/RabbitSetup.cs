@@ -11,7 +11,20 @@ namespace Burrow.Extras
     public class RabbitSetup
     {
         protected readonly IRabbitWatcher _watcher;
-        protected ConnectionFactory _connectionFactory;
+        private readonly string _connectionString;
+        private ConnectionFactory _factory;
+        protected ConnectionFactory ConnectionFactory
+        {
+            get
+            {
+                if (_factory == null)
+                {
+                    _factory = CreateFactory();
+                }
+                return _factory;
+            }
+            set { _factory = value; }
+        }
 
         /// <summary>
         /// Initialize an instance of RabbitSetup class to use for setting up exchanges and queues in RabbitMQ server
@@ -30,16 +43,31 @@ namespace Burrow.Extras
         public RabbitSetup(IRabbitWatcher watcher, string connectionString)
         {
             _watcher = watcher;
+            _connectionString = connectionString;
+        }
 
-            var connectionValues = new ConnectionString(connectionString);
-            _connectionFactory = new ConnectionFactory
+        private ConnectionFactory CreateFactory()
+        {
+            if (_factory == null)
             {
-                HostName = connectionValues.Host,
-                Port = connectionValues.Port,
-                VirtualHost = connectionValues.VirtualHost,
-                UserName = connectionValues.UserName,
-                Password = connectionValues.Password,
-            };
+                var clusterConnections = _connectionString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                if (clusterConnections.Length > 0)
+                {
+                    _watcher.InfoFormat("Found multiple Connection String, will use '{0}' to setup queues", clusterConnections[0]);
+                }
+                ConnectionString connectionValues = clusterConnections.Length > 1
+                                                        ? new ConnectionString(clusterConnections[0])
+                                                        : new ConnectionString(_connectionString);
+                _factory = new ConnectionFactory
+                {
+                    HostName = connectionValues.Host,
+                    Port = connectionValues.Port,
+                    VirtualHost = connectionValues.VirtualHost,
+                    UserName = connectionValues.UserName,
+                    Password = connectionValues.Password,
+                };
+            }
+            return ConnectionFactory;
         }
 
         /// <summary>
@@ -53,7 +81,7 @@ namespace Burrow.Extras
             var exchangeName = routeSetupData.RouteFinder.FindExchangeName<T>();
             var routingKey = routeSetupData.RouteFinder.FindRoutingKey<T>();
 
-            using (var connection = _connectionFactory.CreateConnection())
+            using (var connection = ConnectionFactory.CreateConnection())
             {
                 using (var model = connection.CreateModel())
                 {
@@ -173,7 +201,7 @@ namespace Burrow.Extras
             var queueName = routeSetupData.RouteFinder.FindQueueName<T>(routeSetupData.SubscriptionName);
             var exchangeName = routeSetupData.RouteFinder.FindExchangeName<T>();
 
-            using (var connection = _connectionFactory.CreateConnection())
+            using (var connection = ConnectionFactory.CreateConnection())
             {
                 using (var model = connection.CreateModel())
                 {

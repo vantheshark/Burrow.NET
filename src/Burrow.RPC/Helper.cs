@@ -12,16 +12,41 @@ namespace Burrow.RPC
     /// </summary>
     public interface IRpcQueueHelper
     {
+        /// <summary>
+        /// Create queues required by Burrow.RPC library
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="createExchangesAndQueues"></param>
         void CreateQueues(string connectionString, Action<IModel> createExchangesAndQueues);
-        string TryGetValidConnectionString(string providedConnectionString);
+
+        /// <summary>
+        /// Try to get connection string from configuration file if not provided
+        /// </summary>
+        /// <param name="preferConnectionString">If provided, it will be used</param>
+        /// <returns></returns>
+        string TryGetValidConnectionString(string preferConnectionString);
     }
 
     [ExcludeFromCodeCoverage]
     internal class Helper : IRpcQueueHelper
     {
+        /// <summary>
+        /// Create queues required by Burrow.RPC library
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="createExchangesAndQueues"></param>
         public void CreateQueues(string connectionString, Action<IModel> createExchangesAndQueues)
         {
-            var connectionValues = new ConnectionString(connectionString);
+            var clusterConnections = connectionString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            if (clusterConnections.Length > 0)
+            {
+                Global.DefaultWatcher.InfoFormat("Found multiple Connection String, will use '{0}' to setup queues", clusterConnections[0]);
+            }
+            ConnectionString connectionValues = clusterConnections.Length > 1
+                                              ? new ConnectionString(clusterConnections[0])
+                                              : new ConnectionString(connectionString);
+
+
             var connectionFactory = new ManagedConnectionFactory
             {
                 HostName = connectionValues.Host,
@@ -58,9 +83,14 @@ namespace Burrow.RPC
             }
         }
 
-        public string TryGetValidConnectionString(string providedConnectionString)
+        /// <summary>
+        /// Try to get connection string from configuration file if not provided
+        /// </summary>
+        /// <param name="preferConnectionString">If provided, it will be used</param>
+        /// <returns></returns>
+        public string TryGetValidConnectionString(string preferConnectionString)
         {
-            var rabbitMqConnectionString = providedConnectionString;
+            var rabbitMqConnectionString = preferConnectionString;
             var connectionSetting = ConfigurationManager.ConnectionStrings["RabbitMQ"];
             if (string.IsNullOrEmpty(rabbitMqConnectionString))
             {

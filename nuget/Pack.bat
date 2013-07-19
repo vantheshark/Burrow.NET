@@ -1,7 +1,7 @@
 del Burrow.*.nupkg
 
 SETLOCAL
-SET VERSION=1.0.18
+SET VERSION=1.0.19
 
 nuget pack Burrow\Package.nuspec -Version %VERSION%
 nuget pack Burrow.Extras\Package.nuspec -Version %VERSION%
