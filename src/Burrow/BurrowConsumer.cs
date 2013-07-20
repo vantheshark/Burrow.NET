@@ -19,6 +19,8 @@ namespace Burrow
         protected SafeSemaphore _pool { get; private set; }
         private readonly IMessageHandler _messageHandler;
 
+        private int messagesInProgressCount = 0;
+
         public BurrowConsumer(IModel channel,
                               IMessageHandler messageHandler,
                               IRabbitWatcher watcher,
@@ -87,7 +89,7 @@ namespace Burrow
         {
             try
             {
-                BasicDeliverEventArgs deliverEventArgs;
+                BasicDeliverEventArgs deliverEventArgs = null;
                 lock (_sharedQueueLock)
                 {
 #if DEBUG
@@ -97,8 +99,10 @@ namespace Burrow
 #else
                     _pool.WaitOne();
 #endif
-
-                    deliverEventArgs = Queue.Dequeue() as BasicDeliverEventArgs;
+                    if (!_disposed)
+                    {
+                        deliverEventArgs = Queue.Dequeue() as BasicDeliverEventArgs;
+                    }
 #if DEBUG
 
                     _watcher.DebugFormat("3. Msg from RabbitMQ arrived (probably the previous msg has been acknownledged), prepare to handle it");
@@ -158,7 +162,6 @@ namespace Burrow
                 {
 #if DEBUG
                     _watcher.DebugFormat("7. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished, now ack message", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
-
 #endif
                     DoAck(eventArgs, this);
                 }
@@ -171,9 +174,9 @@ namespace Burrow
             {
 #if DEBUG
                 _watcher.DebugFormat("6. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished, now release the semaphore", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
-
 #endif
                 _pool.Release();
+                System.Threading.Interlocked.Decrement(ref messagesInProgressCount);
             }
         }
 
@@ -191,6 +194,7 @@ namespace Burrow
                 _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}", basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.DeliveryTag);
                 //NOTE: We dont have to catch exception here 
                 _messageHandler.HandleMessage(basicDeliverEventArgs);
+                System.Threading.Interlocked.Increment(ref messagesInProgressCount);
             }
             catch (Exception ex)
             {
@@ -218,6 +222,14 @@ namespace Burrow
                 return;
             }
             _disposed = true;
+
+            //NOTE: Wait all current running tasks to finish and after that dispose the objects
+            DateTime timeOut = DateTime.Now.AddSeconds(60);
+            while (messagesInProgressCount > 0 && DateTime.Now <= timeOut)
+            {
+                Thread.Sleep(100);
+            }
+
             _pool.Dispose();
             Queue.Close();
         }

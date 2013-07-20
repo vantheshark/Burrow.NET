@@ -31,6 +31,7 @@ namespace Burrow
         protected IRouteFinder _routeFinder;
         protected IModel _dedicatedPublishingChannel;
         private bool _setPersistent;
+        protected volatile bool _disposed = false;
         
         public event Action OnOpened;
         public event Action OnClosed;
@@ -341,6 +342,7 @@ namespace Burrow
                 var channel = _connection.CreateChannel();
                 channel.ModelShutdown += (c, reason) => 
                 {
+                    if (_disposed) return;
                     RaiseConsumerDisconnectedEvent(subscription);
                     TryReconnect(c, id, reason); 
                 };
@@ -448,6 +450,9 @@ namespace Burrow
 
         public void Dispose()
         {
+            _disposed = true;
+            _consumerManager.Dispose();
+
             //NOTE: Sometimes, disposing the channel blocks current thread
             var task = Task.Factory.StartNew(() => _createdChannels.ForEach(DisposeChannel), Global.DefaultTaskCreationOptionsProvider());
             task.ContinueWith(t => _createdChannels.Clear(), Global.DefaultTaskContinuationOptionsProvider());
@@ -455,8 +460,7 @@ namespace Burrow
             if (_connection.IsConnected)
             {
                 _connection.Dispose();
-            }
-            _consumerManager.Dispose();
+            }            
         }
 
         private void DisposeChannel(IModel model)
