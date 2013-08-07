@@ -35,7 +35,7 @@ namespace Burrow
         /// <param name="channel"></param>
         /// <param name="subscriptionName"></param>
         /// <param name="onReceiveMessage"></param>
-        /// <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
+        /// <param name="batchSize">The number of threads to process messages, Default is Global.DefaultConsumerBatchSize</param>
         /// <returns></returns>
         IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize = null);
 
@@ -47,7 +47,7 @@ namespace Burrow
         /// <param name="channel"></param>
         /// <param name="subscriptionName"></param>
         /// <param name="onReceiveMessage"></param>
-        /// <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
+        /// <param name="batchSize">The number of threads to process messages, Default is Global.DefaultConsumerBatchSize</param>
         /// <returns></returns>
         IBasicConsumer CreateAsyncConsumer<T>(IModel channel, string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize = null);
 

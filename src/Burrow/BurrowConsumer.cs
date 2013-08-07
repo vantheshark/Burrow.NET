@@ -188,7 +188,10 @@ namespace Burrow
         {
             try
             {
-                _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}", basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.DeliveryTag);
+                if (_watcher.IsDebugEnable)
+                {
+                    _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}", basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.DeliveryTag);
+                }
                 //NOTE: We dont have to catch exception here 
                 _messageHandler.HandleMessage(basicDeliverEventArgs);
             }

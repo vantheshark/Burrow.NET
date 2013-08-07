@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
@@ -43,10 +44,12 @@ namespace Burrow.Extras.Internal
 
         public void Publish<T>(T rabbit, uint priority)
         {
-            Publish(rabbit, _routeFinder.FindRoutingKey<T>(), priority);
+            Publish(rabbit, priority, null);
         }
 
-        public virtual void Publish<T>(T rabbit, string routingKey, uint priority)
+        private const string PriorityKey = "Priority";
+        private const string RoutingKey = "RoutingKey";
+        public void Publish<T>(T rabbit, uint priority, IDictionary customHeaders)
         {
             lock (_tunnelGate)
             {
@@ -55,19 +58,39 @@ namespace Burrow.Extras.Internal
 
             try
             {
+                //NOTE: Routing key is ignored for Headers exchange anyway
+                var routingKey = _routeFinder.FindRoutingKey<T>();
                 byte[] msgBody = _serializer.Serialize(rabbit);
-                IBasicProperties properties = CreateBasicPropertiesForPublish<T>();
+                IBasicProperties properties = CreateBasicPropertiesForPublishing<T>();
                 properties.Priority = (byte)priority;
                 properties.Headers = new HybridDictionary();
-                properties.Headers.Add("Priority", priority.ToString(CultureInfo.InvariantCulture));
-                properties.Headers.Add("RoutingKey", routingKey);
+                properties.Headers.Add(PriorityKey, priority.ToString(CultureInfo.InvariantCulture));
+                properties.Headers.Add(RoutingKey, routingKey);
 
+                if (customHeaders != null)
+                {
+                    foreach (var key in customHeaders.Keys)
+                    {
+                        if (PriorityKey.Equals(key.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            //NOTE: Do not overwrite the priority value
+                            continue;
+                        }
+
+                        properties.Headers.Add(key.ToString(), customHeaders[key].ToString());
+                    }
+                }
                 var exchangeName = _routeFinder.FindExchangeName<T>();
+                
                 lock (_tunnelGate)
                 {
                     _dedicatedPublishingChannel.BasicPublish(exchangeName, routingKey, properties, msgBody);
                 }
-                _watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
+                
+                if (_watcher.IsDebugEnable)
+                {
+                    _watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
+                }
             }
             catch (Exception ex)
             {

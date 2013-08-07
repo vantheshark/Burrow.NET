@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -152,13 +154,13 @@ namespace Burrow
         {
             if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
             {
-                _watcher.InfoFormat("Creating dedicated publishing channel");
                 _dedicatedPublishingChannel = _connection.CreateChannel();
                 _createdChannels.Add(_dedicatedPublishingChannel);
 
                 _dedicatedPublishingChannel.BasicAcks += OnBrokerReceivedMessage;
                 _dedicatedPublishingChannel.BasicNacks += OnBrokerRejectedMessage;
                 _dedicatedPublishingChannel.BasicReturn += OnMessageIsUnrouted;
+                _watcher.InfoFormat("Dedicated publishing channel established");
             }
         }
 
@@ -211,26 +213,50 @@ namespace Burrow
 
         public void Publish<T>(T rabbit)
         {
-            Publish(rabbit, _routeFinder.FindRoutingKey<T>());
+            Publish(rabbit, _routeFinder.FindRoutingKey<T>(), null);
         }
 
         public virtual void Publish<T>(T rabbit, string routingKey)
+        {
+            Publish(rabbit, routingKey, null);
+        }
+
+        public void Publish<T>(T rabbit, IDictionary customHeaders)
+        {
+            Publish(rabbit, _routeFinder.FindRoutingKey<T>(), customHeaders);
+        }
+
+        private void Publish<T>(T rabbit, string routingKey, IDictionary customHeaders)
         {
             lock (_tunnelGate)
             {
                 EnsurePublishChannelIsCreated();
             }
-            
+
             try
             {
                 byte[] msgBody = _serializer.Serialize(rabbit);
-                IBasicProperties properties = CreateBasicPropertiesForPublish<T>();
+                
+                IBasicProperties properties = CreateBasicPropertiesForPublishing<T>();
+                if (customHeaders != null)
+                {
+                    properties.Headers = new HybridDictionary();
+                    foreach (var keyVal in customHeaders.Keys)
+                    {
+                        properties.Headers.Add(keyVal.ToString(), customHeaders[keyVal].ToString());
+                    }
+                }
+
                 var exchangeName = _routeFinder.FindExchangeName<T>();
                 lock (_tunnelGate)
                 {
                     _dedicatedPublishingChannel.BasicPublish(exchangeName, routingKey, properties, msgBody);
                 }
-                _watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
+
+                if (_watcher.IsDebugEnable)
+                {
+                    _watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
+                }
             }
             catch (Exception ex)
             {
@@ -242,7 +268,7 @@ namespace Burrow
         {
             if (!IsOpened)
             {
-                // NOTE:  Due to the implementation of IsOpened, the _dedicatedPublishingChannel could be null because the connection is establised by different instance of RabbitTunnel
+                // NOTE:  Due to the implementation of IsOpened (DurableConnection.IsConnected), the _dedicatedPublishingChannel could be null because the RabbitMQ connection is possibly establised by a different instance of RabbitTunnel
                 _connection.Connect();
             }
 
@@ -255,17 +281,18 @@ namespace Burrow
                 // If still failed, it's time to throw exception
                 if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
                 {
-                    throw new Exception("No channel to rabbit server established.");
+                    throw new Exception("No channel to rabbitmq server established.");
                 }
             }
         }
 
-        protected virtual IBasicProperties CreateBasicPropertiesForPublish<T>()
+        protected virtual IBasicProperties CreateBasicPropertiesForPublishing<T>()
         {
             IBasicProperties properties = _dedicatedPublishingChannel.CreateBasicProperties();
             properties.SetPersistent(_setPersistent); // false = Transient
             properties.Type = Global.DefaultTypeNameSerializer.Serialize(typeof(T));
             properties.CorrelationId = _correlationIdGenerator.GenerateCorrelationId();
+            
             return properties;
         }
 

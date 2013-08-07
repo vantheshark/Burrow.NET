@@ -8,7 +8,7 @@ namespace Burrow.Internal
 {
     /// <summary>
     /// A default implementation of <see cref="IDurableConnection"/>.
-    /// It will try to create connection to RabbitMQ server and retry if connection drops
+    /// It will try to create connection to RabbitMQ server and retry if the connection lost
     /// </summary>
     public class DurableConnection : IDurableConnection
     {
@@ -20,7 +20,7 @@ namespace Burrow.Internal
         /// </summary>
         public event Action Connected;
         /// <summary>
-        /// An event that will be fired if Connection droped
+        /// An event that will be fired if Connection lost
         /// </summary>
         public event Action Disconnected;
 

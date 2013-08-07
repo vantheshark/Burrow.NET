@@ -38,7 +38,7 @@ namespace Burrow.RPC
         public void CreateQueues(string connectionString, Action<IModel> createExchangesAndQueues)
         {
             var clusterConnections = connectionString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-            if (clusterConnections.Length > 0)
+            if (clusterConnections.Length > 1)
             {
                 Global.DefaultWatcher.InfoFormat("Found multiple Connection String, will use '{0}' to setup queues", clusterConnections[0]);
             }

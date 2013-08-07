@@ -1,5 +1,8 @@
 ﻿namespace Burrow
 {
+    /// <summary>
+    /// Implement this interface and set it with the <see cref="ITunnel"/>
+    /// </summary>
     public interface IRouteFinder
     {
         /// <summary>

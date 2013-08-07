@@ -1,3 +1,7 @@
+* 1.0.20 (07 Aug 2013)
+- Allow publishing messages with custom headers to "Headers" exchange
+- (Burrow.Extras) Get rid of method Publish(message, routingKey, priority) from ITunnelWithPrioritySupport because routing key play no role with Headers exchange
+
 * 1.0.19 (19 July 2013)
 - Fix multiple connection string bug in RabbitSetup class
 
