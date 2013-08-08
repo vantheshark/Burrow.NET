@@ -23,11 +23,34 @@ namespace Burrow.Tests.ConnectionStringTests
             // Arrange
             var con = new ConnectionString("host=localhost;username=guest;password=guest");
 
+            
+            // Assert
+            Assert.AreEqual("localhost", con.Host);
+            Assert.AreEqual("guest", con.UserName);
+            Assert.AreEqual("guest", con.Password);
+            Assert.AreEqual("/", con.VirtualHost);
+            Assert.AreEqual(5672, con.Port);
+        }
+
+        [TestMethod]
+        public void Should_return_value_provided_in_connectionstring_using_caseinsensitive_key()
+        {
+            // Arrange
+            var con = new ConnectionString("host=localhost;virtualHost=UAT;username=guest;password=guest");
+
             // Action
-            var host = con.GetValue("host");
+            var virtualHost = con.GetValue("virtualhost");
 
             // Assert
-            Assert.AreEqual("localhost", host);
+            Assert.AreEqual("UAT", virtualHost);
+        }
+
+        [TestMethod]
+        public void Should_return_proper_host_and_port_if_provided_in_the_host_section()
+        {
+            var con = new ConnectionString("host=localhost:5673;username=guest;password=guest");
+            Assert.AreEqual(5673, con.Port);
+            Assert.AreEqual("localhost", con.Host);
         }
     }
 }

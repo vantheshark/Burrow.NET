@@ -71,6 +71,10 @@ namespace Burrow.Extras.Internal
                 {
                     foreach (var key in customHeaders.Keys)
                     {
+                        if (key == null || customHeaders[key] == null)
+                        {
+                            continue;
+                        }
                         if (PriorityKey.Equals(key.ToString(), StringComparison.InvariantCultureIgnoreCase))
                         {
                             //NOTE: Do not overwrite the priority value

@@ -241,9 +241,13 @@ namespace Burrow
                 if (customHeaders != null)
                 {
                     properties.Headers = new HybridDictionary();
-                    foreach (var keyVal in customHeaders.Keys)
+                    foreach (var key in customHeaders.Keys)
                     {
-                        properties.Headers.Add(keyVal.ToString(), customHeaders[keyVal].ToString());
+                        if (key == null || customHeaders[key] == null)
+                        {
+                            continue;
+                        }
+                        properties.Headers.Add(key.ToString(), customHeaders[key].ToString());
                     }
                 }
 
