@@ -24,7 +24,7 @@ namespace Burrow.Extras.Internal
         internal IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>> PriorityQueue;
         private uint _queuePriorirty;
         private string _sharedSemaphore;
-
+        private int _messagesInProgressCount;
 
         public PriorityBurrowConsumer(IModel channel, IMessageHandler messageHandler, IRabbitWatcher watcher, bool autoAck, int batchSize)
             : base(channel)
@@ -200,6 +200,7 @@ namespace Burrow.Extras.Internal
         internal void MessageHandlerHandlingComplete(BasicDeliverEventArgs eventArgs)
         {
             _pool.Release();
+            Interlocked.Decrement(ref _messagesInProgressCount);
             if (_autoAck)
             {
                 DoAck(eventArgs);
@@ -222,6 +223,7 @@ namespace Burrow.Extras.Internal
             _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}, P: {3}", basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.DeliveryTag, priority);
 #endif
                 _messageHandler.HandleMessage(basicDeliverEventArgs);
+                Interlocked.Increment(ref _messagesInProgressCount);
             }
             catch (Exception ex)
             {
@@ -247,6 +249,15 @@ namespace Burrow.Extras.Internal
                 return;
             }
             _disposed = true;
+
+            //NOTE: Wait all current running tasks to finish and after that dispose the objects
+            DateTime timeOut = DateTime.Now.AddSeconds(Global.ConsumerDisposeTimeoutInSeconds);
+            while (_messagesInProgressCount > 0 && DateTime.Now <= timeOut)
+            {
+                _watcher.InfoFormat("Wait for {0} messages on queue {1} in progress", _messagesInProgressCount, _queuePriorirty );
+                Thread.Sleep(1000);
+            }
+
             _pool.Dispose();
             PriorityQueue.Close();
         }

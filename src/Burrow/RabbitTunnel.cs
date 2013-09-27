@@ -33,6 +33,7 @@ namespace Burrow
         protected IRouteFinder _routeFinder;
         protected IModel _dedicatedPublishingChannel;
         private bool _setPersistent;
+        protected volatile bool _disposed = false;
         
         public event Action OnOpened;
         public event Action OnClosed;
@@ -98,6 +99,11 @@ namespace Burrow
 
         private void CloseTunnel()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             _autoResetEvent.WaitOne();
             try
             {
@@ -160,6 +166,8 @@ namespace Burrow
                 _dedicatedPublishingChannel.BasicAcks += OnBrokerReceivedMessage;
                 _dedicatedPublishingChannel.BasicNacks += OnBrokerRejectedMessage;
                 _dedicatedPublishingChannel.BasicReturn += OnMessageIsUnrouted;
+                _dedicatedPublishingChannel.ModelShutdown += (channel, reason) => _watcher.WarnFormat("Dedicated publishing channel is shutdown: {0}", reason.ReplyText);
+                
                 _watcher.InfoFormat("Dedicated publishing channel established");
             }
         }
@@ -372,6 +380,7 @@ namespace Burrow
                 var channel = _connection.CreateChannel();
                 channel.ModelShutdown += (c, reason) => 
                 {
+                    if (_disposed) return;
                     RaiseConsumerDisconnectedEvent(subscription);
                     TryReconnect(c, id, reason); 
                 };
@@ -479,14 +488,22 @@ namespace Burrow
 
         public void Dispose()
         {
+            _disposed = true;
+            DisposeConsumerManager();
+
             //NOTE: Sometimes, disposing the channel blocks current thread
             var task = Task.Factory.StartNew(() => _createdChannels.ForEach(DisposeChannel), Global.DefaultTaskCreationOptionsProvider());
-            task.ContinueWith(t => _createdChannels.Clear(), Global.DefaultTaskContinuationOptionsProvider());
+            task.ContinueWith(t => _createdChannels.Clear(), Global.DefaultTaskContinuationOptionsProvider())
+                .Wait((int)Global.ConsumerDisposeTimeoutInSeconds * 1000);
             
             if (_connection.IsConnected)
             {
                 _connection.Dispose();
-            }
+            }            
+        }
+
+        protected virtual void DisposeConsumerManager()
+        {
             _consumerManager.Dispose();
         }
 

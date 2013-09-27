@@ -163,7 +163,7 @@ namespace Burrow.Extras.Internal
             var maxSize = Global.PreFetchSize * ((int)maxPriorityLevel + 1);
             var priorityQueue = new InMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>(maxSize, comparer);
             var sharedSemaphore = string.Format("{0}{1}", subscriptionName, Guid.NewGuid());
-            for (uint level = 0; level <= maxPriorityLevel; level++)
+            for (uint level = maxPriorityLevel; level >= 0 && level < uint.MaxValue ; level--)
             {
                 var subscription = new Subscription { SubscriptionName = subscriptionName };
                 uint priority = level;
@@ -180,9 +180,9 @@ namespace Burrow.Extras.Internal
                     var channel = _connection.CreateChannel();
                     channel.ModelShutdown += (c, reason) =>
                     {
+                        if (_disposed) return;
                         RaiseConsumerDisconnectedEvent(subscription);
                         TryReconnect(c, id, reason); 
-                        
                     };
                     if (Global.PreFetchSize <= ushort.MaxValue)
                     {
@@ -241,6 +241,12 @@ namespace Burrow.Extras.Internal
             {
                 throw new ArgumentException("comparerType must be assignable from IComparer<>", "comparerType", ex);
             }
+        }
+
+        protected override void DisposeConsumerManager()
+        {
+            base.DisposeConsumerManager();
+            _priorityConsumerManager.Dispose();
         }
     }
 }

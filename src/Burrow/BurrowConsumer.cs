@@ -9,6 +9,9 @@ using RabbitMQ.Util;
 
 namespace Burrow
 {
+    /// <summary>
+    /// Inherit from <see cref="QueueingBasicConsumer"/> to handle message using a <see cref="IMessageHandler"/>
+    /// </summary>
     public class BurrowConsumer : QueueingBasicConsumer, IDisposable
     {
         protected readonly IRabbitWatcher _watcher;
@@ -16,9 +19,22 @@ namespace Burrow
         private bool _channelShutdown;
 
         private readonly object _sharedQueueLock = new object();
+        /// <summary>
+        /// Control the sharedqueue to receive enough messages to process in parallel if <see cref="BatchSize"/> greater than 1
+        /// </summary>
         protected SafeSemaphore _pool { get; private set; }
         private readonly IMessageHandler _messageHandler;
 
+        private int _messagesInProgressCount;
+
+        /// <summary>
+        /// Initialize an object of <see cref="BurrowConsumer"/>
+        /// </summary>
+        /// <param name="channel">RabbitMQ.Client channel</param>
+        /// <param name="messageHandler">An instance of message handler to handle the message from queue</param>
+        /// <param name="watcher"></param>
+        /// <param name="autoAck">If set to true, the msg will be acked after processed</param>
+        /// <param name="batchSize"></param>
         public BurrowConsumer(IModel channel,
                               IMessageHandler messageHandler,
                               IRabbitWatcher watcher,
@@ -87,7 +103,7 @@ namespace Burrow
         {
             try
             {
-                BasicDeliverEventArgs deliverEventArgs;
+                BasicDeliverEventArgs deliverEventArgs = null;
                 lock (_sharedQueueLock)
                 {
 #if DEBUG
@@ -97,8 +113,10 @@ namespace Burrow
 #else
                     _pool.WaitOne();
 #endif
-
-                    deliverEventArgs = Queue.Dequeue() as BasicDeliverEventArgs;
+                    if (!_disposed)
+                    {
+                        deliverEventArgs = Queue.Dequeue() as BasicDeliverEventArgs;
+                    }
 #if DEBUG
 
                     _watcher.DebugFormat("3. Msg from RabbitMQ arrived (probably the previous msg has been acknownledged), prepare to handle it");
@@ -174,6 +192,7 @@ namespace Burrow
 
 #endif
                 _pool.Release();
+                Interlocked.Decrement(ref _messagesInProgressCount);
             }
         }
 
@@ -194,6 +213,7 @@ namespace Burrow
                 }
                 //NOTE: We dont have to catch exception here 
                 _messageHandler.HandleMessage(basicDeliverEventArgs);
+                Interlocked.Increment(ref _messagesInProgressCount);
             }
             catch (Exception ex)
             {
@@ -211,6 +231,9 @@ namespace Burrow
             Subscription.TryAckOrNAck(channel => channel.BasicAck(basicDeliverEventArgs.DeliveryTag, false), subscriptionInfo.Model, _watcher);
         }
 
+        /// <summary>
+        /// The number of threads to process messages, Default is Global.DefaultConsumerBatchSize
+        /// </summary>
         public int BatchSize { get; private set; }
 
         private volatile bool _disposed;
@@ -221,6 +244,15 @@ namespace Burrow
                 return;
             }
             _disposed = true;
+
+            //NOTE: Wait all current running tasks to finish and after that dispose the objects
+            DateTime timeOut = DateTime.Now.AddSeconds(Global.ConsumerDisposeTimeoutInSeconds);
+            while (_messagesInProgressCount > 0 && DateTime.Now <= timeOut)
+            {
+                _watcher.InfoFormat("Wait for {0} messages in progress", _messagesInProgressCount);
+                Thread.Sleep(1000);
+            }
+
             _pool.Dispose();
             Queue.Close();
         }
