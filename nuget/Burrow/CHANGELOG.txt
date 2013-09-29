@@ -1,5 +1,7 @@
-* 1.0.21 (27 Sep 2013)
+* 1.0.21 (29 Sep 2013)
 - Merge https://github.com/vanthoainguyen/Burrow.NET/pull/6, Safe Consumer Dispose
+- Add method Cancel on class Subscription and CancelAll on class CompositeSubscription to cancel the consumer(s): https://github.com/vanthoainguyen/Burrow.NET/issues/10
+- All method Subscribe will return Subscription object, from there user can cancel the subscription
 
 * 1.0.20 (07 Aug 2013)
 - Allow publishing messages with custom headers to "Headers" exchange

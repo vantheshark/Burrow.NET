@@ -34,7 +34,7 @@ namespace Burrow.Extras
         /// <param name="maxPriorityLevel">n if you have following priority levels: 0 -&gt; n; 0 is the lowest level by default</param>
         /// <param name="onReceiveMessage"></param>
         /// <param name="comparerType">a type of IComparer`[T] to compare the messages priorities</param>
-        void Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null);
+        CompositeSubscription Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null);
 
         /// <summary>
         /// Subscribe synchronously to priority queues and not ack the msg after handling it
@@ -58,7 +58,7 @@ namespace Burrow.Extras
         /// <param name="onReceiveMessage"></param>
         /// <param name="comparerType">a type of IComparer`[T] to compare the messages priorities</param>
         /// <param name="batchSize">The number of threads to process messages, Default is Global.DefaultConsumerBatchSize</param>
-        void SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null, ushort? batchSize = null);
+        CompositeSubscription SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null, ushort? batchSize = null);
 
         /// <summary>
         /// Subscribe asynchronously to priority queues and not ack the msg after handling it

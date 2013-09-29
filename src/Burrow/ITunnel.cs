@@ -60,7 +60,7 @@ namespace Burrow
         /// <typeparam name="T"></typeparam>
         /// <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
         /// <param name="onReceiveMessage">A callback method to process received message</param>
-        void Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage);
+        Subscription Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage);
 
         /// <summary>
         /// Subscribe to queue by using subscriptionName, the message will be not automatically acked
@@ -80,7 +80,7 @@ namespace Burrow
         /// <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
         /// <param name="onReceiveMessage">A callback method to process received message</param>
         /// <param name="batchSize">The number of threads to process messages, Default is Global.DefaultConsumerBatchSize</param>
-        void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize = null);
+        Subscription SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize = null);
 
         /// <summary>
         /// Subscribe to queue by using subscriptionName, the message will be not automatically acked

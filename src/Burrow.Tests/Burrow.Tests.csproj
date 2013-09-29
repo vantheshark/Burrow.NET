@@ -84,6 +84,7 @@
     <Compile Include="DefaultMessageHandlerTests\MethodHandleError.cs" />
     <Compile Include="DefaultMessageHandlerTests\MethodHandleMessage.cs" />
     <Compile Include="DefaultTaskCreationOptionProviderTests\MethodGetOptions.cs" />
+    <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodCancelAll.cs" />
     <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodAckAllUpTo.cs" />
     <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodGetByConsumerTag.cs" />
     <Compile Include="Extras\Internal\CompositeSubscriptionTests\MethodNackAllUpTo.cs" />
@@ -164,6 +165,7 @@
     <Compile Include="RPC\RpcRouteFinderAdapterTests\MethodFindQueueName.cs" />
     <Compile Include="RPC\RpcRouteFinderAdapterTests\MethodFindRoutingKey.cs" />
     <Compile Include="RPC\SomeMessage.cs" />
+    <Compile Include="SubscriptionTests\MethodCancel.cs" />
     <Compile Include="SubscriptionTests\MethodNack.cs" />
     <Compile Include="SubscriptionTests\MethodAck.cs" />
     <Compile Include="SubscriptionTests\MethodNackAllUpTo.cs" />

@@ -33,12 +33,17 @@ namespace Burrow
         protected IRouteFinder _routeFinder;
         protected IModel _dedicatedPublishingChannel;
         private bool _setPersistent;
-        protected volatile bool _disposed = false;
+        protected volatile bool _disposed;
         
         public event Action OnOpened;
         public event Action OnClosed;
         public event Action<Subscription> ConsumerDisconnected;
 
+        /// <summary>
+        /// Create a tunnel by <see cref="routeFinder"/> and <see cref="IDurableConnection"/>
+        /// </summary>
+        /// <param name="routeFinder"></param>
+        /// <param name="connection"></param>
         public RabbitTunnel(IRouteFinder routeFinder,
                             IDurableConnection connection)
             : this(new ConsumerManager(Global.DefaultWatcher, 
@@ -57,6 +62,16 @@ namespace Burrow
         {
         }
 
+        /// <summary>
+        /// Create a tunnel by <see cref="IConsumerManager"/>, <see cref="IRouteFinder"/>, <see cref="IDurableConnection"/>, <see cref="ISerializer"/> and <see cref="ICorrelationIdGenerator"/>
+        /// </summary>
+        /// <param name="consumerManager"></param>
+        /// <param name="watcher"></param>
+        /// <param name="routeFinder"></param>
+        /// <param name="connection"></param>
+        /// <param name="serializer"></param>
+        /// <param name="correlationIdGenerator"></param>
+        /// <param name="setPersistent"></param>
         public RabbitTunnel(IConsumerManager consumerManager,
                             IRabbitWatcher watcher,
                             IRouteFinder routeFinder,
@@ -308,11 +323,11 @@ namespace Burrow
             return properties;
         }
 
-        public void Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage)
+        public Subscription Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
-            CreateSubscription<T>(subscriptionName, createConsumer);
+            return CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
         public Subscription Subscribe<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
@@ -322,11 +337,11 @@ namespace Burrow
             return CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
-        public void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize)
+        public Subscription SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
-            CreateSubscription<T>(subscriptionName, createConsumer);
+            return CreateSubscription<T>(subscriptionName, createConsumer);
         }
 
         public Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize)
@@ -527,7 +542,11 @@ namespace Burrow
             }
         }
 
+        /// <summary>
+        /// Get the static <see cref="TunnelFactory"/> to create <see cref="ITunnel"/>
+        /// </summary>
         public static TunnelFactory Factory { get; internal set; }
+
         static RabbitTunnel()
         {
             if (Factory == null)

@@ -6891,8 +6891,15 @@
         <member name="T:Burrow.Extras.Internal.CompositeSubscription">
             <summary>
             A composite subscription that contains others child Subscription object
-            This is a result of subscribe to priority queues without auto ack, use the instance of this class to ack messages later
+            <para>This is a result of subscribe to priority queues without auto ack, use the instance of this class to ack messages later</para>
             </summary>
+        </member>
+        <member name="M:Burrow.Extras.Internal.CompositeSubscription.GetByConsumerTag(System.String)">
+            <summary>
+            Get the <see cref="T:Burrow.Subscription"/> by consumer tag
+            </summary>
+            <param name="consumerTag"></param>
+            <returns></returns>
         </member>
         <member name="M:Burrow.Extras.Internal.CompositeSubscription.Ack(System.String,System.UInt64)">
             <summary>
@@ -6947,6 +6954,16 @@
         <member name="M:Burrow.Extras.Internal.CompositeSubscription.NackAllOutstandingMessages(System.String,System.Boolean)">
             <summary>
             Beware of using this method. It nacks all unacknowledged messages of the consumer by consumerTag 
+            </summary>
+        </member>
+        <member name="M:Burrow.Extras.Internal.CompositeSubscription.CancelAll">
+            <summary>
+            Cancel all consumers on all priority queues
+            </summary>
+        </member>
+        <member name="P:Burrow.Extras.Internal.CompositeSubscription.Count">
+            <summary>
+            Get the ammount of subscriptions to the priority queues
             </summary>
         </member>
         <member name="T:Burrow.Extras.ExchangeSetupData">

@@ -102,11 +102,11 @@ namespace Burrow.Extras.Internal
             }
         }
 
-        public void Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null)
+        public CompositeSubscription Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
-            CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
+            return CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 
         public CompositeSubscription Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T, MessageDeliverEventArgs> onReceiveMessage, Type comparerType = null)
@@ -116,11 +116,11 @@ namespace Burrow.Extras.Internal
             return CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 
-        public void SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
+        public CompositeSubscription SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
-            CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
+            return CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
         }
 
         public CompositeSubscription SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T, MessageDeliverEventArgs> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Burrow.Extras.Internal
 {
     /// <summary>
     /// A composite subscription that contains others child Subscription object
-    /// This is a result of subscribe to priority queues without auto ack, use the instance of this class to ack messages later
+    /// <para>This is a result of subscribe to priority queues without auto ack, use the instance of this class to ack messages later</para>
     /// </summary>
     public class CompositeSubscription
     {
@@ -26,11 +27,19 @@ namespace Burrow.Extras.Internal
             _internalCache[subscription.ConsumerTag] = subscription;
         }
 
+        /// <summary>
+        /// Get the ammount of subscriptions to the priority queues
+        /// </summary>
         public int Count
         {
             get { return _internalCache.Count; }
         }
 
+        /// <summary>
+        /// Get the <see cref="Subscription"/> by consumer tag
+        /// </summary>
+        /// <param name="consumerTag"></param>
+        /// <returns></returns>
         public Subscription GetByConsumerTag(string consumerTag)
         {
             if (_internalCache.ContainsKey(consumerTag))
@@ -118,6 +127,17 @@ namespace Burrow.Extras.Internal
         public void NackAllOutstandingMessages(string consumerTag, bool requeue)
         {
             TryAckOrNAck(consumerTag, x => x.NackAllOutstandingMessages(requeue));
+        }
+
+        /// <summary>
+        /// Cancel all consumers on all priority queues
+        /// </summary>
+        public void CancelAll()
+        {
+            if (_internalCache != null && _internalCache.Values.Count > 0)
+            {
+                _internalCache.Values.ToList().ForEach(c => c.Cancel());
+            }
         }
 
         private void TryAckOrNAck(string consumerTag, Action<Subscription> action)
