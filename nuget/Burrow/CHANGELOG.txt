@@ -1,3 +1,6 @@
+* 1.0.22 (08 Oct 2013)
+- Fix https://github.com/vanthoainguyen/Burrow.NET/issues/11: Problem with JsonSerializer: Object of type 'System.Int64' cannot be converted to type 'System.Int32'.
+
 * 1.0.21 (29 Sep 2013)
 - Merge https://github.com/vanthoainguyen/Burrow.NET/pull/6, Safe Consumer Dispose
 - Add method Cancel on class Subscription and CancelAll on class CompositeSubscription to cancel the consumer(s): https://github.com/vanthoainguyen/Burrow.NET/issues/10

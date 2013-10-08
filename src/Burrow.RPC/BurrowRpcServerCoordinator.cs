@@ -93,14 +93,25 @@ namespace Burrow.RPC
                 {
                     throw new Exception(string.Format("Could not find a match member of type {0} for method {1} of {2}", msg.MemberType.ToString(), msg.MethodName, msg.DeclaringType));
                 }
+                
+                var parameters = methodInfo.GetParameters();
+                
+                //NOTE: Fix param type due to int32/int64 serialization problem
+                foreach (var param in parameters)
+                {
+                    if (param.ParameterType.IsPrimitive)
+                    {
+                        msg.Params[param.Name] = msg.Params[param.Name].ConvertToCorrectTypeValue(param.ParameterType);
+                    }
+                }
 
-                object[] parameters = msg.Params.Values.ToArray();
-                response.ReturnValue = methodInfo.Invoke(_realInstance, parameters);
+                object[] parameterValues = msg.Params.Values.ToArray();
+                response.ReturnValue = methodInfo.Invoke(_realInstance, parameterValues);
                 var keys = msg.Params.Keys.ToArray();
 
                 for (int i = 0; i < msg.Params.Count; i++)
                 {
-                    msg.Params[keys[i]] = parameters[i];
+                    msg.Params[keys[i]] = parameterValues[i];
                 }
                 response.ChangedParams = msg.Params;
 

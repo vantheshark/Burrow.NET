@@ -76,9 +76,9 @@ namespace Burrow.RPC
                 throw response.Exception;
             }
 
-            if (invocation.Method.ReturnType != typeof (void))
+            if (invocation.Method.ReturnType != typeof(void) && response.ReturnValue != null)
             {
-                invocation.ReturnValue = response.ReturnValue;
+                invocation.ReturnValue = response.ReturnValue.ConvertToCorrectTypeValue(invocation.Method.ReturnType);
             }
 
             var outParams = @params.Where(x => x.IsOut).Select(x => x.Name);
@@ -92,12 +92,11 @@ namespace Burrow.RPC
             {
                 if (@params[i].IsOut)
                 {
-                    invocation.SetArgumentValue(i, response.ChangedParams[@params[i].Name]);
+                    invocation.SetArgumentValue(i, response.ChangedParams[@params[i].Name].ConvertToCorrectTypeValue(@params[i].ParameterType.GetElementType()));
                 }
-                else if (@params[i].ParameterType.IsByRef &&
-                         response.ChangedParams.ContainsKey(@params[i].Name))
+                else if (@params[i].ParameterType.IsByRef && response.ChangedParams.ContainsKey(@params[i].Name))
                 {
-                    invocation.SetArgumentValue(i, response.ChangedParams[@params[i].Name]);
+                    invocation.SetArgumentValue(i, response.ChangedParams[@params[i].Name].ConvertToCorrectTypeValue(@params[i].ParameterType.GetElementType()));
                 }
             }
         }

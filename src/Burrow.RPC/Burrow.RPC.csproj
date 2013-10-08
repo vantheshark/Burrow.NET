@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="AsyncAttribute.cs" />
     <Compile Include="BurrowRpcClientCoordinator.cs" />
+    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="IRpcRouteFinder.cs" />
     <Compile Include="RpcRouteFinderAdapter.cs" />
     <Compile Include="DefaultFanoutRpcRequestRouteFinder.cs" />
