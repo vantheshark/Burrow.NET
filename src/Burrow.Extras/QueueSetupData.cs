@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -45,7 +44,7 @@ namespace Burrow.Extras
         /// <summary>
         /// Optional arguments when create queue
         /// </summary>
-        public IDictionary Arguments { get; private set; }
+        public IDictionary<string, object> Arguments { get; private set; }
 
         /// <summary>
         /// Initialize a QueueSetupData
@@ -53,7 +52,7 @@ namespace Burrow.Extras
         public QueueSetupData()
         {
             Durable = true;
-            Arguments = new Dictionary<object, object>();
+            Arguments = new Dictionary<string, object>();
         }
     }
 }

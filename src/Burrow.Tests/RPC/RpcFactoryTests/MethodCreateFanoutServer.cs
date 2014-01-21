@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using Burrow.RPC;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -38,7 +38,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             server.Start();
 
             // Assert
-            model.Received(1).QueueDeclare("Burrow.Queue.Rpc.ServerId.ISomeService.Requests", true, false, true, Arg.Any<IDictionary>());
+            model.Received(1).QueueDeclare("Burrow.Queue.Rpc.ServerId.ISomeService.Requests", true, false, true, Arg.Any<IDictionary<string, object>>());
             model.Received(1).ExchangeDeclare("Burrow.Exchange.FANOUT.Rpc.ISomeService.Requests", "fanout", true, false, null);
             tunnel.Received(1).SubscribeAsync("ServerId", Arg.Any<Action<RpcRequest>>());
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using Burrow.RPC;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -59,8 +60,8 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             server.Start();
 
             // Assert
-            model.Received(1).QueueDeclare("Burrow.Queue.Rpc.ISomeService.Requests", true, false, false, Arg.Any<IDictionary>());
-            model.DidNotReceive().ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary>());
+            model.Received(1).QueueDeclare("Burrow.Queue.Rpc.ISomeService.Requests", true, false, false, Arg.Any<IDictionary<string, object>>());
+            model.DidNotReceive().ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary<string, object>>());
             tunnel.Received(1).SubscribeAsync(typeof(ISomeService).Name, Arg.Any<Action<RpcRequest>>());
         }
 
@@ -80,7 +81,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             server.Start();
 
             // Assert
-            model.Received().QueueDeclare("RequestQueue", true, false, false, Arg.Any<IDictionary>());
+            model.Received().QueueDeclare("RequestQueue", true, false, false, Arg.Any<IDictionary<string, object>>());
             model.DidNotReceiveWithAnyArgs().ExchangeDeclare("", "", false, false, null);
             tunnel.Received(1).SubscribeAsync("ServerId", Arg.Any<Action<RpcRequest>>());
         }
@@ -101,7 +102,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             server.Start();
 
             // Assert
-            model.Received(1).QueueDeclare("RequestQueue", true, false, false, Arg.Any<IDictionary>());
+            model.Received(1).QueueDeclare("RequestQueue", true, false, false, Arg.Any<IDictionary<string, object>>());
         }
     }
 }

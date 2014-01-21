@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using Burrow.Extras;
 using Burrow.Tests.Extras.RabbitSetupTests;
@@ -71,8 +71,8 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             setup.CreateRoute<Customer>(normalRouteSetupData);
 
             // Assert
-            model.Received().ExchangeDeclare("Exchange.Customer", "headers", true, false, Arg.Any<IDictionary>());
-            model.Received().QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary>());
+            model.Received().ExchangeDeclare("Exchange.Customer", "headers", true, false, Arg.Any<IDictionary<string, object>>());
+            model.Received().QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary<string, object>>());
             model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer", normalRouteSetupData.OptionalBindingData);
         }
 
@@ -82,7 +82,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             // Arrange
             var model = Substitute.For<IModel>();
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model, Substitute.For<IRabbitWatcher>());
-            Func<IDictionary,int, bool> eval = (arg, priority) => 
+            Func<IDictionary<string, object>,int, bool> eval = (arg, priority) => 
             {
                 return "all".Equals(arg["x-match"]) && priority.ToString(CultureInfo.InvariantCulture).Equals(arg["Priority"]);
             };
@@ -92,15 +92,15 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             
 
             // Assert
-            model.Received().ExchangeDeclare("Exchange.Customer", "headers", true, false, Arg.Any<IDictionary>());
-            model.Received().QueueDeclare("Queue.Customer_Priority0", true, false, false, Arg.Any<IDictionary>());
-            model.Received().QueueDeclare("Queue.Customer_Priority1", true, false, false, Arg.Any<IDictionary>());
-            model.Received().QueueDeclare("Queue.Customer_Priority2", true, false, false, Arg.Any<IDictionary>());
-            model.Received().QueueDeclare("Queue.Customer_Priority3", true, false, false, Arg.Any<IDictionary>());
-            model.Received().QueueBind("Queue.Customer_Priority0", "Exchange.Customer", "Customer", Arg.Is<IDictionary>(x => eval(x, 0)));
-            model.Received().QueueBind("Queue.Customer_Priority1", "Exchange.Customer", "Customer", Arg.Is<IDictionary>(x => eval(x, 1)));
-            model.Received().QueueBind("Queue.Customer_Priority2", "Exchange.Customer", "Customer", Arg.Is<IDictionary>(x => eval(x, 2)));
-            model.Received().QueueBind("Queue.Customer_Priority3", "Exchange.Customer", "Customer", Arg.Is<IDictionary>(x => eval(x, 3)));
+            model.Received().ExchangeDeclare("Exchange.Customer", "headers", true, false, Arg.Any<IDictionary<string, object>>());
+            model.Received().QueueDeclare("Queue.Customer_Priority0", true, false, false, Arg.Any<IDictionary<string, object>>());
+            model.Received().QueueDeclare("Queue.Customer_Priority1", true, false, false, Arg.Any<IDictionary<string, object>>());
+            model.Received().QueueDeclare("Queue.Customer_Priority2", true, false, false, Arg.Any<IDictionary<string, object>>());
+            model.Received().QueueDeclare("Queue.Customer_Priority3", true, false, false, Arg.Any<IDictionary<string, object>>());
+            model.Received().QueueBind("Queue.Customer_Priority0", "Exchange.Customer", "Customer", Arg.Is<IDictionary<string, object>>(x => eval(x, 0)));
+            model.Received().QueueBind("Queue.Customer_Priority1", "Exchange.Customer", "Customer", Arg.Is<IDictionary<string, object>>(x => eval(x, 1)));
+            model.Received().QueueBind("Queue.Customer_Priority2", "Exchange.Customer", "Customer", Arg.Is<IDictionary<string, object>>(x => eval(x, 2)));
+            model.Received().QueueBind("Queue.Customer_Priority3", "Exchange.Customer", "Customer", Arg.Is<IDictionary<string, object>>(x => eval(x, 3)));
         }
 
 
@@ -109,21 +109,21 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
         {
             // Arrange
             var model = Substitute.For<IModel>();
-            model.When(x => x.QueueDeclare(Arg.Any<string>(), true, false, false, Arg.Any<IDictionary>())).Do(callInfo =>
+            model.When(x => x.QueueDeclare(Arg.Any<string>(), true, false, false, Arg.Any<IDictionary<string, object>>())).Do(callInfo =>
             {
                 throw new Exception();
             });
             var setup = PriorityQueuesRabbitSetupForTest.CreateRabbitSetup(model);
-            Func<IDictionary, int, bool> eval = (arg, priority) => "all".Equals(arg["x-match"]) && priority.ToString(CultureInfo.InvariantCulture).Equals(arg["Priority"]);
+            Func<IDictionary<string, object>, int, bool> eval = (arg, priority) => "all".Equals(arg["x-match"]) && priority.ToString(CultureInfo.InvariantCulture).Equals(arg["Priority"]);
 
             // Action
             setup.CreateRoute<Customer>(_priorityRouteSetupData);
 
             // Assert
-            model.Received().QueueBind("Queue.Customer_Priority0", "Exchange.Customer", "Customer", Arg.Is<IDictionary>(x => eval(x, 0)));
-            model.Received().QueueBind("Queue.Customer_Priority1", "Exchange.Customer", "Customer", Arg.Is<IDictionary>(x => eval(x, 1)));
-            model.Received().QueueBind("Queue.Customer_Priority2", "Exchange.Customer", "Customer", Arg.Is<IDictionary>(x => eval(x, 2)));
-            model.Received().QueueBind("Queue.Customer_Priority3", "Exchange.Customer", "Customer", Arg.Is<IDictionary>(x => eval(x, 3)));
+            model.Received().QueueBind("Queue.Customer_Priority0", "Exchange.Customer", "Customer", Arg.Is<IDictionary<string, object>>(x => eval(x, 0)));
+            model.Received().QueueBind("Queue.Customer_Priority1", "Exchange.Customer", "Customer", Arg.Is<IDictionary<string, object>>(x => eval(x, 1)));
+            model.Received().QueueBind("Queue.Customer_Priority2", "Exchange.Customer", "Customer", Arg.Is<IDictionary<string, object>>(x => eval(x, 2)));
+            model.Received().QueueBind("Queue.Customer_Priority3", "Exchange.Customer", "Customer", Arg.Is<IDictionary<string, object>>(x => eval(x, 3)));
         }
 
         [TestMethod]
@@ -131,7 +131,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
         {
             // Arrange
             var model = Substitute.For<IModel>();
-            model.When(x => x.QueueBind(Arg.Any<string>(), "Exchange.Customer", "Customer", Arg.Any<IDictionary>())).Do(callInfo =>
+            model.When(x => x.QueueBind(Arg.Any<string>(), "Exchange.Customer", "Customer", Arg.Any<IDictionary<string, object>>())).Do(callInfo =>
             {
                 throw new Exception();
             });
@@ -145,7 +145,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
         {
             // Arrange
             var model = Substitute.For<IModel>();
-            model.When(x => x.QueueDeclare(Arg.Any<string>(), true, false, false, Arg.Any<IDictionary>())).Do(callInfo =>
+            model.When(x => x.QueueDeclare(Arg.Any<string>(), true, false, false, Arg.Any<IDictionary<string, object>>())).Do(callInfo =>
             {
                 throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "PRECONDITION_FAILED - "));
             });
@@ -160,7 +160,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
         {
             // Arrange
             var model = Substitute.For<IModel>();
-            model.When(x => x.QueueDeclare(Arg.Any<string>(), true, false, false, Arg.Any<IDictionary>())).Do(callInfo =>
+            model.When(x => x.QueueDeclare(Arg.Any<string>(), true, false, false, Arg.Any<IDictionary<string, object>>())).Do(callInfo =>
             {
                 throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "Other error"));
             });

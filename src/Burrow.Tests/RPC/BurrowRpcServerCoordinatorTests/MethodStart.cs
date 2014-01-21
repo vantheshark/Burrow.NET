@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using Burrow.RPC;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -59,7 +60,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
             server.Start();
 
             // Assert
-            model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, true, Arg.Any<IDictionary>());
+            model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, true, Arg.Any<IDictionary<string, object>>());
             model.Received(1).ExchangeDeclare("ISomeService.Exchange", "direct", true, false, null);
             model.Received(1).QueueBind("ISomeService.serverId.RequestQueue", "ISomeService.Exchange", "ISomeService.serverId.RequestQueue");
         }
@@ -86,7 +87,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
             server.Start();
 
             // Assert
-            model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, false, Arg.Any<IDictionary>());
+            model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, false, Arg.Any<IDictionary<string, object>>());
         }
 
         [TestMethod]
@@ -109,7 +110,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
             server.Start();
 
             // Assert
-            model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, false, Arg.Any<IDictionary>());
+            model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, false, Arg.Any<IDictionary<string, object>>());
         }
 
         [TestMethod]

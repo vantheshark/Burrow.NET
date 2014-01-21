@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using Burrow.Extras;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -75,7 +76,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
         {
             // Arrange
             var model = Substitute.For<IModel>();
-            model.When(x => x.QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary>())).Do(callInfo =>
+            model.When(x => x.QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary<string, object>>())).Do(callInfo =>
             {
                 throw new Exception("Test Exception");
 
@@ -94,7 +95,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
         {
             // Arrange
             var model = Substitute.For<IModel>();
-            model.When(x => x.QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary>())).Do(callInfo =>
+            model.When(x => x.QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary<string, object>>())).Do(callInfo =>
             {
                 throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "PRECONDITION_FAILED - "));
             });
@@ -109,7 +110,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
         {
             // Arrange
             var model = Substitute.For<IModel>();
-            model.When(x => x.QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary>())).Do(callInfo =>
+            model.When(x => x.QueueDeclare("Queue.Customer", true, false, false, Arg.Any<IDictionary<string, object>>())).Do(callInfo =>
             {
                 throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "Other error"));
             });
@@ -178,7 +179,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.CreateRoute<Customer>(_routeSetupData);
 
             // Assert
-            model.Received(1).QueueDeclare(Arg.Any<string>(), true, false, false, Arg.Is<IDictionary>(dic => dic.Count == 4));
+            model.Received(1).QueueDeclare(Arg.Any<string>(), true, false, false, Arg.Is<IDictionary<string, object>>(dic => dic.Count == 4));
         }
     }
 }

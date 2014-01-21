@@ -1,4 +1,4 @@
-﻿using System.Collections.Specialized;
+﻿using System.Collections.Generic;
 using Burrow.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -30,7 +30,7 @@ namespace Burrow.Tests.Internal.BasicPropertiesWrapperTests
             p.AppId.Returns("ai");
             p.ClusterId.Returns("cli");
             p.IsHeadersPresent().Returns(true);
-            p.Headers.Returns(new HybridDictionary{{"Priority", 10}});
+            p.Headers.Returns(new Dictionary<string, object>{{"Priority", 10}});
             
 
             // Action

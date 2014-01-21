@@ -39,7 +39,7 @@ namespace Burrow.RPC
         {
             Action<IModel> createRequestAndResponseQueuesAction = channel =>
             {
-                IDictionary arguments = new Dictionary<string, object>();
+                var arguments = new Dictionary<string, object>();
                 channel.QueueDeclare(_routeFinder.UniqueResponseQueue, true, false, true /* response queue will be deleted if client disconnected */, arguments);
                 if (_routeFinder.CreateExchangeAndQueue)
                 {

@@ -35,7 +35,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.Received().BasicPublish(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IBasicProperties>(), Arg.Any<byte[]>());
         }
 
-        [TestMethod, ExpectedException(typeof(NullReferenceException), "Publish failed. No channel to rabbit server established.")]
+        [TestMethod, ExpectedException(typeof(Exception), "Publish failed. No channel to rabbit server established.")]
         public void Should_throw_exception_if_dedicated_publish_channel_is_not_created_properly()
         {
             // Arrange

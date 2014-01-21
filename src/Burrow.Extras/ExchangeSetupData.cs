@@ -27,7 +27,7 @@ namespace Burrow.Extras
         /// <summary>
         /// Optional arguments when create exchange
         /// </summary>
-        public IDictionary Arguments { get; private set; }
+        public IDictionary<string, object> Arguments { get; private set; }
 
         /// <summary>
         /// Constructor

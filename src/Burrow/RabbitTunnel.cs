@@ -29,7 +29,7 @@ namespace Burrow
 
         protected ISerializer _serializer;
         protected IRouteFinder _routeFinder;
-        protected IModel _dedicatedPublishingChannel;
+        
         private bool _setPersistent;
         
         public event Action OnOpened;
@@ -154,6 +154,13 @@ namespace Burrow
             {
                 _watcher.InfoFormat("Creating dedicated publishing channel");
                 _dedicatedPublishingChannel = _connection.CreateChannel();
+                
+                // If still failed, it's time to throw exception
+                if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
+                {
+                    throw new Exception("No channel to rabbit server established.");
+                }
+
                 _createdChannels.Add(_dedicatedPublishingChannel);
 
                 _dedicatedPublishingChannel.BasicAcks += OnBrokerReceivedMessage;
@@ -209,6 +216,19 @@ namespace Burrow
             }
         }
 
+        private IModel _dedicatedPublishingChannel;
+        public IModel DedicatedPublishingChannel 
+        { 
+            get
+            {
+                lock (_tunnelGate)
+                {
+                    EnsurePublishChannelIsCreated();
+                    return _dedicatedPublishingChannel;
+                }
+            }
+        }
+
         public void Publish<T>(T rabbit)
         {
             Publish(rabbit, _routeFinder.FindRoutingKey<T>());
@@ -216,11 +236,6 @@ namespace Burrow
 
         public virtual void Publish<T>(T rabbit, string routingKey)
         {
-            lock (_tunnelGate)
-            {
-                EnsurePublishChannelIsCreated();
-            }
-            
             try
             {
                 byte[] msgBody = _serializer.Serialize(rabbit);
@@ -228,7 +243,7 @@ namespace Burrow
                 var exchangeName = _routeFinder.FindExchangeName<T>();
                 lock (_tunnelGate)
                 {
-                    _dedicatedPublishingChannel.BasicPublish(exchangeName, routingKey, properties, msgBody);
+                    DedicatedPublishingChannel.BasicPublish(exchangeName, routingKey, properties, msgBody);
                 }
                 _watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
             }
@@ -251,18 +266,12 @@ namespace Burrow
             if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
             {
                 CreatePublishChannel();
-
-                // If still failed, it's time to throw exception
-                if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
-                {
-                    throw new Exception("No channel to rabbit server established.");
-                }
             }
         }
 
         protected virtual IBasicProperties CreateBasicPropertiesForPublish<T>()
         {
-            IBasicProperties properties = _dedicatedPublishingChannel.CreateBasicProperties();
+            IBasicProperties properties = DedicatedPublishingChannel.CreateBasicProperties();
             properties.SetPersistent(_setPersistent); // false = Transient
             properties.Type = Global.DefaultTypeNameSerializer.Serialize(typeof(T));
             properties.CorrelationId = _correlationIdGenerator.GenerateCorrelationId();
@@ -426,12 +435,16 @@ namespace Burrow
 
         public uint GetMessageCount<T>(string subscriptionName)
         {
+            return GetMessageCount(_routeFinder.FindQueueName<T>(subscriptionName));
+        }
+
+        public uint GetMessageCount(string queueName)
+        {
             try
             {
                 lock (_tunnelGate)
                 {
-                    EnsurePublishChannelIsCreated();
-                    var result = _dedicatedPublishingChannel.QueueDeclarePassive(_routeFinder.FindQueueName<T>(subscriptionName));
+                    var result = DedicatedPublishingChannel.QueueDeclarePassive(queueName);
                     if (result != null)
                     {
                         return result.MessageCount;

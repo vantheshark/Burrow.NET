@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
@@ -101,7 +102,7 @@ namespace Burrow.Extras
             }
         }
 
-        protected virtual void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey, IDictionary bindingData = null)
+        protected virtual void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey, IDictionary<string, object> bindingData = null)
         {
             if (string.IsNullOrEmpty(exchangeName))
             {

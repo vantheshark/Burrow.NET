@@ -25,7 +25,7 @@ namespace Burrow
 
                               bool autoAck,
                               int batchSize)
-            : base(channel, new SharedQueue())
+            : base(channel, new SharedQueue<BasicDeliverEventArgs>())
         {
             if (channel == null)
             {
@@ -98,7 +98,7 @@ namespace Burrow
                     _pool.WaitOne();
 #endif
 
-                    deliverEventArgs = Queue.Dequeue() as BasicDeliverEventArgs;
+                    deliverEventArgs = Queue.Dequeue();
 #if DEBUG
 
                     _watcher.DebugFormat("3. Msg from RabbitMQ arrived (probably the previous msg has been acknownledged), prepare to handle it");
@@ -110,7 +110,7 @@ namespace Burrow
                 }
                 else
                 {
-                    _watcher.ErrorFormat("Message arrived but it's not a BasicDeliverEventArgs for some reason, properly a serious BUG :D, contact author asap, release semaphore for other messages");
+                    _watcher.ErrorFormat("Message arrived but it's null for some reason, properly a serious BUG :D, contact author asap, release semaphore for other messages");
                     _pool.Release();
                 }
             }

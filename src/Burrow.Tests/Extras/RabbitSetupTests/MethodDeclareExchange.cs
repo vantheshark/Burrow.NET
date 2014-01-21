@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using Burrow.Extras;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -23,7 +24,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.DeclareExchange(new ExchangeSetupData(), model, null);
 
             // Assert
-            model.DidNotReceive().ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary>());
+            model.DidNotReceive().ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary<string, object>>());
             setup.Watcher.Received(1).WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());
         }
 
@@ -33,7 +34,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             // Arrange
             var model = Substitute.For<IModel>();
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
-            model.When(x => x.ExchangeDeclare(Arg.Any<string>(),Arg.Any<string>(),Arg.Any<bool>(),Arg.Any<bool>(),Arg.Any<IDictionary>()))
+            model.When(x => x.ExchangeDeclare(Arg.Any<string>(),Arg.Any<string>(),Arg.Any<bool>(),Arg.Any<bool>(),Arg.Any<IDictionary<string, object>>()))
                  .Do(callInfo =>
                 {
                     throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Library, 101, "PRECONDITION_FAILED - Exchange exists"));
@@ -43,7 +44,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.DeclareExchange(new ExchangeSetupData(), model, "Exchange name");
 
             // Assert
-            model.Received(1).ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary>());
+            model.Received(1).ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary<string, object>>());
             setup.Watcher.Received(1).ErrorFormat(Arg.Any<string>());
         }
 
@@ -53,7 +54,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             // Arrange
             var model = Substitute.For<IModel>();
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
-            model.When(x => x.ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary>()))
+            model.When(x => x.ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary<string, object>>()))
                  .Do(callInfo =>
                  {
                      throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Library, 101, "Some errors"));
@@ -63,7 +64,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.DeclareExchange(new ExchangeSetupData(), model, "Exchange name");
 
             // Assert
-            model.Received(1).ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary>());
+            model.Received(1).ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary<string, object>>());
             setup.Watcher.Received(1).Error(Arg.Any<Exception>());
         }
 
@@ -73,7 +74,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             // Arrange
             var model = Substitute.For<IModel>();
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
-            model.When(x => x.ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary>()))
+            model.When(x => x.ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary<string, object>>()))
                  .Do(callInfo =>
                  {
                      throw new Exception();
@@ -83,7 +84,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.DeclareExchange(new ExchangeSetupData(), model, "Exchange name");
 
             // Assert
-            model.Received(1).ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary>());
+            model.Received(1).ExchangeDeclare(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>(), Arg.Any<IDictionary<string, object>>());
             setup.Watcher.Received(1).Error(Arg.Any<Exception>());
         }
     }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using Burrow.RPC;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -86,8 +86,8 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             new BurrowRpcClientCoordinator<ISomeService>(null, routeFinder);
 
             // Assert
-            model.Received(1).QueueDeclare("ISomeService.ResponseQueue", true, false, true, Arg.Any<IDictionary>());
-            model.Received(1).QueueDeclare("ISomeService.RequestQueue", true, false, false, Arg.Any<IDictionary>());
+            model.Received(1).QueueDeclare("ISomeService.ResponseQueue", true, false, true, Arg.Any<IDictionary<string, object>>());
+            model.Received(1).QueueDeclare("ISomeService.RequestQueue", true, false, false, Arg.Any<IDictionary<string, object>>());
             model.Received(1).ExchangeDeclare("ISomeService.RequestExchange", "direct", true, false, null);
             model.Received(1).QueueBind("ISomeService.RequestQueue", "ISomeService.RequestExchange", "ISomeService.RequestQueue");
         }

@@ -58,7 +58,7 @@ namespace Burrow.Tests.Internal.HaConnectionTests
             connection.ConnectionFactories.ClearAll();
             var f1 = CreateManagedConnectionFactory(5671, new Exception());
             var f2 = CreateManagedConnectionFactory(5672, new Exception());
-            var f3 = CreateManagedConnectionFactory(5673, new BrokerUnreachableException(new ListDictionary(), new ListDictionary(), new Exception()));
+            var f3 = CreateManagedConnectionFactory(5673, new BrokerUnreachableException(new Dictionary<AmqpTcpEndpoint, int>() , new Dictionary<AmqpTcpEndpoint, Exception>(), new Exception()));
             connection.ConnectionFactories.Add(f1);
             connection.ConnectionFactories.Add(f2);
             connection.ConnectionFactories.Add(f3);

@@ -1,11 +1,18 @@
 ﻿using System;
+using RabbitMQ.Client;
 
 namespace Burrow
 {
     public interface ITunnel : IDisposable
     {
+        /// <summary>
+        /// This event will be fired once a connection to server is established
+        /// </summary>
         event Action OnOpened;
 
+        /// <summary>
+        /// This event will be fired once a connection to server is lost
+        /// </summary>
         event Action OnClosed;
 
         /// <summary>
@@ -17,6 +24,14 @@ namespace Burrow
         /// Determine whether a connection is open
         /// </summary>
         bool IsOpened { get; }
+
+        /// <summary>
+        /// Public access to the channel object which is used for publishing messages
+        /// <para>for those who wish to use Confirms (aka Publisher Acknowledgements) can confirmSelect() or even txSelect() the channel</para>
+        /// <para>Reference: http://www.rabbitmq.com/confirms.html</para>
+        /// <para>Reference: http://www.rabbitmq.com/blog/2011/02/10/introducing-publisher-confirms/</para>
+        /// </summary>
+        IModel DedicatedPublishingChannel { get; }
 
         /// <summary>
         /// Publish a message
@@ -94,5 +109,10 @@ namespace Burrow
         /// <param name="subscriptionName"></param>
         /// <returns></returns>
         uint GetMessageCount<T>(string subscriptionName);
+
+        /// <summary>
+        /// Return message count of provided queueName
+        /// </summary>
+        uint GetMessageCount(string queueName);
     }
 }

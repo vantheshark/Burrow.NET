@@ -48,24 +48,19 @@ namespace Burrow.Extras.Internal
 
         public virtual void Publish<T>(T rabbit, string routingKey, uint priority)
         {
-            lock (_tunnelGate)
-            {
-                EnsurePublishChannelIsCreated();
-            }
-
             try
             {
                 byte[] msgBody = _serializer.Serialize(rabbit);
                 IBasicProperties properties = CreateBasicPropertiesForPublish<T>();
                 properties.Priority = (byte)priority;
-                properties.Headers = new HybridDictionary();
+                properties.Headers = new Dictionary<string, object>();
                 properties.Headers.Add("Priority", priority.ToString(CultureInfo.InvariantCulture));
                 properties.Headers.Add("RoutingKey", routingKey);
 
                 var exchangeName = _routeFinder.FindExchangeName<T>();
                 lock (_tunnelGate)
                 {
-                    _dedicatedPublishingChannel.BasicPublish(exchangeName, routingKey, properties, msgBody);
+                    DedicatedPublishingChannel.BasicPublish(exchangeName, routingKey, properties, msgBody);
                 }
                 _watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
             }
@@ -114,7 +109,7 @@ namespace Burrow.Extras.Internal
                     for (uint level = 0; level <= maxPriorityLevel; level++)
                     {
                         var queueName = GetPriorityQueueName<T>(subscriptionName, level);
-                        var result = _dedicatedPublishingChannel.QueueDeclarePassive(queueName);
+                        var result = DedicatedPublishingChannel.QueueDeclarePassive(queueName);
                         if (result != null)
                         {
                             count += result.MessageCount;

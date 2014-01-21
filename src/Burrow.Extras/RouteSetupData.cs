@@ -27,14 +27,14 @@ namespace Burrow.Extras
         /// <summary>
         /// Optional arguments to bind the queue to the exchange
         /// </summary>
-        public IDictionary OptionalBindingData { get; private set; }
+        public IDictionary<string, object> OptionalBindingData { get; private set; }
 
         /// <summary>
         /// Initialize a RouteSetupData
         /// </summary>
         public RouteSetupData()
         {
-            OptionalBindingData = new Dictionary<string, string>();
+            OptionalBindingData = new Dictionary<string, object>();
         }
     }
 }

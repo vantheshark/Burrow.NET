@@ -8,7 +8,7 @@ namespace Burrow.Extras.Internal
         public static int GetMsgPriority(BasicDeliverEventArgs eventArg)
         {
             var priority = -1;
-            if (eventArg.BasicProperties.Headers != null && eventArg.BasicProperties.Headers.Contains("Priority"))
+            if (eventArg.BasicProperties.Headers != null && eventArg.BasicProperties.Headers.ContainsKey("Priority"))
             {
                 //It's a byte, has to convert to char
                 var enc = new System.Text.UTF8Encoding();

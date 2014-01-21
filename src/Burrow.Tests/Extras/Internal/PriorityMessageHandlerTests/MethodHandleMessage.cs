@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using Burrow.Extras.Internal;
@@ -21,8 +22,8 @@ namespace Burrow.Tests.Extras.Internal.PriorityMessageHandlerTests
             var properties = Substitute.For<IBasicProperties>();
             properties.Priority = 10;
             properties.Type = Global.DefaultTypeNameSerializer.Serialize(typeof(Customer));
-            properties.Headers = new HybridDictionary();
-            properties.Headers.Add("Priority", new byte[] { (byte)'1', (byte)'0' });
+            properties.Headers = new Dictionary<string, object>();
+            properties.Headers.Add("Priority", new[] { (byte)'1', (byte)'0' });
             properties.Headers.Add("RoutingKey", "Customer");
             MessageDeliverEventArgs evt = null;
             var handler = new PriorityMessageHandlerForTest<Customer>("SubscriptionName",

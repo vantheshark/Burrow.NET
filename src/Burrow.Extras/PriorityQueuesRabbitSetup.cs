@@ -32,7 +32,7 @@ namespace Burrow.Extras
             }
         }
 
-        protected override void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey, IDictionary bindingData = null)
+        protected override void BindQueue<T>(IModel model, QueueSetupData queue, string exchangeName, string queueName, string routingKey, IDictionary<string, object> bindingData = null)
         {
             if (queue is PriorityQueueSetupData)
             {
@@ -41,7 +41,7 @@ namespace Burrow.Extras
                 {
                     try
                     {
-                        IDictionary arguments = GetArgumentDictionary(bindingData);
+                        var arguments = GetArgumentDictionary(bindingData);
                         arguments["x-match"] = "all";
                         arguments["Priority"]  = i.ToString(CultureInfo.InvariantCulture);
                         arguments["RoutingKey"] = routingKey;
@@ -61,16 +61,16 @@ namespace Burrow.Extras
             }
         }
 
-        private IDictionary GetArgumentDictionary(IDictionary originalDictionary)
+        private IDictionary<string, object> GetArgumentDictionary(IEnumerable<KeyValuePair<string, object>> originalDictionary)
         {
-            var dic = new Dictionary<object, object>();
+            var dic = new Dictionary<string, object>();
             if (originalDictionary == null)
             {
                 return dic;
             }
-            foreach (var key in originalDictionary)
+            foreach (var entry in originalDictionary)
             {
-                dic[key] = originalDictionary[key];
+                dic[entry.Key] = entry.Value;
             }
             return dic;
         }

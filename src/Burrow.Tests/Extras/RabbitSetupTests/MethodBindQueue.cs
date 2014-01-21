@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using Burrow.Extras;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -34,7 +34,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             // Arrange
             var model = Substitute.For<IModel>();
             var setup = RabbitSetupForTest.CreateRabbitSetup(model);
-            model.When(x => x.QueueBind(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IDictionary>()))
+            model.When(x => x.QueueBind(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IDictionary<string, object>>()))
                  .Do(info => { throw new Exception();});
 
             // Action

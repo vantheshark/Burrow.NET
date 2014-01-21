@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using Burrow.Internal;
 using Burrow.Tests.Internal.DurableConnectionTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -42,7 +43,7 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
             IConnection connection;
             var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/", out connection);
             connection.When(x => x.CreateModel())
-                      .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<IDictionary>(), Substitute.For<IDictionary>(), Substitute.For<Exception>()); });
+                      .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<IDictionary<AmqpTcpEndpoint, int>>(), Substitute.For < IDictionary<AmqpTcpEndpoint, Exception>>(), Substitute.For<Exception>()); });
             var handler = new ConsumerErrorHandler(() => connectionFactory, Substitute.For<ISerializer>(), watcher);
 
             // Action
