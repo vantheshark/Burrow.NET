@@ -47,8 +47,7 @@ namespace Burrow.Publisher
 
             Task.WaitAll(tasks.ToArray());
             sw.Stop();
-            Console.WriteLine(string.Format("Published {0} \"rabbits\" in {1}.", numberOfRabbitToCreatePerThread * totalThread, sw.Elapsed));
-            Console.ReadKey();
+            Global.DefaultWatcher.InfoFormat("Published {0} \"rabbits\" in {1}.", numberOfRabbitToCreatePerThread * totalThread, sw.Elapsed);
         }
 
         public static void PublishRandomPriorityMessages(int maxPriority)
@@ -80,14 +79,6 @@ namespace Burrow.Publisher
                     break;
                 }
             }
-        }
-
-        public static void PrintHelp()
-        {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Uncomment the test you want to run. Press anykey to continue!!!");
-            Console.ReadKey();
-            Console.ResetColor();
         }
     }
 }

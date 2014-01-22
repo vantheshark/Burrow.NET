@@ -52,7 +52,11 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             queue.When(x => x.Enqueue(Arg.Any<GenericPriorityMessage<BasicDeliverEventArgs>>()))
                  .Do(callInfo => enqueueCount.Set());
 
-            var consumer = new PriorityBurrowConsumer(channel, Substitute.For<IMessageHandler>(), Substitute.For<IRabbitWatcher>(), true, 1);
+            var handler = Substitute.For<IMessageHandler>();
+            handler.When(h => h.HandleMessage(Arg.Any<BasicDeliverEventArgs>()))
+                   .Do(callInfo => handler.HandlingComplete += Raise.Event<MessageHandlingEvent>(new BasicDeliverEventArgs()));
+
+            var consumer = new PriorityBurrowConsumer(channel, handler, Substitute.For<IRabbitWatcher>(), true, 1);
 
             var sub = Substitute.For<CompositeSubscription>();
             sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });

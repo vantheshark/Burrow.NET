@@ -7,42 +7,54 @@ namespace Burrow.Subscriber
     {
         public static void Start()
         {
-            Console.WriteLine("Click any key to subscribe to queue Burrow.Queue.BurrowTestApp.Bunny");
+            Global.DefaultWatcher.InfoFormat("Click any key to subscribe to queue Burrow.Queue.BurrowTestApp.Bunny");
             Console.ReadLine();
-            Global.DefaultConsumerBatchSize = 10;
             var tunnel = RabbitTunnel.Factory.Create();
-            Global.DefaultPersistentMode = true;
 
-
-            // SubscribeAsync auto Ack
-            tunnel.SubscribeAsync<Bunny>("BurrowTestApp", ProcessMessage);
-
-
-
-
-
-            // SubscribeAsync manual Ack
-            Subscription subscription = null;
-            subscription = tunnel.SubscribeAsync<Bunny>("BurrowTestApp", (bunny, subscriptionData) =>
+            tunnel.Subscribe(new SubscriptionOption<Bunny>
             {
-                var error = false;
-                try
+                BatchSize = 1,
+                MessageHandler = ProcessMessage,
+                QueuePrefetchSize = 10,
+                SubscriptionName = "BurrowTestApp"
+            });
+            
+        }
+
+        public static void StartAsync()
+        {
+            Global.DefaultWatcher.InfoFormat("Click any key to asynchronously subscribe to queue Burrow.Queue.BurrowTestApp.Bunny");
+            Console.ReadLine();
+            var tunnel = RabbitTunnel.Factory.Create();
+
+            Subscription subscription = null;
+            subscription = tunnel.SubscribeAsync(new AsyncSubscriptionOption<Bunny>
+            {
+                BatchSize = 1,
+                QueuePrefetchSize = 10,
+                SubscriptionName = "BurrowTestApp",
+
+                MessageHandler = (bunny, subscriptionData) =>
                 {
-                    ProcessMessage(bunny);
-                }
-                catch(Exception)
-                {
-                    error = true;
-                    if (subscription != null)
+                    var error = false;
+                    try
                     {
-                        subscription.Nack(subscriptionData.DeliveryTag, false); // To deliver dead letter to 
+                        ProcessMessage(bunny);
                     }
-                }
-                finally
-                {
-                    if (subscription != null && !error)
+                    catch (Exception)
                     {
-                        subscription.Ack(subscriptionData.DeliveryTag);
+                        error = true;
+                        if (subscription != null)
+                        {
+                            subscription.Nack(subscriptionData.DeliveryTag, false); 
+                        }
+                    }
+                    finally
+                    {
+                        if (subscription != null && !error)
+                        {
+                            subscription.Ack(subscriptionData.DeliveryTag);
+                        }
                     }
                 }
             });
@@ -53,14 +65,14 @@ namespace Burrow.Subscriber
         {
             var rand = new Random((int)DateTime.Now.Ticks);
             var processingTime = rand.Next(1000, 1500);
-            if (bunny.Age % 5 == 0)
+            if (processingTime % 3 == 0)
             {
                 throw new Exception(
                     "This is a test exception to demonstrate how a message is handled once something wrong happens: " +
-                    "Got a bad bunny, It should be put to Error Queue ;)");
+                    "Got a bad bunny, It should be put to Burrow.Queue.Error ;)");
             }
             System.Threading.Thread.Sleep(processingTime);
-            Console.WriteLine("Processed msg [{0}], priority [{1}] in [{2}] ms\n", bunny.Name, bunny.Age, processingTime);
+            Global.DefaultWatcher.InfoFormat("Processed msg [{0}], priority [{1}] in [{2}] ms\n", bunny.Name, bunny.Age, processingTime);
         }
     }
 }

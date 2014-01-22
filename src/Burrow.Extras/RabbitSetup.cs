@@ -55,6 +55,7 @@ namespace Burrow.Extras
                 var clusterConnections = _connectionString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                 var factories = clusterConnections.Select(x => new ManagedConnectionFactory(new ConnectionString(x))).ToList();
                 var haConnection = new HaConnection(new DefaultRetryPolicy(), Global.DefaultWatcher, factories);
+                haConnection.Connect();
                 return haConnection.ConnectionFactory;
             }
             return _factory;

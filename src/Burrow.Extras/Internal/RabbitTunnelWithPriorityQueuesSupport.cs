@@ -241,7 +241,7 @@ namespace Burrow.Extras.Internal
                     };
 
                     var prefetchSize = GetProperPrefetchSize(subscriptionOption, priority);
-                    channel.BasicQos(0, (ushort)prefetchSize, false);
+                    channel.BasicQos(0, prefetchSize, false);
 
                     _createdChannels.Add(channel);
 

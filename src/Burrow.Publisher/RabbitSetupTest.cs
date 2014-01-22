@@ -8,6 +8,8 @@ namespace Burrow.Publisher
     {
         private const string SubscriptionName = "BurrowTestApp";
         private static string _connectionString = ConfigurationManager.ConnectionStrings["RabbitMQ"].ToString();
+        private static RabbitSetup setup = new RabbitSetup(_connectionString);
+
         private static readonly RouteSetupData RouteSetupData = new RouteSetupData
         {
             RouteFinder = new TestRouteFinder(),
@@ -18,8 +20,6 @@ namespace Burrow.Publisher
             },
             SubscriptionName = SubscriptionName
         };
-
-        
 
         private class TestRouteFinder : IRouteFinder
         {
@@ -44,13 +44,11 @@ namespace Burrow.Publisher
 
         public static void CreateExchangesAndQueues()
         {
-            var setup = new RabbitSetup(_connectionString);
             setup.CreateRoute<Bunny>(RouteSetupData);
         }
 
         public static void DestroyExchangesAndQueues()
         {
-            var setup = new RabbitSetup(_connectionString);
             setup.DestroyRoute<Bunny>(RouteSetupData);
         }
 
@@ -67,7 +65,6 @@ namespace Burrow.Publisher
                 SubscriptionName = SubscriptionName
             };
 
-            var setup = new RabbitSetup(_connectionString);
             setup.CreateRoute<Bunny>(customRouteData);
         }
 
@@ -83,7 +80,7 @@ namespace Burrow.Publisher
                 },
                 SubscriptionName = SubscriptionName
             };
-            var setup = new RabbitSetup(_connectionString);
+            
             setup.DestroyRoute<Bunny>(customRouteData);
         }
     }

@@ -1,3 +1,9 @@
+* 1.0.23 (22 Jan 2014)
+- Support publishing to Header exchange with custom header dictionary
+- RabbitSetup class now can failover to good node when creating exchange/queue
+- Add SubscriptionOption and AsyncSubscriptionOption to flexible specify BatchSize, PrefetchSize as well as RouteFinder when subscribe to queue
+- Expose public access to DedicatedPublishingChannel from ITunnel so user can use confirmSelect() or txSelect() when publishing messages
+
 * 1.0.22 (08 Oct 2013)
 - Fix https://github.com/vanthoainguyen/Burrow.NET/issues/11: Problem with JsonSerializer: Object of type 'System.Int64' cannot be converted to type 'System.Int32'.
 
