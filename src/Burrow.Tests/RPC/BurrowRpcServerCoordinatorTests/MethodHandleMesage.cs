@@ -101,7 +101,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
                 Id = Guid.NewGuid(),
                 ResponseAddress = "Address",
                 MethodName = "Search",
-                Params = new Dictionary<string, object> { { "page", 1 }, {"query", new SomeMessage
+                Params = new Dictionary<string, object> { { "page", (long)1 /* long value will be converted to proper int value */}, {"query", new SomeMessage
                 {
                     Name = "vantheshark"
                 }}}

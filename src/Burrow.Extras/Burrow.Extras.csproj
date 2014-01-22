@@ -101,7 +101,6 @@
     <Compile Include="DependencyInjectionTunnelFactory.cs" />
     <Compile Include="ExchangeSetupData.cs" />
     <Compile Include="IBurrowResolver.cs" />
-    <Compile Include="Internal\ITunnelWithPriorityQueuesSupport.cs" />
     <Compile Include="Internal\PriorityMessageHandler.cs" />
     <Compile Include="Internal\PriorityMessageHandlerFactory.cs" />
     <Compile Include="Internal\PriorityConsumerManager.cs" />

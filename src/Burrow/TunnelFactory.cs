@@ -9,10 +9,13 @@ namespace Burrow
 {
     /// <summary>
     /// This class is responsible for creating <see cref="ITunnel"/>.
-    /// Any derived of this class except will automatically registered itself as the default TunnelFactory in the library ;)
+    /// <para>Any derived of this class will automatically registered itself as the default TunnelFactory in the library ;)</para>
     /// </summary>
     public class TunnelFactory 
     {
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public TunnelFactory() : this(true)
         {
         }
@@ -33,6 +36,10 @@ namespace Burrow
             ManagedConnectionFactory.CloseAllConnections();
         }
         
+        /// <summary>
+        /// Create a tunnel from the ConnectionString key = RabbitMQ 
+        /// </summary>
+        /// <returns></returns>
         [ExcludeFromCodeCoverage]
         public virtual ITunnel Create()
         {
@@ -49,11 +56,22 @@ namespace Burrow
             return Create(rabbitConnectionString.ConnectionString);
         }
 
+        /// <summary>
+        /// Create a tunnel with the provided connection string
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <returns></returns>
         public virtual ITunnel Create(string connectionString)
         {
             return Create(connectionString, Global.DefaultWatcher ?? new ConsoleWatcher());
         }
 
+        /// <summary>
+        /// Create a tunnel with provided connection string and IRabbitWatcher object
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="watcher"></param>
+        /// <returns></returns>
         public virtual ITunnel Create(string connectionString, IRabbitWatcher watcher)
         {
             var clusterConnections = connectionString.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
@@ -67,11 +85,20 @@ namespace Burrow
                 return Create(haConnection, rabbitWatcher);
             }
 
-
             var connectionValues = new ConnectionString(connectionString);
             return Create(new ManagedConnectionFactory(connectionValues), watcher);
         }
 
+        /// <summary>
+        /// Create a tunnel with provided params
+        /// </summary>
+        /// <param name="hostName"></param>
+        /// <param name="port"></param>
+        /// <param name="virtualHost"></param>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="watcher"></param>
+        /// <returns></returns>
         public virtual ITunnel Create(string hostName, int port, string virtualHost, string username, string password, IRabbitWatcher watcher)
         {
             var connectionFactory = new ManagedConnectionFactory

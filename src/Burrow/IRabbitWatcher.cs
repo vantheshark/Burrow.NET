@@ -2,6 +2,9 @@
 
 namespace Burrow
 {
+    /// <summary>
+    /// this interface borrows a subset of log4net.ILog, properly implement an adaptor for your favorite logigng library
+    /// </summary>
     public interface IRabbitWatcher
     {
         bool IsDebugEnable { get; set; }

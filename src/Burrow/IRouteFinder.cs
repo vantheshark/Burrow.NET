@@ -1,5 +1,9 @@
 ﻿namespace Burrow
 {
+    /// <summary>
+    /// Implement this interface and set it with the <see cref="ITunnel"/>
+    /// <para>This can also be used when subscribe to queue, set it to the SubscriptionOption or AsyncSubscriptionOption</para>
+    /// </summary>
     public interface IRouteFinder
     {
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RabbitMQ.Client;
@@ -33,6 +34,35 @@ namespace Burrow.Tests.RabbitTunnelTests
             // Assert
             routeFinder.Received().FindRoutingKey<string>();
             newChannel.Received().BasicPublish(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IBasicProperties>(), Arg.Any<byte[]>());
+        }
+
+		[TestMethod]
+        public void Should_publish_message_to_header_exchange_with_custom_headers_if_provided()
+        {
+            // Arrange
+            var newChannel = Substitute.For<IModel>();
+            newChannel.IsOpen.Returns(true);
+            var routeFinder = Substitute.For<IRouteFinder>();
+            var durableConnection = Substitute.For<IDurableConnection>();
+            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            durableConnection.When(x => x.Connect()).Do(callInfo =>
+            {
+                durableConnection.Connected += Raise.Event<Action>();
+                durableConnection.IsConnected.Returns(true);
+            });
+
+            durableConnection.CreateChannel().Returns(newChannel);
+            var tunnel = new RabbitTunnel(routeFinder, durableConnection);
+
+            // Action
+            tunnel.Publish("Muahaha", new Dictionary<string, object>{ { "SomeHeaderKey", "somevalue" }, { "AnotherHeaderKey", "somethingelse" } });
+
+            // Assert
+            routeFinder.Received(1).FindRoutingKey<string>();
+            newChannel.Received(1).BasicPublish(Arg.Any<string>(), 
+                                                Arg.Any<string>(),
+                                                Arg.Is<IBasicProperties>(arg => arg.Headers["SomeHeaderKey"].ToString() == "somevalue" && arg.Headers["AnotherHeaderKey"].ToString() == "somethingelse"), 
+                                                Arg.Any<byte[]>());
         }
 
         [TestMethod, ExpectedException(typeof(Exception), "Publish failed. No channel to rabbit server established.")]

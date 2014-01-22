@@ -4,6 +4,9 @@ using Burrow.Internal;
 
 namespace Burrow
 {
+    /// <summary>
+    /// A global class where you can set settings that control how the library works
+    /// </summary>
     public static class Global
     {
         private static readonly DefaultTaskCreationOptionProvider _defaultTaskCreationOptionProvider = new DefaultTaskCreationOptionProvider();
@@ -27,12 +30,12 @@ namespace Burrow
         /// <summary>
         /// The higher the number is, the more threads a tunnel will create to consume messages in the queue.
         /// If set to 1, it means the messages will be consumed sequently
-        /// This value is used by the TunnelFactory when it create a RabbitTunnel
+        /// This value is used by the TunnelFactory when it creates a RabbitTunnel
         /// This value is NOLONGER used to call IModel.BasicQos, if you want to do so, use PreFetchSize instead
         /// </summary>
         public static ushort DefaultConsumerBatchSize = 4;
 
-        /// This value is also used to call IModel.BasicQos, which eventually sets the maximum amount of messages stay on the Unacknowledged list when they are consumed
+        /// This value is also used to call IModel.BasicQos if the prefetch size is not provided when subscribing to the queue.It'll set the maximum amount of messages stay on the Unacknowledged list when they are consumed
         /// <para>If you app decides not to ack the message immediately but just queueing everything received from Burrow.NET and ack later once they're finished, you will not get morethan 
         /// this number of messages in your internal queue because RabbitMQ.Client basically has a waithanler to block the consuming thread, only this number of messages can be dequeued.
         /// If this is a potential problem, you have to ack atleast a message to receive a new one from RabbitMQ</para>
@@ -45,9 +48,23 @@ namespace Burrow
         /// </summary>
         public static bool DefaultPersistentMode = true;
 
+        /// <summary>
+        /// The error queue name where error messages will be published to.
+        /// <para>You don't have to create this queue, the library will create it when there is an error</para>
+        /// </summary>
         public static string DefaultErrorQueueName = "Burrow.Queue.Error";
+
+        /// <summary>
+        /// The error exchange name where error messages will be published to
+        /// <para>You don't have to create this exchange, the library will create it when there is an error</para>
+        /// </summary>
         public static string DefaultErrorExchangeName = "Burrow.Exchange.Error";
 
+        /// <summary>
+        /// The default value in seconds for a consumer to wait until all pending messages are processed.
+        /// It's related to https://github.com/vanthoainguyen/Burrow.NET/pull/6
+        /// </summary>
+        public static uint ConsumerDisposeTimeoutInSeconds = 60;
 
         static Global()
         {
@@ -58,8 +75,8 @@ namespace Burrow
         {
             foreach (var ex in e.Exception.InnerExceptions)
             {
-                // NOTE: Should not observe the msg here, let the client of this library deal with that since there could be 
-                // other TPL Task created by the developers
+                // NOTE: Should not observe the msg here, let the application developers deal with the error 
+                // because there could be other TPL Task created by the developers
                 
                 DefaultWatcher.Error(ex);
             }

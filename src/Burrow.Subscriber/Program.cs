@@ -24,7 +24,8 @@ namespace Burrow.Subscriber
             //TestSubscribingFromPriorityQueues.StartAsync();
             #endregion
 
-
+            RabbitTunnel.Factory.CloseAllConnections();
+            Console.WriteLine("Finished. Press anykey to quit!");
             Console.ReadKey();
         }
 

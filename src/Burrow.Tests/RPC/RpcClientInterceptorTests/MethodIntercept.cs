@@ -57,7 +57,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
                        .Returns(new RpcResponse
                        {
                            ReturnValue = new List<SomeMessage>{new SomeMessage()},
-                           ChangedParams = new Dictionary<string, object>{{"totalCount", 1000}}
+                           ChangedParams = new Dictionary<string, object> { { "totalCount", (long)1000/* long value will be converted to proper int value */} }
                        });
             var interceptor = new RpcClientInterceptor(coordinator);
             var service = RpcFactory.CreateClient<ISomeService>(interceptor);

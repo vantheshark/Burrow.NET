@@ -7,13 +7,26 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Burrow
 {
+    /// <summary>
+    /// A wrapper hold reference to RabbitMQ.Client <see cref="IModel"/> object. 
+    /// <para>From here you can ack/nack a message or cancel the consumer</para>
+    /// </summary>
     public class Subscription
     {
         internal const string CloseByApplication = "Closed by application";
 
         private IModel _channel;
+        /// <summary>
+        /// The name of the queue
+        /// </summary>
         public string QueueName { get; set; }
+        /// <summary>
+        /// Name of the subscription
+        /// </summary>
         public string SubscriptionName { get; set; }
+        /// <summary>
+        /// Consumer tag
+        /// </summary>
         public string ConsumerTag { get; set; }
 
         internal protected Subscription()
@@ -26,6 +39,10 @@ namespace Burrow
             SetChannel(channel);
         }
 
+        /// <summary>
+        /// Set the <see cref="IModel"/> (aka channel)
+        /// </summary>
+        /// <param name="channel"></param>
         public void SetChannel(IModel channel)
         {
             if (channel == null)
@@ -36,6 +53,14 @@ namespace Burrow
         }
 
         #region -- http://www.rabbitmq.com/amqp-0-9-1-reference.html#basic.ack.multiple --
+        /// <summary>
+        /// Cancel subscription
+        /// </summary>
+        public void Cancel()
+        {
+            TryCancel(x => x.BasicCancel(ConsumerTag), _channel, Global.DefaultWatcher);
+        }
+
         /// <summary>
         /// Ack a message by its delivery tag
         /// </summary>
@@ -126,11 +151,11 @@ namespace Burrow
             {
                 if (channel == null)
                 {
-                    watcher.InfoFormat("Trying ack/nack msg buth the Channel is null, will not do anything");
+                    watcher.InfoFormat("Trying ack/nack msg but the Channel is null, will not do anything");
                 }
                 else if (!channel.IsOpen)
                 {
-                    watcher.InfoFormat("Trying ack/nack msg buth the Channel is not open, will not do anything");
+                    watcher.InfoFormat("Trying ack/nack msg but the Channel is not open, will not do anything");
                 }
                 else
                 {
@@ -144,6 +169,25 @@ namespace Burrow
             catch (IOException ioException)
             {
                 watcher.WarnFormat(failedToAckMessage, ioException.Message);
+            }
+        }
+
+        internal void TryCancel(Action<IModel> action, IModel channel, IRabbitWatcher watcher)
+        {
+            const string failedMessage = "Action failed because chanel was closed with message {0}. ";
+            try
+            {
+                watcher.InfoFormat("Cancelling subscription {0} on queue {1}", SubscriptionName, QueueName);
+                action(channel);
+                watcher.InfoFormat("Subscription {0}  on queue {1} cancelled", SubscriptionName, QueueName);
+            }
+            catch (AlreadyClosedException alreadyClosedException)
+            {
+                watcher.WarnFormat(failedMessage, alreadyClosedException.Message);
+            }
+            catch (IOException ioException)
+            {
+                watcher.WarnFormat(failedMessage, ioException.Message);
             }
         }
         #endregion

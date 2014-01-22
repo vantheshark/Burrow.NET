@@ -26,7 +26,7 @@ namespace Burrow
 
         /// <summary>
         /// Create a asynchronous IBasicConsumer which can spawn 1 or more threads to consume messages from the queue, this consumer should NOT ack the messages after handling them.
-        /// In fact, the system should act the messages later based on the information provided in MessageDeliverEventArgs
+        /// <para>Indeed, the system should act the messages later based on the data provided in MessageDeliverEventArgs</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="channel"></param>

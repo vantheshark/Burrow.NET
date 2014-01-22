@@ -52,13 +52,13 @@ namespace Burrow.Extras
             if (_factory == null)
             {
                 var clusterConnections = _connectionString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                if (clusterConnections.Length > 0)
+                if (clusterConnections.Length > 1)
                 {
                     _watcher.InfoFormat("Found multiple Connection String, will use '{0}' to setup queues", clusterConnections[0]);
                 }
                 ConnectionString connectionValues = clusterConnections.Length > 1
-                                                        ? new ConnectionString(clusterConnections[0])
-                                                        : new ConnectionString(_connectionString);
+                                                  ? new ConnectionString(clusterConnections[0])
+                                                  : new ConnectionString(_connectionString);
                 _factory = new ConnectionFactory
                 {
                     HostName = connectionValues.Host,
@@ -68,7 +68,7 @@ namespace Burrow.Extras
                     Password = connectionValues.Password,
                 };
             }
-            return ConnectionFactory;
+            return _factory;
         }
 
         /// <summary>

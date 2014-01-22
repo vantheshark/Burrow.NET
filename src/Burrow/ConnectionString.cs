@@ -13,6 +13,12 @@ namespace Burrow
     {
         private readonly IDictionary<string, string> _parametersDictionary = new Dictionary<string, string>();
 
+        /// <summary>
+        /// Create a ConnectionString object by a string value
+        /// </summary>
+        /// <param name="connectionStringValue"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="Exception"></exception>
         public ConnectionString(string connectionStringValue)
         {
             if (connectionStringValue == null)
@@ -31,7 +37,7 @@ namespace Burrow
                     throw new Exception(string.Format("Invalid connection string element: '{0}' should be 'key=value'", keyValuePair));
                 }
 
-                _parametersDictionary.Add(keyValueParts[0], keyValueParts[1]);
+                _parametersDictionary.Add(keyValueParts[0].ToLower(), keyValueParts[1]);
             }
 
             Port = int.Parse(GetValue("port", "5672"));
@@ -47,30 +53,67 @@ namespace Burrow
                 Host = Host.Substring(0, index);
             }
         }
-
+        /// <summary>
+        /// The rabbitMQ port, default is 5672
+        /// </summary>
         public int Port { get; private set; }
 
+        /// <summary>
+        /// The rabbitMQ host, default is localhost
+        /// </summary>
         public string Host { get; private set; }
 
+
+        /// <summary>
+        /// The rabbitMQ virtual host, default is /
+        /// </summary>
         public string VirtualHost { get; private set; }
 
+        /// <summary>
+        /// The rabbitMQ username, default is guest
+        /// </summary>
         public string UserName { get; private set; }
 
+        /// <summary>
+        /// The rabbitMQ password, default is guest
+        /// </summary>
         public string Password { get; private set; }
 
+        /// <summary>
+        /// Get value of a key from the connection string
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public string GetValue(string key)
         {
-            if (!_parametersDictionary.ContainsKey(key))
+            if (key == null)
+            {
+                throw new ArgumentNullException("key");
+            }
+
+            var lowerKey = key.ToLower();
+            if (!_parametersDictionary.ContainsKey(lowerKey))
             {
                 throw new Exception(string.Format("No value with key '{0}' exists", key));
             }
-            return _parametersDictionary[key];
+            return _parametersDictionary[lowerKey];
         }
 
+        /// <summary>
+        /// Get value of a key from the connection string, return default value if the key is not set or the key value is null or empty
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
         public string GetValue(string key, string defaultValue)
         {
-            return _parametersDictionary.ContainsKey(key) && !string.IsNullOrEmpty(_parametersDictionary[key])
-                ? _parametersDictionary[key]
+            if (key == null)
+            {
+                throw new ArgumentNullException("key");
+            }
+            var lowerKey = key.ToLower();
+            return _parametersDictionary.ContainsKey(lowerKey) && !string.IsNullOrEmpty(_parametersDictionary[lowerKey])
+                ? _parametersDictionary[lowerKey]
                 : defaultValue;
         }
     }

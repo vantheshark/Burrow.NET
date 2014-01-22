@@ -7,6 +7,9 @@ namespace Burrow
 
     public delegate void MessageWasNotHandledEvent(BasicDeliverEventArgs eventArgs);
 
+    /// <summary>
+    /// Implement this interface to handle the <see cref="BasicDeliverEventArgs"/>
+    /// </summary>
     public interface IMessageHandler
     {
         /// <summary>

@@ -31,11 +31,29 @@ namespace Burrow
         protected IRouteFinder _routeFinder;
         
         private bool _setPersistent;
-        
+        protected volatile bool _disposed;
+
+
+        /// <summary>
+        /// This event will be fired once a connection to server is established
+        /// </summary>
         public event Action OnOpened;
+
+        /// <summary>
+        /// A event to be fired when the tunnel is closed, at this point any activities such as ack/nack can't be used because there is no connection
+        /// </summary>
         public event Action OnClosed;
+
+        /// <summary>
+        /// This event will be fired once a consumer is disconnected, for example you ack a msg with wrong delivery id (I blame RabbitMQ.Client guys)
+        /// </summary>
         public event Action<Subscription> ConsumerDisconnected;
 
+        /// <summary>
+        /// Create a tunnel by <see cref="routeFinder"/> and <see cref="IDurableConnection"/>
+        /// </summary>
+        /// <param name="routeFinder"></param>
+        /// <param name="connection"></param>
         public RabbitTunnel(IRouteFinder routeFinder,
                             IDurableConnection connection)
             : this(new ConsumerManager(Global.DefaultWatcher, 
@@ -54,6 +72,16 @@ namespace Burrow
         {
         }
 
+        /// <summary>
+        /// Create a tunnel by <see cref="IConsumerManager"/>, <see cref="IRouteFinder"/>, <see cref="IDurableConnection"/>, <see cref="ISerializer"/> and <see cref="ICorrelationIdGenerator"/>
+        /// </summary>
+        /// <param name="consumerManager"></param>
+        /// <param name="watcher"></param>
+        /// <param name="routeFinder"></param>
+        /// <param name="connection"></param>
+        /// <param name="serializer"></param>
+        /// <param name="correlationIdGenerator"></param>
+        /// <param name="setPersistent"></param>
         public RabbitTunnel(IConsumerManager consumerManager,
                             IRabbitWatcher watcher,
                             IRouteFinder routeFinder,
@@ -96,6 +124,11 @@ namespace Burrow
 
         private void CloseTunnel()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             _autoResetEvent.WaitOne();
             try
             {
@@ -166,6 +199,9 @@ namespace Burrow
                 _dedicatedPublishingChannel.BasicAcks += OnBrokerReceivedMessage;
                 _dedicatedPublishingChannel.BasicNacks += OnBrokerRejectedMessage;
                 _dedicatedPublishingChannel.BasicReturn += OnMessageIsUnrouted;
+                _dedicatedPublishingChannel.ModelShutdown += (channel, reason) => _watcher.WarnFormat("Dedicated publishing channel is shutdown: {0}", reason.ReplyText);
+                
+                _watcher.InfoFormat("Dedicated publishing channel established");
             }
         }
 
@@ -231,21 +267,49 @@ namespace Burrow
 
         public void Publish<T>(T rabbit)
         {
-            Publish(rabbit, _routeFinder.FindRoutingKey<T>());
+            Publish(rabbit, _routeFinder.FindRoutingKey<T>(), null);
         }
 
         public virtual void Publish<T>(T rabbit, string routingKey)
         {
+            Publish(rabbit, routingKey, null);
+        }
+
+        public void Publish<T>(T rabbit, IDictionary<string, object> customHeaders)
+        {
+            Publish(rabbit, _routeFinder.FindRoutingKey<T>(), customHeaders);
+        }
+
+        private void Publish<T>(T rabbit, string routingKey, IDictionary<string, object> customHeaders)
+        {
             try
             {
                 byte[] msgBody = _serializer.Serialize(rabbit);
-                IBasicProperties properties = CreateBasicPropertiesForPublish<T>();
+                
+                IBasicProperties properties = CreateBasicPropertiesForPublishing<T>();
+                if (customHeaders != null)
+                {
+                    properties.Headers = new Dictionary<string, object>();
+                    foreach (var key in customHeaders.Keys)
+                    {
+                        if (key == null || customHeaders[key] == null)
+                        {
+                            continue;
+                        }
+                        properties.Headers.Add(key, customHeaders[key]);
+                    }
+                }
+
                 var exchangeName = _routeFinder.FindExchangeName<T>();
                 lock (_tunnelGate)
                 {
                     DedicatedPublishingChannel.BasicPublish(exchangeName, routingKey, properties, msgBody);
                 }
-                _watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
+
+                if (_watcher.IsDebugEnable)
+                {
+                	_watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
+            	}
             }
             catch (Exception ex)
             {
@@ -253,13 +317,11 @@ namespace Burrow
             }
         }
 
-        
-
         protected void EnsurePublishChannelIsCreated()
         {
             if (!IsOpened)
             {
-                // NOTE:  Due to the implementation of IsOpened, the _dedicatedPublishingChannel could be null because the connection is establised by different instance of RabbitTunnel
+                // NOTE:  Due to the implementation of IsOpened (DurableConnection.IsConnected), the _dedicatedPublishingChannel could be null because the RabbitMQ connection is possibly establised by a different instance of RabbitTunnel
                 _connection.Connect();
             }
 
@@ -271,7 +333,7 @@ namespace Burrow
             }
         }
 
-        protected virtual IBasicProperties CreateBasicPropertiesForPublish<T>()
+        protected virtual IBasicProperties CreateBasicPropertiesForPublishing<T>()
         {
             IBasicProperties properties = DedicatedPublishingChannel.CreateBasicProperties();
             properties.SetPersistent(_setPersistent); // false = Transient
@@ -280,7 +342,7 @@ namespace Burrow
             return properties;
         }
 
-        protected ushort GetProperPrefetchSize(uint prefetchSize)
+        private ushort GetProperPrefetchSize(uint prefetchSize)
         {
             if (prefetchSize > ushort.MaxValue)
             {
@@ -289,58 +351,66 @@ namespace Burrow
             return (ushort)Math.Min(ushort.MaxValue, prefetchSize);
         }
 
-        public void Subscribe<T>(SubscriptionOption<T> subscriptionOption)
+        public Subscription Subscribe<T>(SubscriptionOption<T> subscriptionOption)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
             var queueName = (subscriptionOption.RouteFinder ?? _routeFinder).FindQueueName<T>(subscriptionOption.SubscriptionName);
             var prefetchSize = GetProperPrefetchSize(subscriptionOption.QueuePrefetchSize);
-            CreateSubscription(subscriptionOption.SubscriptionName, queueName, createConsumer, prefetchSize);
+            return CreateSubscription(subscriptionOption.SubscriptionName, queueName, createConsumer, prefetchSize);
         }
 
-        public void SubscribeAsync<T>(AsyncSubscriptionOption<T> subscriptionOption)
+        public Subscription SubscribeAsync<T>(AsyncSubscriptionOption<T> subscriptionOption)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
             var queueName = (subscriptionOption.RouteFinder ?? _routeFinder).FindQueueName<T>(subscriptionOption.SubscriptionName);
             var prefetchSize = GetProperPrefetchSize(subscriptionOption.QueuePrefetchSize);
-            CreateSubscription(subscriptionOption.SubscriptionName, queueName, createConsumer, prefetchSize);
+            return CreateSubscription(subscriptionOption.SubscriptionName, queueName, createConsumer, prefetchSize);
         }
 
-        public void Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage)
+        public Subscription Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage)
         {
-            TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
-            var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
-            var prefetchSize = GetProperPrefetchSize(Global.PreFetchSize);
-            CreateSubscription(subscriptionName, queueName, createConsumer, prefetchSize);
+            return Subscribe(new SubscriptionOption<T>
+            {
+                SubscriptionName = subscriptionName,
+                MessageHandler = onReceiveMessage,
+                BatchSize = 1,
+                QueuePrefetchSize = Global.PreFetchSize,
+            });
         }
 
         public Subscription Subscribe<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
-            TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage);
-            var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
-            var prefetchSize = GetProperPrefetchSize(Global.PreFetchSize);
-            return CreateSubscription(subscriptionName, queueName, createConsumer, prefetchSize);
+            return SubscribeAsync(new AsyncSubscriptionOption<T>
+            {
+                SubscriptionName = subscriptionName,
+                MessageHandler = onReceiveMessage,
+                BatchSize = 1,
+                QueuePrefetchSize = Global.PreFetchSize,
+            });
         }
 
-        public void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize)
+        public Subscription SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize)
         {
-            TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
-            var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
-            var prefetchSize = GetProperPrefetchSize(Global.PreFetchSize);
-            CreateSubscription(subscriptionName, queueName, createConsumer, prefetchSize);
+            return Subscribe(new SubscriptionOption<T>
+            {
+                SubscriptionName = subscriptionName,
+                MessageHandler = onReceiveMessage,
+                BatchSize = batchSize ?? Global.DefaultConsumerBatchSize,
+                QueuePrefetchSize = Global.PreFetchSize,
+            });
         }
 
         public Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize)
         {
-            TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
-            var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
-            var prefetchSize = GetProperPrefetchSize(Global.PreFetchSize);
-            return CreateSubscription(subscriptionName, queueName, createConsumer, prefetchSize);
+            return SubscribeAsync(new AsyncSubscriptionOption<T>
+            {
+                SubscriptionName = subscriptionName,
+                MessageHandler = onReceiveMessage,
+                BatchSize = batchSize ?? Global.DefaultConsumerBatchSize,
+                QueuePrefetchSize = Global.PreFetchSize,
+            });
         }
 
         protected void TryConnectBeforeSubscribing()
@@ -388,6 +458,7 @@ namespace Burrow
                 var channel = _connection.CreateChannel();
                 channel.ModelShutdown += (c, reason) => 
                 {
+                    if (_disposed) return;
                     RaiseConsumerDisconnectedEvent(subscription);
                     TryReconnect(c, id, reason); 
                 };
@@ -464,9 +535,9 @@ namespace Burrow
             _setPersistent = persistentMode;
         }
 
-        public uint GetMessageCount<T>(string subscriptionName)
+        public uint GetMessageCount<T>(SubscriptionOption<T> subscriptionOption)
         {
-            return GetMessageCount(_routeFinder.FindQueueName<T>(subscriptionName));
+            return GetMessageCount((subscriptionOption.RouteFinder ?? _routeFinder).FindQueueName<T>(subscriptionOption.SubscriptionName));
         }
 
         public uint GetMessageCount(string queueName)
@@ -492,14 +563,22 @@ namespace Burrow
 
         public void Dispose()
         {
+            _disposed = true;
+            DisposeConsumerManager();
+
             //NOTE: Sometimes, disposing the channel blocks current thread
             var task = Task.Factory.StartNew(() => _createdChannels.ForEach(DisposeChannel), Global.DefaultTaskCreationOptionsProvider());
-            task.ContinueWith(t => _createdChannels.Clear(), Global.DefaultTaskContinuationOptionsProvider());
+            task.ContinueWith(t => _createdChannels.Clear(), Global.DefaultTaskContinuationOptionsProvider())
+                .Wait((int)Global.ConsumerDisposeTimeoutInSeconds * 1000);
             
             if (_connection.IsConnected)
             {
                 _connection.Dispose();
             }
+        }
+
+		protected virtual void DisposeConsumerManager()
+        {
             _consumerManager.Dispose();
         }
 
@@ -523,6 +602,9 @@ namespace Burrow
             }
         }
 
+        /// <summary>
+        /// Get the static <see cref="TunnelFactory"/> to create <see cref="ITunnel"/>
+        /// </summary>
         public static TunnelFactory Factory { get; internal set; }
         static RabbitTunnel()
         {

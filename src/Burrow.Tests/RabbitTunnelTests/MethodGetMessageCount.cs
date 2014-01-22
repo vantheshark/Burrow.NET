@@ -25,7 +25,10 @@ namespace Burrow.Tests.RabbitTunnelTests
             var tunnel = new RabbitTunnel(routeFinder, durableConnection);
 
             // Action
-            var count = tunnel.GetMessageCount<Customer>("subscriptionName");
+            var count = tunnel.GetMessageCount(new SubscriptionOption<Customer>
+            {
+                SubscriptionName = "subscriptionName"
+            });
 
             // Assert
             Assert.AreEqual((uint)100, count);
@@ -48,7 +51,10 @@ namespace Burrow.Tests.RabbitTunnelTests
             var tunnel = new RabbitTunnel(routeFinder, durableConnection);
 
             // Action
-            var count = tunnel.GetMessageCount<Customer>("subscriptionName");
+            var count = tunnel.GetMessageCount(new SubscriptionOption<Customer>
+            {
+                SubscriptionName = "subscriptionName"
+            });
 
             // Assert
             Assert.AreEqual((uint)0, count);

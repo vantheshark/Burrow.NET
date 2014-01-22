@@ -58,7 +58,17 @@ namespace Burrow.Internal
         public void ClearConsumers()
         {
             _watcher.DebugFormat("Clearing consumer subscriptions");
-            _createdConsumers.OfType<IDisposable>().ToList().ForEach(c => c.Dispose());
+            _createdConsumers.OfType<IDisposable>().ToList().AsParallel().ForAll(c =>
+            {
+                try
+                {
+                    c.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _watcher.Error(ex);
+                }
+            });
             _createdConsumers.Clear();
         }
 

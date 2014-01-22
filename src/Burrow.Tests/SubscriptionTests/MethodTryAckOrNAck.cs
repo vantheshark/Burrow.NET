@@ -21,7 +21,7 @@ namespace Burrow.Tests.SubscriptionTests
             Subscription.TryAckOrNAck(x => x.BasicAck(0, false), null, watcher);
 
             // Assert
-            watcher.Received(1).InfoFormat("Trying ack/nack msg buth the Channel is null, will not do anything");
+            watcher.Received(1).InfoFormat("Trying ack/nack msg but the Channel is null, will not do anything");
         }
 
         [TestMethod]

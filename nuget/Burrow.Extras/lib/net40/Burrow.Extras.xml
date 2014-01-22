@@ -4,6 +4,34 @@
         <name>Burrow.Extras</name>
     </assembly>
     <members>
+        <member name="T:Burrow.Extras.PriorityAsyncSubscriptionOption`1">
+            <summary>
+            Provide options to asynchronously subscribe to priority queues, the messages will not be automatically acked
+            <para>You have to use the returned <see cref="T:Burrow.Extras.Internal.CompositeSubscription"/> object to ack/nack the message when finish</para>
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:Burrow.Extras.PriorityAsyncSubscriptionOption`1.MaxPriorityLevel">
+            <summary>
+            The max priority level value for priority queues
+            <para>If you have Queue_Priority0, Queue_Priority1, Queue_Priority2 then MaxPriorityLevel = 2</para>
+            </summary>
+        </member>
+        <member name="P:Burrow.Extras.PriorityAsyncSubscriptionOption`1.ComparerType">
+            <summary>
+            Optional, a type of IComparer`[T] to compare the messages priorities
+            </summary>
+        </member>
+        <member name="P:Burrow.Extras.PriorityAsyncSubscriptionOption`1.QueueSuffixNameConvention">
+            <summary>
+            Optional, provide a class to resolve the suffix name for priority queues, default is _Priority[PriorityNumber]
+            </summary>
+        </member>
+        <member name="P:Burrow.Extras.PriorityAsyncSubscriptionOption`1.QueuePrefetchSizeSelector">
+            <summary>
+            Optional, provide a way to select different prefetch size for different priority queues. Default is <see cref="P:Burrow.AsyncSubscriptionOption`1.QueuePrefetchSize"/>
+            </summary>
+        </member>
         <member name="T:C5.IntervalHeap`1">
             <summary>
             A priority queue class based on an interval heap data structure.
@@ -2687,20 +2715,34 @@
         </member>
         <member name="M:Burrow.Extras.ITunnelWithPrioritySupport.Publish``1(``0,System.UInt32)">
             <summary>
-            Publish a message with priority
+            Publish a message to a "headers" exchange (with priority support) defined by route finder. The message will eventually be routed to the queue(s) by provided priority value
             </summary>
             <typeparam name="T"></typeparam>
-            <param name="rabbit"></param>
+            <param name="rabbit">A message to publish</param>
             <param name="priority"></param>
         </member>
-        <member name="M:Burrow.Extras.ITunnelWithPrioritySupport.Publish``1(``0,System.String,System.UInt32)">
+        <member name="M:Burrow.Extras.ITunnelWithPrioritySupport.Publish``1(``0,System.UInt32,System.Collections.Generic.IDictionary{System.String,System.Object})">
             <summary>
-            Publish a message with priority and routing key
+            Publish a message with a routing key and custom headers value to a "headers" exchange (with priority support) defined by route finder. The message will eventually be routed to the queue(s) by provided priority value
             </summary>
             <typeparam name="T"></typeparam>
-            <param name="rabbit"></param>
-            <param name="routingKey"></param>
+            <param name="rabbit">A message to publish</param>
             <param name="priority"></param>
+            <param name="customHeaders">If you're publishing to a Header exchange, this method allows you to put your header parameters</param>
+        </member>
+        <member name="M:Burrow.Extras.ITunnelWithPrioritySupport.Subscribe``1(Burrow.Extras.PrioritySubscriptionOption{``0})">
+            <summary>
+            Subscribe to priority queues with provided option, the messages WILL be automatically acked after the callback executed
+            </summary>
+        </member>
+        <member name="M:Burrow.Extras.ITunnelWithPrioritySupport.SubscribeAsync``1(Burrow.Extras.PriorityAsyncSubscriptionOption{``0})">
+            <summary>
+            Subscribe to queue with provided option, the message WON'T be automatically acked after the callback executed
+            <para>You have to use the returned <see cref="T:Burrow.Subscription"/> object to ack/nack the message when finish</para>
+            </summary>
+            <returns>CompositeSubscription is used to ack the messages later using the consumer tag and delivery id from MessageDeliverEventArgs
+            <para>Because this is async method, you must ensure that the subscription is created before using it to ack/nack messages</para>
+            </returns>
         </member>
         <member name="M:Burrow.Extras.ITunnelWithPrioritySupport.Subscribe``1(System.String,System.UInt32,System.Action{``0},System.Type)">
             <summary>
@@ -2708,7 +2750,7 @@
             </summary>
             <typeparam name="T"></typeparam>
             <param name="subscriptionName"></param>
-            <param name="maxPriorityLevel"></param>
+            <param name="maxPriorityLevel">n if you have following priority levels: 0 -&gt; n; 0 is the lowest level by default</param>
             <param name="onReceiveMessage"></param>
             <param name="comparerType">a type of IComparer`[T] to compare the messages priorities</param>
         </member>
@@ -2718,10 +2760,12 @@
             </summary>
             <typeparam name="T"></typeparam>
             <param name="subscriptionName"></param>
-            <param name="maxPriorityLevel"></param>
+            <param name="maxPriorityLevel">n if you have following priority levels: 0 -&gt; n; 0 is the lowest level by default</param>
             <param name="onReceiveMessage"></param>
             <param name="comparerType">a type of IComparer`[T] to compare the messages priorities</param>
-            <returns>CompositeSubscription is used to ack the messaages later using the consumer tag and delivery id from MessageDeliverEventArgs</returns>
+            <returns>CompositeSubscription is used to ack the messages later using the consumer tag and delivery id from MessageDeliverEventArgs
+            <para>Because this is async method, you must ensure that the subscription is created before using it to ack/nack messages</para>
+            </returns>
         </member>
         <member name="M:Burrow.Extras.ITunnelWithPrioritySupport.SubscribeAsync``1(System.String,System.UInt32,System.Action{``0},System.Type,System.Nullable{System.UInt16})">
             <summary>
@@ -2729,10 +2773,10 @@
             </summary>
             <typeparam name="T"></typeparam>
             <param name="subscriptionName"></param>
-            <param name="maxPriorityLevel"></param>
+            <param name="maxPriorityLevel">n if you have following priority levels: 0 -&gt; n; 0 is the lowest level by default</param>
             <param name="onReceiveMessage"></param>
             <param name="comparerType">a type of IComparer`[T] to compare the messages priorities</param>
-            <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
+            <param name="batchSize">The number of threads to process messages, Default is Global.DefaultConsumerBatchSize</param>
         </member>
         <member name="M:Burrow.Extras.ITunnelWithPrioritySupport.SubscribeAsync``1(System.String,System.UInt32,System.Action{``0,Burrow.MessageDeliverEventArgs},System.Type,System.Nullable{System.UInt16})">
             <summary>
@@ -2740,57 +2784,21 @@
             </summary>
             <typeparam name="T"></typeparam>
             <param name="subscriptionName"></param>
-            <param name="maxPriorityLevel"></param>
+            <param name="maxPriorityLevel">n if you have following priority levels: 0 -&gt; n; 0 is the lowest level by default</param>
             <param name="onReceiveMessage"></param>
             <param name="comparerType">a type of IComparer`[T] to compare the messages priorities</param>
-            <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
-            <returns>CompositeSubscription is used to ack the messaages later using the consumer tag and delivery id from MessageDeliverEventArgs</returns>
+            <param name="batchSize">The number of threads to process messages, Default is Global.DefaultConsumerBatchSize</param>
+            <returns>CompositeSubscription is used to ack the messages later using the consumer tag and delivery id from MessageDeliverEventArgs
+            <para>Because this is async method, you must ensure that the subscription is created before using it to ack/nack messages</para>
+            </returns>
         </member>
-        <member name="M:Burrow.Extras.ITunnelWithPrioritySupport.GetMessageCount``1(System.String,System.UInt32)">
+        <member name="M:Burrow.Extras.ITunnelWithPrioritySupport.GetMessageCount``1(Burrow.Extras.PrioritySubscriptionOption{``0})">
             <summary>
-            Return message count of all priority queues defined by maxPriorityLevel
+            Return message count of all priority queues
             </summary>
             <typeparam name="T"></typeparam>
-            <param name="subscriptionName"></param>
-            <param name="maxPriorityLevel"> </param>
+            <param name="subscriptionOption"> </param>
             <returns></returns>
-        </member>
-        <member name="M:Burrow.Extras.Internal.ITunnelWithPriorityQueuesSupport.Subscribe``1(System.String,System.Int32,System.Action{``0})">
-            <summary>
-            Subscribe to queue by using subscriptionName, the message will be automatically acked once the callback executed
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
-            <param name="priority"> </param>
-            <param name="onReceiveMessage">A callback method to process received message</param>
-        </member>
-        <member name="M:Burrow.Extras.Internal.ITunnelWithPriorityQueuesSupport.Subscribe``1(System.String,System.Int32,System.Action{``0,Burrow.MessageDeliverEventArgs})">
-            <summary>
-            Subscribe to queue by using subscriptionName, the message will be not automatically acked
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
-            <param name="onReceiveMessage">A callback method to process received message</param>
-            <returns>Subscription object which can be used to send Ack or NoAck message to server by the delivery tag received in the callback</returns>
-        </member>
-        <member name="M:Burrow.Extras.Internal.ITunnelWithPriorityQueuesSupport.SubscribeAsync``1(System.String,System.Int32,System.Action{``0})">
-            <summary>
-            Subscribe to queue by using subscriptionName, the message will be automatically acked once the callback executed
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
-            <param name="priority"> </param>
-            <param name="onReceiveMessage">A callback method to process received message</param>
-        </member>
-        <member name="M:Burrow.Extras.Internal.ITunnelWithPriorityQueuesSupport.SubscribeAsync``1(System.String,System.Int32,System.Action{``0,Burrow.MessageDeliverEventArgs})">
-            <summary>
-            Subscribe to queue by using subscriptionName, the message will be not automatically acked
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
-            <param name="priority"> </param>
-            <param name="onReceiveMessage">A callback method to process received message</param>
-            <returns>Subscription object which can be used to send Ack or NoAck message to server by the delivery tag received in the callback</returns>
         </member>
         <member name="T:C5.SortedArray`1">
             <summary>
@@ -7454,8 +7462,15 @@
         <member name="T:Burrow.Extras.Internal.CompositeSubscription">
             <summary>
             A composite subscription that contains others child Subscription object
-            This is a result of subscribe to priority queues without auto ack, use the instance of this class to ack messages later
+            <para>This is a result of subscribe to priority queues without auto ack, use the instance of this class to ack messages later</para>
             </summary>
+        </member>
+        <member name="M:Burrow.Extras.Internal.CompositeSubscription.GetByConsumerTag(System.String)">
+            <summary>
+            Get the <see cref="T:Burrow.Subscription"/> by consumer tag
+            </summary>
+            <param name="consumerTag"></param>
+            <returns></returns>
         </member>
         <member name="M:Burrow.Extras.Internal.CompositeSubscription.Ack(System.String,System.UInt64)">
             <summary>
@@ -7510,6 +7525,16 @@
         <member name="M:Burrow.Extras.Internal.CompositeSubscription.NackAllOutstandingMessages(System.String,System.Boolean)">
             <summary>
             Beware of using this method. It nacks all unacknowledged messages of the consumer by consumerTag 
+            </summary>
+        </member>
+        <member name="M:Burrow.Extras.Internal.CompositeSubscription.CancelAll">
+            <summary>
+            Cancel all consumers on all priority queues
+            </summary>
+        </member>
+        <member name="P:Burrow.Extras.Internal.CompositeSubscription.Count">
+            <summary>
+            Get the ammount of subscriptions to the priority queues
             </summary>
         </member>
         <member name="T:C5.Rec`2">
@@ -8671,6 +8696,32 @@
         <member name="P:Burrow.Extras.RouteSetupData.OptionalBindingData">
             <summary>
             Optional arguments to bind the queue to the exchange
+            </summary>
+        </member>
+        <member name="T:Burrow.Extras.PrioritySubscriptionOption`1">
+            <summary>
+            Provide options to subscribe to priority queues
+            </summary>
+        </member>
+        <member name="P:Burrow.Extras.PrioritySubscriptionOption`1.MaxPriorityLevel">
+            <summary>
+            The max priority level value for priority queues
+            <para>If you have Queue_Priority0, Queue_Priority1, Queue_Priority2 then MaxPriorityLevel = 2</para>
+            </summary>
+        </member>
+        <member name="P:Burrow.Extras.PrioritySubscriptionOption`1.ComparerType">
+            <summary>
+            Optional, a type of IComparer`[T] to compare the messages priorities
+            </summary>
+        </member>
+        <member name="P:Burrow.Extras.PrioritySubscriptionOption`1.QueueSuffixNameConvention">
+            <summary>
+            Optional, provide a class to resolve the suffix name for priority queues, default is _Priority[PriorityNumber]
+            </summary>
+        </member>
+        <member name="P:Burrow.Extras.PrioritySubscriptionOption`1.QueuePrefetchSizeSelector">
+            <summary>
+            Optional, provide a way to select different prefetch size for different priority queues. Default is <see cref="P:Burrow.AsyncSubscriptionOption`1.QueuePrefetchSize"/>
             </summary>
         </member>
         <member name="M:Burrow.Extras.Internal.PriorityBurrowConsumer.OnCancel">

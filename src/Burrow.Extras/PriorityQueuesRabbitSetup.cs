@@ -22,7 +22,7 @@ namespace Burrow.Extras
 
         protected override void DeclareExchange(ExchangeSetupData exchange, IModel model, string exchangeName)
         {
-            if (exchange != null && exchange.ExchangeType == "headers")
+            if (exchange != null && "headers".Equals(exchange.ExchangeType, StringComparison.InvariantCultureIgnoreCase))
             {
                 base.DeclareExchange(exchange, model, exchangeName);
             }

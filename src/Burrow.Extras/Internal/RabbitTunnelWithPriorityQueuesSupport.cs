@@ -42,28 +42,53 @@ namespace Burrow.Extras.Internal
 
         public void Publish<T>(T rabbit, uint priority)
         {
-            Publish(rabbit, _routeFinder.FindRoutingKey<T>(), priority);
+            Publish(rabbit, priority, null);
         }
 
-        public virtual void Publish<T>(T rabbit, string routingKey, uint priority)
+        private const string PriorityKey = "Priority";
+        private const string RoutingKey = "RoutingKey";
+        public void Publish<T>(T rabbit, uint priority, IDictionary<string, object> customHeaders)
         {
             try
             {
+				//NOTE: Routing key is ignored for Headers exchange anyway
+				var routingKey = _routeFinder.FindRoutingKey<T>();
                 var msgBody = _serializer.Serialize(rabbit);
-                var properties = CreateBasicPropertiesForPublish<T>();
+                var properties = CreateBasicPropertiesForPublishing<T>();
                 properties.Priority = (byte)priority;
                 properties.Headers = new Dictionary<string, object>
                 {
-                    {"Priority", priority.ToString(CultureInfo.InvariantCulture)},
-                    {"RoutingKey", routingKey}
+                    {PriorityKey, priority.ToString(CultureInfo.InvariantCulture)},
+                    {RoutingKey, routingKey}
                 };
+				if (customHeaders != null)
+                {
+                    foreach (var key in customHeaders.Keys)
+                    {
+                        if (key == null || customHeaders[key] == null)
+                        {
+                            continue;
+                        }
+                        if (PriorityKey.Equals(key, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            //NOTE: Do not overwrite the priority value
+                            continue;
+                        }
+
+                        properties.Headers.Add(key, customHeaders[key].ToString());
+                    }
+                }
 
                 var exchangeName = _routeFinder.FindExchangeName<T>();
                 lock (_tunnelGate)
                 {
                     DedicatedPublishingChannel.BasicPublish(exchangeName, routingKey, properties, msgBody);
                 }
-                _watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
+                
+                if (_watcher.IsDebugEnable)
+                {
+                	_watcher.DebugFormat("Published to {0}, CorrelationId {1}", exchangeName, properties.CorrelationId);
+            	}
             }
             catch (Exception ex)
             {
@@ -71,70 +96,70 @@ namespace Burrow.Extras.Internal
             }
         }
 
-        public void Subscribe<T>(PrioritySubscriptionOption<T> subscriptionOption)
+        public CompositeSubscription Subscribe<T>(PrioritySubscriptionOption<T> subscriptionOption)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
-            CreateSubscription<T>(subscriptionOption, createConsumer);
+            return CreateSubscription<T>(subscriptionOption, createConsumer);
         }
 
-        public void SubscribeAsync<T>(PriorityAsyncSubscriptionOption<T> subscriptionOption)
+        public CompositeSubscription SubscribeAsync<T>(PriorityAsyncSubscriptionOption<T> subscriptionOption)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
-            CreateSubscription<T>(subscriptionOption, createConsumer);
+            return CreateSubscription<T>(subscriptionOption, createConsumer);
         }
 
-        public void Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null)
+        public CompositeSubscription Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null)
         {
-            TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage, 1);
-            CreateSubscription<T>(new PrioritySubscriptionOption<T>
+            return Subscribe(new PrioritySubscriptionOption<T>
             {
                 SubscriptionName = subscriptionName,
                 MaxPriorityLevel = maxPriorityLevel,
                 MessageHandler = onReceiveMessage,
-                ComparerType = comparerType
-            }, createConsumer);
+                ComparerType = comparerType,
+                BatchSize = 1,
+                QueuePrefetchSize = Global.PreFetchSize,
+            });
         }
 
         public CompositeSubscription Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T, MessageDeliverEventArgs> onReceiveMessage, Type comparerType = null)
         {
-            TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, 1);
-            return CreateSubscription<T>(new PriorityAsyncSubscriptionOption<T>
+            return SubscribeAsync(new PriorityAsyncSubscriptionOption<T>
             {
                 SubscriptionName = subscriptionName,
                 MaxPriorityLevel = maxPriorityLevel,
                 MessageHandler = onReceiveMessage,
-                ComparerType = comparerType
-            }, createConsumer);
+                ComparerType = comparerType,
+                BatchSize = 1,
+                QueuePrefetchSize = Global.PreFetchSize,
+            });
         }
 
-        public void SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
+        public CompositeSubscription SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
         {
-            TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
-            CreateSubscription<T>(new PrioritySubscriptionOption<T>
+            return Subscribe(new PrioritySubscriptionOption<T>
             {
                 SubscriptionName = subscriptionName,
                 MaxPriorityLevel = maxPriorityLevel,
                 MessageHandler = onReceiveMessage,
-                ComparerType = comparerType
-            }, createConsumer);
+                ComparerType = comparerType,
+                BatchSize = batchSize ?? Global.DefaultConsumerBatchSize,
+                QueuePrefetchSize = Global.PreFetchSize,
+            });
         }
 
         public CompositeSubscription SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T, MessageDeliverEventArgs> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
         {
-            TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
-            return CreateSubscription<T>(new PriorityAsyncSubscriptionOption<T>
+            return SubscribeAsync(new PriorityAsyncSubscriptionOption<T>
             {
                 SubscriptionName = subscriptionName,
                 MaxPriorityLevel = maxPriorityLevel,
                 MessageHandler = onReceiveMessage,
-                ComparerType = comparerType
-            }, createConsumer);
+                ComparerType = comparerType,
+                BatchSize = batchSize ?? Global.DefaultConsumerBatchSize,
+                QueuePrefetchSize = Global.PreFetchSize,
+            });
         }
 
         public uint GetMessageCount<T>(PrioritySubscriptionOption<T> subscriptionOption)
@@ -146,8 +171,7 @@ namespace Burrow.Extras.Internal
                 {
                     for (uint level = 0; level <= subscriptionOption.MaxPriorityLevel; level++)
                     {
-                        IPrioritySubscriptionOption op = subscriptionOption;
-                        var queueName = GetPriorityQueueName<T>(op, level);
+                        var queueName = GetPriorityQueueName<T>(subscriptionOption, level);
                         var result = DedicatedPublishingChannel.QueueDeclarePassive(queueName);
                         if (result != null)
                         {
@@ -269,6 +293,12 @@ namespace Burrow.Extras.Internal
             {
                 throw new ArgumentException("comparerType must be assignable from IComparer<>", "comparerType", ex);
             }
+        }
+
+        protected override void DisposeConsumerManager()
+        {
+            base.DisposeConsumerManager();
+            _priorityConsumerManager.Dispose();
         }
     }
 }
