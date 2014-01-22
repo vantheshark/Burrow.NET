@@ -14,7 +14,7 @@ namespace Burrow.Tests.ConnectionStringTests
             var con = new ConnectionString("host=localhost;username=guest;password=guest");
 
             // Action
-            var port = con.GetValue("port");
+            con.GetValue("port");
         }
 
         [TestMethod]
@@ -51,6 +51,20 @@ namespace Burrow.Tests.ConnectionStringTests
             var con = new ConnectionString("host=localhost:5673;username=guest;password=guest");
             Assert.AreEqual(5673, con.Port);
             Assert.AreEqual("localhost", con.Host);
+        }
+
+        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        public void Should_throw_exception_if_provided_key_is_null()
+        {
+            var con = new ConnectionString("host=localhost:5673;username=guest;password=guest");
+            con.GetValue(null);
+        }
+
+        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        public void When_get_with_default_value_should_throw_exception_if_provided_key_is_null()
+        {
+            var con = new ConnectionString("host=localhost:5673;username=guest;password=guest");
+            con.GetValue(null, "ABC");
         }
     }
 }

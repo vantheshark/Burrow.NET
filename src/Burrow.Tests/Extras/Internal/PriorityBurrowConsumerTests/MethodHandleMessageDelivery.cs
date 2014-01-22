@@ -18,6 +18,10 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             // Arrange
             var channel = Substitute.For<IModel>();
             var handler = Substitute.For<IMessageHandler>();
+            //To decrease the messagages in progress so it doesn't have to wait when dispose at the end
+            handler.When(x => x.HandleMessage(Arg.Any<BasicDeliverEventArgs>()))
+                   .Do(callInfo => handler.HandlingComplete += Raise.Event<MessageHandlingEvent>(callInfo.Arg<BasicDeliverEventArgs>()));
+
             var queue = Substitute.For<IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>>();
             queue.When(x => x.Dequeue()).Do(callInfo => Thread.Sleep(100));
 
@@ -32,7 +36,8 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             // Action
             consumer.HandleMessageDelivery(new BasicDeliverEventArgs
             {
-                BasicProperties = Substitute.For<IBasicProperties>()
+                BasicProperties = Substitute.For<IBasicProperties>(),
+                ConsumerTag = "Burrow",
             });
 
             // Assert

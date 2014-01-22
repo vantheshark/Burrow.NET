@@ -2,7 +2,6 @@
 using Burrow.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.HaConnectionTests
@@ -35,10 +34,6 @@ namespace Burrow.Tests.Internal.HaConnectionTests
             Assert.AreEqual(5672, connection.ConnectionFactory.Port);
             Assert.AreEqual("/", connection.ConnectionFactory.VirtualHost);
         }
-
-
-
-
     }
 }
 // ReSharper restore InconsistentNaming

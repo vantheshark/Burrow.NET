@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using Burrow.Extras.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -38,7 +37,6 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             routeFinder.Received().FindRoutingKey<string>();
             newChannel.Received().BasicPublish(Arg.Any<string>(), Arg.Any<string>(), Arg.Is<IBasicProperties>(arg => arg.Headers["Priority"].ToString() == "10"), Arg.Any<byte[]>());
         }
-
 
         [TestMethod]
         public void Should_not_overwrite_the_priority_if_customer_headers_has_Priority_value_set()

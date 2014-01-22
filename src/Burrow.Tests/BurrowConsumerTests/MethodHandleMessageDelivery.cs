@@ -19,9 +19,15 @@ namespace Burrow.Tests.BurrowConsumerTests
             var model = Substitute.For<IModel>();
             model.IsOpen.Returns(true);
             var msgHandler = Substitute.For<IMessageHandler>();
+            //To decrease the messagages in progress so it doesn't have to wait when dispose at the end
+            msgHandler.When(x => x.HandleMessage(Arg.Any<BasicDeliverEventArgs>()))
+                      .Do(callInfo => msgHandler.HandlingComplete += Raise.Event<MessageHandlingEvent>(callInfo.Arg<BasicDeliverEventArgs>()));
+
+            var watcher = Substitute.For<IRabbitWatcher>();
+            watcher.IsDebugEnable.Returns(true);
             msgHandler.When(x => x.HandleMessage(Arg.Any<BasicDeliverEventArgs>()))
                       .Do(callInfo => waitHandler.Set());
-            var consumer = new BurrowConsumer(model, msgHandler, Substitute.For<IRabbitWatcher>(), true, 3);
+            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3); 
 
             // Action
             consumer.Queue.Enqueue(new BasicDeliverEventArgs
@@ -37,7 +43,7 @@ namespace Burrow.Tests.BurrowConsumerTests
         }
 
         [TestMethod]
-        public void When_called_should_dispose_the_thread_if_the_message_handler_throws_exception()
+        public void When_called_should_throw_BadMessageHandlerException_if_the_message_handler_throws_exception()
         {
             var waitHandler = new ManualResetEvent(false);
             var watcher = Substitute.For<IRabbitWatcher>();

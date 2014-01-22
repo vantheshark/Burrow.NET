@@ -60,6 +60,10 @@ namespace Burrow.Tests.RabbitTunnelTests
             get { return _createdChannels; }
         }
 
+        public IConsumerManager ConsumerManager
+        {
+            get { return _consumerManager; }
+        }
 
         public bool? OnBrokerRejectedMessageIsCall;
         protected override void OnBrokerRejectedMessage(IModel model, RabbitMQ.Client.Events.BasicNackEventArgs args)

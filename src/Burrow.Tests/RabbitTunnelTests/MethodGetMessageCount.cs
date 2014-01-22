@@ -35,6 +35,31 @@ namespace Burrow.Tests.RabbitTunnelTests
         }
 
         [TestMethod]
+        public void Should_return_0_if_QueueDeclarePassive_return_null()
+        {
+            // Arrange
+            var newChannel = Substitute.For<IModel>();
+            QueueDeclareOk declareResult = null;
+            newChannel.QueueDeclarePassive(Arg.Any<string>()).Returns(declareResult);
+            newChannel.IsOpen.Returns(true);
+            var routeFinder = Substitute.For<IRouteFinder>();
+            var durableConnection = Substitute.For<IDurableConnection>();
+            durableConnection.IsConnected.Returns(true);
+            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            durableConnection.CreateChannel().Returns(newChannel);
+            var tunnel = new RabbitTunnel(routeFinder, durableConnection);
+
+            // Action
+            var count = tunnel.GetMessageCount(new SubscriptionOption<Customer>
+            {
+                SubscriptionName = "subscriptionName"
+            });
+
+            // Assert
+            Assert.AreEqual((uint)0, count);
+        }
+
+        [TestMethod]
         public void Should_catch_all_exception_and_return_0()
         {
             // Arrange

@@ -36,6 +36,32 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.Received().BasicPublish(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IBasicProperties>(), Arg.Any<byte[]>());
         }
 
+        [TestMethod]
+        public void Should_be_able_to_publish_with_routingKey()
+        {
+            // Arrange
+            var newChannel = Substitute.For<IModel>();
+            newChannel.IsOpen.Returns(true);
+            var routeFinder = Substitute.For<IRouteFinder>();
+            var durableConnection = Substitute.For<IDurableConnection>();
+            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            durableConnection.When(x => x.Connect()).Do(callInfo =>
+            {
+                durableConnection.Connected += Raise.Event<Action>();
+                durableConnection.IsConnected.Returns(true);
+            });
+
+            durableConnection.CreateChannel().Returns(newChannel);
+            var tunnel = new RabbitTunnel(routeFinder, durableConnection);
+
+            // Action
+            tunnel.Publish("Muahaha", "RoutingKey");
+
+            // Assert
+            routeFinder.DidNotReceive().FindRoutingKey<string>();
+            newChannel.Received().BasicPublish(Arg.Any<string>(), "RoutingKey", Arg.Is<IBasicProperties>(p => p.Headers.Count == 0), Arg.Any<byte[]>());
+        }
+
 		[TestMethod]
         public void Should_publish_message_to_header_exchange_with_custom_headers_if_provided()
         {

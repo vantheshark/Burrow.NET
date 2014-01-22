@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using RabbitMQ.Client;
 
@@ -74,6 +75,7 @@ namespace Burrow.Internal
             VirtualHost = factory.VirtualHost;
         }
 
+        [ExcludeFromCodeCoverage]
         public override IConnection CreateConnection()
         {
             var connection = base.CreateConnection();
@@ -81,6 +83,7 @@ namespace Burrow.Internal
             return connection;
         }
 
+        [ExcludeFromCodeCoverage]
         public override IConnection CreateConnection(int maxRedirects)
         {
             var connection = base.CreateConnection(maxRedirects);

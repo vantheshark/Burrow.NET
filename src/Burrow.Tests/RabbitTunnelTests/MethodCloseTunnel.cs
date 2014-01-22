@@ -28,7 +28,23 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.Received(4).BasicConsume("Queue", false, Arg.Is<string>(x => x.StartsWith("subscriptionName")), Arg.Any<IBasicConsumer>());
         }
 
-        
+        [TestMethod]
+        public void Should_do_nothing_if_disposed()
+        {
+            // Arrange
+            var newChannel = Substitute.For<IModel>();
+            IDurableConnection durableConnection;
+            var tunnel = RabbitTunnelForTest.CreateTunnel(newChannel, out durableConnection);
+            tunnel.Subscribe<Customer>("subscriptionName", x => { });
+            tunnel.Dispose();
+
+            // Action
+            durableConnection.Disconnected += Raise.Event<Action>();
+
+            // Assert
+            newChannel.Received(2).Abort(); //1 for publishing channel, 1 for the above subscription
+            newChannel.Received(2).Dispose(); //1 for publishing channel, 1 for the above subscription
+        }
     }
 }
 // ReSharper restore InconsistentNaming

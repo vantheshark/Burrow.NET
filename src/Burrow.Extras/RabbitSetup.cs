@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Burrow.Internal;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
@@ -52,21 +53,9 @@ namespace Burrow.Extras
             if (_factory == null)
             {
                 var clusterConnections = _connectionString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                if (clusterConnections.Length > 1)
-                {
-                    _watcher.InfoFormat("Found multiple Connection String, will use '{0}' to setup queues", clusterConnections[0]);
-                }
-                ConnectionString connectionValues = clusterConnections.Length > 1
-                                                  ? new ConnectionString(clusterConnections[0])
-                                                  : new ConnectionString(_connectionString);
-                _factory = new ConnectionFactory
-                {
-                    HostName = connectionValues.Host,
-                    Port = connectionValues.Port,
-                    VirtualHost = connectionValues.VirtualHost,
-                    UserName = connectionValues.UserName,
-                    Password = connectionValues.Password,
-                };
+                var factories = clusterConnections.Select(x => new ManagedConnectionFactory(new ConnectionString(x))).ToList();
+                var haConnection = new HaConnection(new DefaultRetryPolicy(), Global.DefaultWatcher, factories);
+                return haConnection.ConnectionFactory;
             }
             return _factory;
         }

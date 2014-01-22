@@ -3,6 +3,9 @@ using System.Threading;
 
 namespace Burrow.Internal
 {
+    /// <summary>
+    /// The default retry policy
+    /// </summary>
     public class DefaultRetryPolicy : IRetryPolicy
     {
         private readonly int _maxDelayTime;
@@ -10,6 +13,10 @@ namespace Burrow.Internal
         private volatile bool _iswaiting;
         private volatile int _delayTime;
 
+        /// <summary>
+        /// Initialize the default retry policy with maxDelayTime = 5 minutes
+        /// </summary>
+        /// <param name="maxDelayTime"></param>
         public DefaultRetryPolicy(int maxDelayTime = 5 * 60 * 1000 /* 5 minutes */)
         {
             _maxDelayTime = maxDelayTime;

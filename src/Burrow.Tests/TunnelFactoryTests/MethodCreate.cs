@@ -16,6 +16,23 @@ namespace Burrow.Tests.TunnelFactoryTests
             RabbitTunnel.Factory.Create();
         }
 
+
+        [TestMethod]
+        public void Should_be_able_to_create_tunnel_with_provided_values()
+        {
+            // Arrange
+            FieldInfo fi = typeof(RabbitTunnel).GetField("_connection", BindingFlags.NonPublic | BindingFlags.Instance);
+            RabbitTunnel.Factory = new TunnelFactory();
+
+            // Action
+            var tunnel = RabbitTunnel.Factory.Create("localhost", 1000, "/", "guest", "guest", NSubstitute.Substitute.For<IRabbitWatcher>());
+
+            // Assert
+            Assert.IsNotNull(fi);
+            Assert.IsTrue(fi.GetValue(tunnel) is DurableConnection);
+        }
+
+
         [TestMethod]
         public void Should_create_ha_connection_if_provide_cuslter_connection_string()
         {

@@ -130,10 +130,12 @@
     <Compile Include="Extras\RabbitSetupTests\MethodBindQueue.cs" />
     <Compile Include="Extras\TunnelFactoryExtensionsTests\MethodChangePriorityQueueSuffixConvention.cs" />
     <Compile Include="Internal\ConsoleWatcherTests\MethodDebugFormat.cs" />
+    <Compile Include="Internal\ConsumerManagerTests\MethodClearConsumers.cs" />
     <Compile Include="Internal\HaConnectionTests\Constructor.cs" />
     <Compile Include="Internal\HaConnectionTests\MethodConnect.cs" />
     <Compile Include="Internal\ManagedConnectionFactoryTests\Constructor.cs" />
     <Compile Include="Internal\ManagedConnectionFactoryTests\MethodCreateConnection.cs" />
+    <Compile Include="Internal\RoundRobinListTests\MethodGetNext.cs" />
     <Compile Include="RabbitTunnelTests\MethodGetMessageCount.cs" />
     <Compile Include="RabbitTunnelTests\MethodSetSerializer.cs" />
     <Compile Include="RabbitTunnelTests\MethodTryReconnect.cs" />
@@ -165,6 +167,7 @@
     <Compile Include="RPC\RpcRouteFinderAdapterTests\MethodFindQueueName.cs" />
     <Compile Include="RPC\RpcRouteFinderAdapterTests\MethodFindRoutingKey.cs" />
     <Compile Include="RPC\SomeMessage.cs" />
+    <Compile Include="SubscriptionTests\MethodTryCancel.cs" />
     <Compile Include="SubscriptionTests\MethodCancel.cs" />
     <Compile Include="SubscriptionTests\MethodNack.cs" />
     <Compile Include="SubscriptionTests\MethodAck.cs" />

@@ -29,6 +29,23 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
 
 
         [TestMethod]
+        public void Should_bind_with_provided_params()
+        {
+            // Arrange
+            var model = Substitute.For<IModel>();
+            var setup = RabbitSetupForTest.CreateRabbitSetup(model);
+
+            // Action
+            var queueSetupData = new QueueSetupData();
+            queueSetupData.Arguments.Add("Key1", "Val1");
+            setup.BindQueue<Customer>(model, queueSetupData, "ExchangeName", "QueueName", "RoutingKey");
+
+            // Assert
+            model.Received().QueueBind(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Is<IDictionary<string, object>>(arg => arg["Key1"] == "Val1"));
+        }
+
+
+        [TestMethod]
         public void Should_catch_all_exception()
         {
             // Arrange

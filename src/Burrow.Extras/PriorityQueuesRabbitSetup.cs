@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using Burrow.Extras.Internal;
@@ -8,14 +7,24 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Burrow.Extras
 {
+    /// <summary>
+    /// Initialize a setup class to create exchanges & priority queues
+    /// </summary>
     public class PriorityQueuesRabbitSetup : RabbitSetup
     {
         internal static volatile IPriorityQueueSuffix GlobalPriorityQueueSuffix = new PriorityQueueSuffix();
 
+        /// <summary>
+        /// Initialize a setup with provided connection string
+        /// </summary>
+        /// <param name="connectionString"></param>
         public PriorityQueuesRabbitSetup(string connectionString) : base(connectionString)
         {
         }
 
+        /// <summary>
+        /// Initialize a setup with provided connection string and watcher
+        /// </summary>
         public PriorityQueuesRabbitSetup(IRabbitWatcher watcher, string connectionString) : base(watcher, connectionString)
         {
         }

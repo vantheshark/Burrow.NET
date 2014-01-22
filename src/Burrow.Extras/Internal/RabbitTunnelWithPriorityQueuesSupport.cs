@@ -187,7 +187,7 @@ namespace Burrow.Extras.Internal
             return count;
         }
 
-        private uint GetProperPrefetchSize(IPrioritySubscriptionOption subscriptionOption, uint priority)
+        private ushort GetProperPrefetchSize(IPrioritySubscriptionOption subscriptionOption, uint priority)
         {
             var prefetchSize = subscriptionOption.QueuePrefetchSizeSelector != null
                              ? subscriptionOption.QueuePrefetchSizeSelector(priority)
@@ -197,7 +197,13 @@ namespace Burrow.Extras.Internal
             {
                 prefetchSize = Global.PreFetchSize;
             }
-            return prefetchSize;
+
+            if (prefetchSize > ushort.MaxValue)
+            {
+                _watcher.WarnFormat("The prefetch size is too high {0}, the queue will prefetch the maximum {1} msgs", prefetchSize, ushort.MaxValue);
+            }
+
+            return (ushort)Math.Min(ushort.MaxValue, prefetchSize);
         }
 
         private CompositeSubscription CreateSubscription<T>(IPrioritySubscriptionOption subscriptionOption, Func<IModel, string, IBasicConsumer> createConsumer)
@@ -235,14 +241,7 @@ namespace Burrow.Extras.Internal
                     };
 
                     var prefetchSize = GetProperPrefetchSize(subscriptionOption, priority);
-                    if (prefetchSize <= ushort.MaxValue)
-                    {
-                        channel.BasicQos(0, (ushort)prefetchSize, false);
-                    }
-                    else
-                    {
-                        _watcher.WarnFormat("The prefetch size is too high {0}, the queue will prefetch all the msgs", prefetchSize);
-                    }
+                    channel.BasicQos(0, (ushort)prefetchSize, false);
 
                     _createdChannels.Add(channel);
 
