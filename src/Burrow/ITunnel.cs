@@ -3,6 +3,9 @@ using RabbitMQ.Client;
 
 namespace Burrow
 {
+    /// <summary>
+    /// Implement this interface to provide methods to subscribe & publish messages
+    /// </summary>
     public interface ITunnel : IDisposable
     {
         /// <summary>
@@ -47,6 +50,17 @@ namespace Burrow
         /// <param name="rabbit"></param>
         /// <param name="routingKey"></param>
         void Publish<T>(T rabbit, string routingKey);
+
+        /// <summary>
+        /// Subscribe to queue with provided option, the message WILL be automatically acked after the callback executed
+        /// </summary>
+        void Subscribe<T>(SubscriptionOption<T> subscriptionOption);
+
+        /// <summary>
+        /// Subscribe to queue with provided option, the message WON'T be automatically acked after the callback executed
+        /// <para>You have to use the returned <see cref="Subscription"/> object to ack/nack the message when finish</para>
+        /// </summary>
+        void SubscribeAsync<T>(AsyncSubscriptionOption<T> subscriptionOption);
         
         /// <summary>
         /// Subscribe to queue by using subscriptionName, the message will be automatically acked once the callback executed
@@ -54,6 +68,7 @@ namespace Burrow
         /// <typeparam name="T"></typeparam>
         /// <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
         /// <param name="onReceiveMessage">A callback method to process received message</param>
+        [Obsolete("Use Subscribe with SubscriptionOption instead")]
         void Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage);
 
         /// <summary>
@@ -63,6 +78,7 @@ namespace Burrow
         /// <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
         /// <param name="onReceiveMessage">A callback method to process received message</param>
         /// <returns>Subscription object which can be used to send Ack or NoAck message to server by the delivery tag received in the callback</returns>
+        [Obsolete("Use Subscribe with AsyncSubscriptionOption instead")]
         Subscription Subscribe<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage);
 
         /// <summary>
@@ -72,16 +88,18 @@ namespace Burrow
         /// <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
         /// <param name="onReceiveMessage">A callback method to process received message</param>
         /// <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
+        [Obsolete("Use Subscribe with SubscriptionOption instead")]
         void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize = null);
 
         /// <summary>
-        /// Subscribe to queue by using subscriptionName, the message will be not automatically acked
+        /// Subscribe to queue by using subscriptionName, the message won't be automatically acked
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="subscriptionName">SubscriptionName together with the type of Message can be used to define the queue name in IRouteFinder</param>
         /// <param name="onReceiveMessage">A callback method to process received message</param>
         /// <param name="batchSize">The number of threads to process messaages, Default is Global.DefaultConsumerBatchSize</param>
         /// <returns>Subscription object which can be used to send Ack or NoAck message to server by the delivery tag received in the callback</returns>
+        [Obsolete("Use Subscribe with AsyncSubscriptionOption instead")]
         Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize = null);
 
         /// <summary>
@@ -97,13 +115,13 @@ namespace Burrow
         void SetSerializer(ISerializer serializer);
 
         /// <summary>
-        /// Change persisten mode
+        /// Change persisten mode for published messages
         /// </summary>
         /// <param name="persistentMode"></param>
         void SetPersistentMode(bool persistentMode);
 
         /// <summary>
-        /// Return message count of a current queue whose name is determined by type of message T and its subscriptionName
+        /// Return message count of a current queue whose name is determined by type of message T and the subscriptionName
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="subscriptionName"></param>

@@ -103,7 +103,7 @@ namespace Burrow
 
         /// <summary>
         /// This method creates a background Task to handle the job.
-        /// It will catches all exceptions
+        /// It will catch all exceptions
         /// </summary>
         /// <param name="eventArgs"></param>
         public void HandleMessage(BasicDeliverEventArgs eventArgs)

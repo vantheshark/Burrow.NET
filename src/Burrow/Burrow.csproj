@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsyncSubscriptionOption.cs" />
     <Compile Include="BadMessageHandlerException.cs" />
     <Compile Include="DefaultMessageHandler.cs" />
     <Compile Include="ConnectionString.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="BurrowConsumer.cs" />
     <Compile Include="Subscription.cs" />
     <Compile Include="DefaultTaskCreationOptionProvider.cs" />
+    <Compile Include="SubscriptionOption.cs" />
     <Compile Include="TunnelFactory.cs" />
   </ItemGroup>
   <ItemGroup>

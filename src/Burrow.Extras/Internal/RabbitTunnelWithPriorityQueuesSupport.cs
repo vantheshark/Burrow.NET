@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Globalization;
 using Burrow.Internal;
 using RabbitMQ.Client;
@@ -50,12 +49,14 @@ namespace Burrow.Extras.Internal
         {
             try
             {
-                byte[] msgBody = _serializer.Serialize(rabbit);
-                IBasicProperties properties = CreateBasicPropertiesForPublish<T>();
+                var msgBody = _serializer.Serialize(rabbit);
+                var properties = CreateBasicPropertiesForPublish<T>();
                 properties.Priority = (byte)priority;
-                properties.Headers = new Dictionary<string, object>();
-                properties.Headers.Add("Priority", priority.ToString(CultureInfo.InvariantCulture));
-                properties.Headers.Add("RoutingKey", routingKey);
+                properties.Headers = new Dictionary<string, object>
+                {
+                    {"Priority", priority.ToString(CultureInfo.InvariantCulture)},
+                    {"RoutingKey", routingKey}
+                };
 
                 var exchangeName = _routeFinder.FindExchangeName<T>();
                 lock (_tunnelGate)
@@ -70,45 +71,83 @@ namespace Burrow.Extras.Internal
             }
         }
 
+        public void Subscribe<T>(PrioritySubscriptionOption<T> subscriptionOption)
+        {
+            TryConnectBeforeSubscribing();
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
+            CreateSubscription<T>(subscriptionOption, createConsumer);
+        }
+
+        public void SubscribeAsync<T>(PriorityAsyncSubscriptionOption<T> subscriptionOption)
+        {
+            TryConnectBeforeSubscribing();
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
+            CreateSubscription<T>(subscriptionOption, createConsumer);
+        }
+
         public void Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
-            CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage, 1);
+            CreateSubscription<T>(new PrioritySubscriptionOption<T>
+            {
+                SubscriptionName = subscriptionName,
+                MaxPriorityLevel = maxPriorityLevel,
+                MessageHandler = onReceiveMessage,
+                ComparerType = comparerType
+            }, createConsumer);
         }
 
         public CompositeSubscription Subscribe<T>(string subscriptionName, uint maxPriorityLevel, Action<T, MessageDeliverEventArgs> onReceiveMessage, Type comparerType = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
-            return CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, 1);
+            return CreateSubscription<T>(new PriorityAsyncSubscriptionOption<T>
+            {
+                SubscriptionName = subscriptionName,
+                MaxPriorityLevel = maxPriorityLevel,
+                MessageHandler = onReceiveMessage,
+                ComparerType = comparerType
+            }, createConsumer);
         }
 
         public void SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
-            CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
+            CreateSubscription<T>(new PrioritySubscriptionOption<T>
+            {
+                SubscriptionName = subscriptionName,
+                MaxPriorityLevel = maxPriorityLevel,
+                MessageHandler = onReceiveMessage,
+                ComparerType = comparerType
+            }, createConsumer);
         }
 
         public CompositeSubscription SubscribeAsync<T>(string subscriptionName, uint maxPriorityLevel, Action<T, MessageDeliverEventArgs> onReceiveMessage, Type comparerType = null, ushort? batchSize = null)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
-            return CreateSubscription<T>(subscriptionName, maxPriorityLevel, createConsumer, comparerType);
+            return CreateSubscription<T>(new PriorityAsyncSubscriptionOption<T>
+            {
+                SubscriptionName = subscriptionName,
+                MaxPriorityLevel = maxPriorityLevel,
+                MessageHandler = onReceiveMessage,
+                ComparerType = comparerType
+            }, createConsumer);
         }
 
-        public uint GetMessageCount<T>(string subscriptionName, uint maxPriorityLevel)
+        public uint GetMessageCount<T>(PrioritySubscriptionOption<T> subscriptionOption)
         {
             uint count = 0;
             try
             {
                 lock (_tunnelGate)
                 {
-                    EnsurePublishChannelIsCreated();
-                    for (uint level = 0; level <= maxPriorityLevel; level++)
+                    for (uint level = 0; level <= subscriptionOption.MaxPriorityLevel; level++)
                     {
-                        var queueName = GetPriorityQueueName<T>(subscriptionName, level);
+                        IPrioritySubscriptionOption op = subscriptionOption;
+                        var queueName = GetPriorityQueueName<T>(op, level);
                         var result = DedicatedPublishingChannel.QueueDeclarePassive(queueName);
                         if (result != null)
                         {
@@ -124,41 +163,61 @@ namespace Burrow.Extras.Internal
             return count;
         }
 
-        private CompositeSubscription CreateSubscription<T>(string subscriptionName, uint maxPriorityLevel, Func<IModel, string, IBasicConsumer> createConsumer, Type comparerType)
+        private uint GetProperPrefetchSize(IPrioritySubscriptionOption subscriptionOption, uint priority)
         {
-            var comparer = TryGetComparer(comparerType);
-            var compositeSubscription = new CompositeSubscription();
-            var maxSize = Global.PreFetchSize * ((int)maxPriorityLevel + 1);
-            var priorityQueue = new InMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>(maxSize, comparer);
-            var sharedSemaphore = string.Format("{0}{1}", subscriptionName, Guid.NewGuid());
-            for (uint level = 0; level <= maxPriorityLevel; level++)
+            var prefetchSize = subscriptionOption.QueuePrefetchSizeSelector != null
+                             ? subscriptionOption.QueuePrefetchSizeSelector(priority)
+                             : subscriptionOption.QueuePrefetchSize;
+
+            if (prefetchSize <= 0)
             {
-                var subscription = new Subscription { SubscriptionName = subscriptionName };
+                prefetchSize = Global.PreFetchSize;
+            }
+            return prefetchSize;
+        }
+
+        private CompositeSubscription CreateSubscription<T>(IPrioritySubscriptionOption subscriptionOption, Func<IModel, string, IBasicConsumer> createConsumer)
+        {
+            var comparer = TryGetComparer(subscriptionOption.ComparerType);
+            var compositeSubscription = new CompositeSubscription();
+
+            uint maxSize = 0;
+            for (uint level = 0; level <= subscriptionOption.MaxPriorityLevel; level++)
+            {
+                maxSize += GetProperPrefetchSize(subscriptionOption, level);
+            }
+            var priorityQueue = new InMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>(maxSize, comparer);
+
+            var sharedSemaphore = string.Format("{0}{1}", subscriptionOption.SubscriptionName, Guid.NewGuid());
+            for (uint level = 0; level <= subscriptionOption.MaxPriorityLevel; level++)
+            {
+                var subscription = new Subscription { SubscriptionName = subscriptionOption.SubscriptionName };
                 uint priority = level;
                 var id = Guid.NewGuid();
 
                 Action subscriptionAction = () =>
                 {
-                    subscription.QueueName = GetPriorityQueueName<T>(subscriptionName, priority);
+                    subscription.QueueName = GetPriorityQueueName<T>(subscriptionOption, priority);
                     if (string.IsNullOrEmpty(subscription.ConsumerTag))
                     {
                         // Keep the key here because it's used for the key indexes of internal cache
-                        subscription.ConsumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
+                        subscription.ConsumerTag = string.Format("{0}-{1}", subscriptionOption.SubscriptionName, Guid.NewGuid());
                     }
                     var channel = _connection.CreateChannel();
                     channel.ModelShutdown += (c, reason) =>
                     {
                         RaiseConsumerDisconnectedEvent(subscription);
                         TryReconnect(c, id, reason); 
-                        
                     };
-                    if (Global.PreFetchSize <= ushort.MaxValue)
+
+                    var prefetchSize = GetProperPrefetchSize(subscriptionOption, priority);
+                    if (prefetchSize <= ushort.MaxValue)
                     {
-                        channel.BasicQos(0, (ushort)Global.PreFetchSize, false);
+                        channel.BasicQos(0, (ushort)prefetchSize, false);
                     }
                     else
                     {
-                        _watcher.WarnFormat("The prefetch size is too high {0}, the queue will prefetch all the msgs", Global.PreFetchSize);
+                        _watcher.WarnFormat("The prefetch size is too high {0}, the queue will prefetch all the msgs", prefetchSize);
                     }
 
                     _createdChannels.Add(channel);
@@ -192,9 +251,10 @@ namespace Burrow.Extras.Internal
             return compositeSubscription;
         }
 
-        private string GetPriorityQueueName<T>(string subscriptionName, uint priority)
+        private string GetPriorityQueueName<T>(IPrioritySubscriptionOption subscriptionOption, uint priority)
         {
-            return _routeFinder.FindQueueName<T>(subscriptionName) + PriorityQueuesRabbitSetup.GlobalPriorityQueueSuffix.Get(typeof(T), priority);
+            return (subscriptionOption.RouteFinder ?? _routeFinder).FindQueueName<T>(subscriptionOption.SubscriptionName) +
+                   (subscriptionOption.QueueSuffixNameConvention ?? PriorityQueuesRabbitSetup.GlobalPriorityQueueSuffix).Get(typeof(T), priority);
         }
 
         private IComparer<GenericPriorityMessage<BasicDeliverEventArgs>> TryGetComparer(Type comparerType)

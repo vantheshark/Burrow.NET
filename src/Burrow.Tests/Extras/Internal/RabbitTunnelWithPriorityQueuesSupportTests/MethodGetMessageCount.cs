@@ -1,4 +1,5 @@
 ﻿using System;
+using Burrow.Extras;
 using Burrow.Extras.Internal;
 using Burrow.Tests.Extras.RabbitSetupTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,7 +27,11 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             var tunnel = new RabbitTunnelWithPriorityQueuesSupport(routeFinder, durableConnection);
 
             // Action
-            var count = tunnel.GetMessageCount<Customer>("subscriptionName", 4);
+            var count = tunnel.GetMessageCount(new PrioritySubscriptionOption<Customer>
+            {
+                SubscriptionName = "subscriptionName",
+                MaxPriorityLevel = 4
+            });
 
             // Assert
             Assert.AreEqual((uint)500, count);
@@ -49,7 +54,11 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             var tunnel = new RabbitTunnelWithPriorityQueuesSupport(routeFinder, durableConnection);
 
             // Action
-            var count = tunnel.GetMessageCount<Customer>("subscriptionName", 4);
+            var count = tunnel.GetMessageCount(new PrioritySubscriptionOption<Customer>
+            {
+                SubscriptionName = "subscriptionName",
+                MaxPriorityLevel = 4
+            });
 
             // Assert
             Assert.AreEqual((uint)0, count);

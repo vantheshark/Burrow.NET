@@ -38,7 +38,7 @@ namespace Burrow.Publisher
             
             #region -- Run this test to publish normal messages to queue --
             Console.WriteLine("Press anykey to publish messages ..."); Console.ReadKey();
-            PublishingTest.Publish(2, 1000);
+            PublishingTest.Publish(2, 5000);
             #endregion
 
             #region -- Run this test to publish PRIORITY messages to queue --

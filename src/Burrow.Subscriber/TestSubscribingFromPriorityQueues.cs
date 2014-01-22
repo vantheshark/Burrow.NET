@@ -17,7 +17,11 @@ namespace Burrow.Subscriber
             var tunnel = RabbitTunnel.Factory.WithPrioritySupport()
                                      .Create().WithPrioritySupport();
 
-            var totalMsg = tunnel.GetMessageCount<Bunny>("BurrowTestApp", maxPriorityLevel);
+            var totalMsg = tunnel.GetMessageCount(new PrioritySubscriptionOption<Bunny>
+            {
+                SubscriptionName = "BurrowTestApp",
+                MaxPriorityLevel = maxPriorityLevel
+            });
             Console.WriteLine(string.Format("There are total {0} messages in all priority queues", totalMsg));
 
             // SubscribeAsync auto Ack

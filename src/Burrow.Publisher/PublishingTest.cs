@@ -18,7 +18,7 @@ namespace Burrow.Publisher
             var tasks = new List<Task>();
             var sw = new Stopwatch();
             sw.Start();
-
+            tunnel.DedicatedPublishingChannel.ConfirmSelect();
             for (var i = 0; i < totalThread; i++)
             {
                 tasks.Add(Task.Factory.StartNew(() =>
@@ -43,7 +43,7 @@ namespace Burrow.Publisher
                     }
                 }));
             }
-
+            tunnel.DedicatedPublishingChannel.WaitForConfirmsOrDie();
 
             Task.WaitAll(tasks.ToArray());
             sw.Stop();

@@ -20,12 +20,10 @@ namespace Burrow.Tests.Extras.Internal.PriorityConsumerManagerTests
             var consumerManager = new PriorityConsumerManager(watcher, handlerFactory, serializer);
 
             // Action
-            var consumer1 = consumerManager.CreateConsumer<string>(channel, "name", x => { });
-            var consumer2 = consumerManager.CreateConsumer<string>(channel, "name", (x,y) => { });
+            var consumer1 = consumerManager.CreateConsumer<string>(channel, "name", x => { }, 1);
 
             // Assert
             Assert.IsInstanceOfType(consumer1, typeof(PriorityBurrowConsumer));
-            Assert.IsInstanceOfType(consumer2, typeof(PriorityBurrowConsumer));
         }
 
     }

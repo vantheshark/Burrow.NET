@@ -253,6 +253,8 @@ namespace Burrow
             }
         }
 
+        
+
         protected void EnsurePublishChannelIsCreated()
         {
             if (!IsOpened)
@@ -278,32 +280,67 @@ namespace Burrow
             return properties;
         }
 
+        protected ushort GetProperPrefetchSize(uint prefetchSize)
+        {
+            if (prefetchSize > ushort.MaxValue)
+            {
+                _watcher.WarnFormat("The prefetch size is too high {0}, maximum {1}, the queue will prefetch all the msgs", prefetchSize, ushort.MaxValue);
+            }
+            return (ushort)Math.Min(ushort.MaxValue, prefetchSize);
+        }
+
+        public void Subscribe<T>(SubscriptionOption<T> subscriptionOption)
+        {
+            TryConnectBeforeSubscribing();
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
+            var queueName = (subscriptionOption.RouteFinder ?? _routeFinder).FindQueueName<T>(subscriptionOption.SubscriptionName);
+            var prefetchSize = GetProperPrefetchSize(subscriptionOption.QueuePrefetchSize);
+            CreateSubscription(subscriptionOption.SubscriptionName, queueName, createConsumer, prefetchSize);
+        }
+
+        public void SubscribeAsync<T>(AsyncSubscriptionOption<T> subscriptionOption)
+        {
+            TryConnectBeforeSubscribing();
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
+            var queueName = (subscriptionOption.RouteFinder ?? _routeFinder).FindQueueName<T>(subscriptionOption.SubscriptionName);
+            var prefetchSize = GetProperPrefetchSize(subscriptionOption.QueuePrefetchSize);
+            CreateSubscription(subscriptionOption.SubscriptionName, queueName, createConsumer, prefetchSize);
+        }
+
         public void Subscribe<T>(string subscriptionName, Action<T> onReceiveMessage)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
-            CreateSubscription<T>(subscriptionName, createConsumer);
+            var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
+            var prefetchSize = GetProperPrefetchSize(Global.PreFetchSize);
+            CreateSubscription(subscriptionName, queueName, createConsumer, prefetchSize);
         }
 
         public Subscription Subscribe<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage);
-            return CreateSubscription<T>(subscriptionName, createConsumer);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage);
+            var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
+            var prefetchSize = GetProperPrefetchSize(Global.PreFetchSize);
+            return CreateSubscription(subscriptionName, queueName, createConsumer, prefetchSize);
         }
 
         public void SubscribeAsync<T>(string subscriptionName, Action<T> onReceiveMessage, ushort? batchSize)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
-            CreateSubscription<T>(subscriptionName, createConsumer);
+            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
+            var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
+            var prefetchSize = GetProperPrefetchSize(Global.PreFetchSize);
+            CreateSubscription(subscriptionName, queueName, createConsumer, prefetchSize);
         }
 
         public Subscription SubscribeAsync<T>(string subscriptionName, Action<T, MessageDeliverEventArgs> onReceiveMessage, ushort? batchSize)
         {
             TryConnectBeforeSubscribing();
             Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionName, onReceiveMessage, batchSize);
-            return CreateSubscription<T>(subscriptionName, createConsumer);
+            var queueName = _routeFinder.FindQueueName<T>(subscriptionName);
+            var prefetchSize = GetProperPrefetchSize(Global.PreFetchSize);
+            return CreateSubscription(subscriptionName, queueName, createConsumer, prefetchSize);
         }
 
         protected void TryConnectBeforeSubscribing()
@@ -339,13 +376,14 @@ namespace Burrow
             }
         }
 
-        private Subscription CreateSubscription<T>(string subscriptionName, Func<IModel, string, IBasicConsumer> createConsumer)
+        private Subscription CreateSubscription(string subscriptionName, string queueName, Func<IModel, string, IBasicConsumer> createConsumer, ushort prefetchSize)
         {
             var subscription = new Subscription { SubscriptionName = subscriptionName } ;
             var id = Guid.NewGuid();
+
             Action subscriptionAction = () =>
             {
-                subscription.QueueName = _routeFinder.FindQueueName<T>(subscriptionName);
+                subscription.QueueName = queueName;
                 subscription.ConsumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
                 var channel = _connection.CreateChannel();
                 channel.ModelShutdown += (c, reason) => 
@@ -354,14 +392,7 @@ namespace Burrow
                     TryReconnect(c, id, reason); 
                 };
 
-                if (Global.PreFetchSize <= ushort.MaxValue)
-                {
-                    channel.BasicQos(0, (ushort)Global.PreFetchSize, false);
-                }
-                else
-                {
-                    _watcher.WarnFormat("The prefetch size is too high {0}, maximum {1}, the queue will prefetch all the msgs", Global.PreFetchSize, ushort.MaxValue);
-                }
+                channel.BasicQos(0, prefetchSize, false);
 
                 _createdChannels.Add(channel);
                 
