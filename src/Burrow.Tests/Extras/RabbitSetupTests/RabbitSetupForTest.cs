@@ -18,14 +18,11 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
 
         public static RabbitSetupForTest CreateRabbitSetup(IModel model)
         {
-            var connection = Substitute.For<IConnection>();
-            connection.CreateModel().Returns(model);
-            
-
-            var connectionFactory = Substitute.For<ConnectionFactory>();
-            connectionFactory.CreateConnection().Returns(connection);
+            var connectionFactory = Substitute.For<IDurableConnection>();
+            connectionFactory.IsConnected.Returns(true);
+            connectionFactory.CreateChannel().Returns(model);
             var watcher = Substitute.For<IRabbitWatcher>();
-            var setup = new RabbitSetupForTest(watcher, "host=testhost;username=guest;password=guest") { ConnectionFactory = connectionFactory };
+            var setup = new RabbitSetupForTest(watcher, "host=testhost;username=guest;password=guest") { DurableConnection = connectionFactory };
             setup.Watcher = watcher;
             return setup;
         }

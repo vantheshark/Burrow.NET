@@ -23,10 +23,10 @@ Alright, to publish a message, you just need something like:
 ```c#
 var tunnel = RabbitTunnel.Factory.Create();
 tunnel.Publish(new OrderDetail
-{	
-    Name = "IPad 3",
-    Color = "Black",
-    Amount = 1	
+{   
+	Name = "Google Nexus 7",
+	Color = "Black",
+	Amount = 1  
 });
 ```
 
@@ -34,9 +34,15 @@ To subscribe:
 
 ```c#
 var tunnel = RabbitTunnel.Factory.Create();
-tunnel.SubscribeAsync<OrderDetail>("SubscriptionKey", msg =>
+tunnel.Subscribe(new SubscriptionOption<OrderDetail>
 {
-    // Process message here
+	BatchSize = 2,
+	MessageHandler = (msg) =>
+	{
+		// Process message here
+	},
+	QueuePrefetchSize = 10,
+	SubscriptionName = "SubscriptionKey"
 });
 ```
 
