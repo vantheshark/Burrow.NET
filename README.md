@@ -10,23 +10,26 @@ Burrow.NET, Release 1.0.x (since Mar 12, 2012)
 
 This project is created based on the idea of **EasyNetQ**, since **Mike Hadlow** used _MIT licence_, I hope he doesn't mind when I use his source code in this project.
 
-I was so lucky to have 2 chances to work with RabbitMQ in my 2 recent projects. EasyNetQ is the library I looked into at first place. Honestly, It's a good implementation, the author covered many problems he got with RabbitMQ and I learnt from that as well. However, I created this project for below reasons:
+I was so lucky to have chances to work with RabbitMQ in my 2 recent companies. EasyNetQ is the library I looked into at first place. Honestly, It's a good implementation, the author covered many problems he got with RabbitMQ and I learnt from that as well. However, I created this project for below reasons:
 
-* I need an easier & flexible way to define Exchange names and Queue names.
-* I want to use Fanout Exchange and I don't need the library so smart to create Exchanges/Queues automatically which EasyNetQ was doing.
-* I want the messages to be consumed parallel.
+* I need an easier & flexible way to define Exchange names and Queue names by my conventions
+* I need to have different priority queues for messages
+* I need my app to fail over to alive RabbitMQ node in a cluster
 * I need more flexibilities to inject behaviors for logging, error handling, object serializing, etc.
 * And I want to be busy :D
+ 
+Burrow.NET has been supporting all of those and other things, we've been using this library in many apps in our production environment to process million of messages a day.
+
 
 Alright, to publish a message, you just need something like:
 
 ```c#
 var tunnel = RabbitTunnel.Factory.Create();
 tunnel.Publish(new OrderDetail
-{	
-    Name = "IPad 3",
-    Color = "Black",
-    Amount = 1	
+{   
+	Name = "Google Nexus 7",
+	Color = "Black",
+	Amount = 1  
 });
 ```
 
@@ -34,9 +37,15 @@ To subscribe:
 
 ```c#
 var tunnel = RabbitTunnel.Factory.Create();
-tunnel.SubscribeAsync<OrderDetail>("SubscriptionKey", msg =>
+tunnel.Subscribe(new SubscriptionOption<OrderDetail>
 {
-    // Process message here
+	BatchSize = 2,
+	MessageHandler = (msg) =>
+	{
+		// Process message here
+	},
+	QueuePrefetchSize = 10,
+	SubscriptionName = "SubscriptionKey"
 });
 ```
 

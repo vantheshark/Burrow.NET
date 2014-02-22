@@ -1,3 +1,7 @@
+* 1.0.24 (03 Feb 2014)
+- Fix a bug on RabbitSetup class that created 2 connections but never dispose the first one.
+  https://github.com/vanthoainguyen/Burrow.NET/issues/13
+
 * 1.0.23 (22 Jan 2014)
 - Support publishing to Header exchange with custom header dictionary
 - RabbitSetup class now can failover to good node when creating exchange/queue

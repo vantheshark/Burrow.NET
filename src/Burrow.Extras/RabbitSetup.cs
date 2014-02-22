@@ -12,20 +12,21 @@ namespace Burrow.Extras
     /// </summary>
     public class RabbitSetup
     {
+        private readonly object _syncObj = new object();
         protected readonly IRabbitWatcher _watcher;
         private readonly string _connectionString;
-        private ConnectionFactory _factory;
-        protected ConnectionFactory ConnectionFactory
+        private IDurableConnection _connection;
+        protected IDurableConnection DurableConnection
         {
             get
             {
-                if (_factory == null)
+                if (_connection == null)
                 {
-                    _factory = CreateFactory();
+                    _connection = CreateConnection();
                 }
-                return _factory;
+                return _connection;
             }
-            set { _factory = value; }
+            set { _connection = value; }
         }
 
         /// <summary>
@@ -48,17 +49,19 @@ namespace Burrow.Extras
             _connectionString = connectionString;
         }
 
-        private ConnectionFactory CreateFactory()
+        private IDurableConnection CreateConnection()
         {
-            if (_factory == null)
+            lock (_syncObj)
             {
-                var clusterConnections = _connectionString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                var factories = clusterConnections.Select(x => new ManagedConnectionFactory(new ConnectionString(x))).ToList();
-                var haConnection = new HaConnection(new DefaultRetryPolicy(), Global.DefaultWatcher, factories);
-                haConnection.Connect();
-                return haConnection.ConnectionFactory;
+                if (_connection == null || !_connection.IsConnected)
+                {
+                    var clusterConnections = _connectionString.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                    var factories = clusterConnections.Select(x => new ManagedConnectionFactory(new ConnectionString(x))).ToList();
+                    _connection = new HaConnection(new DefaultRetryPolicy(), Global.DefaultWatcher, factories);
+                    _connection.Connect();
+                }
+                return _connection;
             }
-            return _factory;
         }
 
         /// <summary>
@@ -72,23 +75,21 @@ namespace Burrow.Extras
             var exchangeName = routeSetupData.RouteFinder.FindExchangeName<T>();
             var routingKey = routeSetupData.RouteFinder.FindRoutingKey<T>();
 
-            using (var connection = ConnectionFactory.CreateConnection())
+
+            using (var model = CreateConnection().CreateChannel())
             {
-                using (var model = connection.CreateModel())
-                {
-                    // Declare Exchange
-                    DeclareExchange(routeSetupData.ExchangeSetupData, model, exchangeName);
-                }
-                using (var model = connection.CreateModel())
-                {
-                    // Declare Queue
-                    DeclareQueue<T>(routeSetupData.QueueSetupData, queueName, model);
-                }
-                using (var model = connection.CreateModel())
-                {
-                    // Bind Queue to Exchange
-                    BindQueue<T>(model, routeSetupData.QueueSetupData, exchangeName, queueName, routingKey, routeSetupData.OptionalBindingData);
-                }
+                // Declare Exchange
+                DeclareExchange(routeSetupData.ExchangeSetupData, model, exchangeName);
+            }
+            using (var model = CreateConnection().CreateChannel())
+            {
+                // Declare Queue
+                DeclareQueue<T>(routeSetupData.QueueSetupData, queueName, model);
+            }
+            using (var model = CreateConnection().CreateChannel())
+            {
+                // Bind Queue to Exchange
+                BindQueue<T>(model, routeSetupData.QueueSetupData, exchangeName, queueName, routingKey, routeSetupData.OptionalBindingData);
             }
         }
 
@@ -192,36 +193,34 @@ namespace Burrow.Extras
             var queueName = routeSetupData.RouteFinder.FindQueueName<T>(routeSetupData.SubscriptionName);
             var exchangeName = routeSetupData.RouteFinder.FindExchangeName<T>();
 
-            using (var connection = ConnectionFactory.CreateConnection())
+            
+            using (var model = CreateConnection().CreateChannel())
             {
-                using (var model = connection.CreateModel())
-                {
-                    // Delete Queue
-                    DeleteQueue<T>(model, routeSetupData.QueueSetupData, queueName);
-                }
+                // Delete Queue
+                DeleteQueue<T>(model, routeSetupData.QueueSetupData, queueName);
+            }
 
-                using (var model = connection.CreateModel())
+            using (var model = CreateConnection().CreateChannel())
+            {
+                // Delete Exchange
+                try
                 {
-                    // Delete Exchange
-                    try
+                    model.ExchangeDelete(exchangeName);
+                }
+                catch (OperationInterruptedException oie)
+                {
+                    if (oie.ShutdownReason.ReplyText.StartsWith("NOT_FOUND - no exchange "))
                     {
-                        model.ExchangeDelete(exchangeName);
+                        _watcher.WarnFormat(oie.ShutdownReason.ReplyText);
                     }
-                    catch (OperationInterruptedException oie)
+                    else
                     {
-                        if (oie.ShutdownReason.ReplyText.StartsWith("NOT_FOUND - no exchange "))
-                        {
-                            _watcher.WarnFormat(oie.ShutdownReason.ReplyText);
-                        }
-                        else
-                        {
-                            _watcher.Error(oie);
-                        }
+                        _watcher.Error(oie);
                     }
-                    catch (Exception ex)
-                    {
-                        _watcher.Error(ex);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    _watcher.Error(ex);
                 }
             }
         }

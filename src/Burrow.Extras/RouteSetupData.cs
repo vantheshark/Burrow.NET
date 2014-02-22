@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Burrow.Extras
@@ -12,18 +11,22 @@ namespace Burrow.Extras
         /// A route finder object which is used to resolve exchange name and queue name to create
         /// </summary>
         public IRouteFinder RouteFinder { get; set; }
+        
         /// <summary>
         /// Exchange setup data
         /// </summary>
         public ExchangeSetupData ExchangeSetupData { get; set; }
+        
         /// <summary>
         /// Queue setup data
         /// </summary>
         public QueueSetupData QueueSetupData { get; set; }
+        
         /// <summary>
         /// The name of subscriber who will use this route (Exchange & Queue)
         /// </summary>
         public string SubscriptionName { get; set; }
+
         /// <summary>
         /// Optional arguments to bind the queue to the exchange
         /// </summary>

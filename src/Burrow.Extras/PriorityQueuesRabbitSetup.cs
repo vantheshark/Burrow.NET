@@ -56,7 +56,7 @@ namespace Burrow.Extras
                         arguments["RoutingKey"] = routingKey;
                         //http://www.rabbitmq.com/tutorials/amqp-concepts.html
                         //http://lostechies.com/derekgreer/2012/03/28/rabbitmq-for-windows-exchange-types/
-                        model.QueueBind(GetPriorityQueueName<T>(queueName, i), exchangeName, routingKey/*It'll be ignored as AMQP spec*/, arguments);
+                        model.QueueBind(GetPriorityQueueName<T>((PriorityQueueSetupData)queue, queueName, i), exchangeName, routingKey/*It'll be ignored as AMQP spec*/, arguments);
                     }
                     catch (Exception ex)
                     {
@@ -83,11 +83,11 @@ namespace Burrow.Extras
             }
             return dic;
         }
-        
 
-        private string GetPriorityQueueName<T>(string originalQueueName, uint priority)
+
+        private string GetPriorityQueueName<T>(PriorityQueueSetupData priorityQueueSetupData, string originalQueueName, uint priority)
         {
-            return string.Format("{0}{1}", originalQueueName, GlobalPriorityQueueSuffix.Get(typeof(T), priority));
+            return string.Format("{0}{1}", originalQueueName, (priorityQueueSetupData.QueueSuffixConvention ?? GlobalPriorityQueueSuffix).Get(typeof(T), priority));
         }
 
         protected override void DeclareQueue<T>(QueueSetupData queue, string queueName, IModel model)
@@ -101,7 +101,7 @@ namespace Burrow.Extras
                 {
                     try
                     {
-                        model.QueueDeclare(GetPriorityQueueName<T>(queueName, i), queue.Durable, false, queue.AutoDelete, queue.Arguments);
+                        model.QueueDeclare(GetPriorityQueueName<T>((PriorityQueueSetupData)queue, queueName, i), queue.Durable, false, queue.AutoDelete, queue.Arguments);
                     }
                     catch (OperationInterruptedException oie)
                     {
@@ -136,7 +136,7 @@ namespace Burrow.Extras
                 {
                     try
                     {
-                        model.QueueDelete(GetPriorityQueueName<T>(queueName, i));
+                        model.QueueDelete(GetPriorityQueueName<T>((PriorityQueueSetupData)queue, queueName, i));
                     }
                     catch (OperationInterruptedException oie)
                     {
