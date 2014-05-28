@@ -344,6 +344,11 @@ namespace Burrow
 
         private ushort GetProperPrefetchSize(uint prefetchSize)
         {
+            if (prefetchSize <= 0)
+            {
+                return (ushort)Global.PreFetchSize;
+            }
+
             if (prefetchSize > ushort.MaxValue)
             {
                 _watcher.WarnFormat("The prefetch size is too high {0}, the queue will prefetch the maximum {1} msgs", prefetchSize, ushort.MaxValue);
