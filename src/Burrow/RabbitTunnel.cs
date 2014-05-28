@@ -424,21 +424,36 @@ namespace Burrow
             }
         }
 
+        private volatile List<Timer> _createdTimer = new List<Timer>(); 
         protected virtual void TryReconnect(IModel disconnectedChannel, Guid id, ShutdownEventArgs eventArgs)
         {
             _createdChannels.Remove(disconnectedChannel);
             if (eventArgs.ReplyCode == 406 && eventArgs.ReplyText.StartsWith("PRECONDITION_FAILED - unknown delivery tag "))
             {
                 _watcher.InfoFormat("Trying to re-subscribe to queue after 2 seconds ...");
-                new Timer(subscriptionId => ExecuteSubscription((Guid) subscriptionId), id, 2000, Timeout.Infinite);
+                var timerState = new TimeSubscription();
+                var timer = new Timer(o => ExecuteSubscription(((TimeSubscription)o)), timerState, 2000, Timeout.Infinite);
+                timerState.SubscriptionId = id;
+                timerState.Timer = timer;
+                _createdTimer.Add(timer);
             }
         }
 
-        internal void ExecuteSubscription(Guid id)
+        internal class TimeSubscription
+        {
+            public Timer Timer { get; set; }
+            public Guid SubscriptionId { get; set; }
+        }
+
+        internal void ExecuteSubscription(TimeSubscription state)
         {
             try
             {
-                _subscribeActions[id]();
+                _subscribeActions[state.SubscriptionId]();
+                if (state.Timer != null)
+                {
+                    state.Timer.Dispose();
+                }
             }
             catch (Exception ex)
             {

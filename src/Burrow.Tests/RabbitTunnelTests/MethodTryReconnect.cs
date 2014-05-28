@@ -70,7 +70,10 @@ namespace Burrow.Tests.RabbitTunnelTests
             
 
             // Action
-            tunnel.ExecuteSubscription(id);
+            tunnel.ExecuteSubscription(new RabbitTunnel.TimeSubscription
+            {
+                SubscriptionId = id
+            });
             waitHandler.WaitOne(5000);
 
             // Assert

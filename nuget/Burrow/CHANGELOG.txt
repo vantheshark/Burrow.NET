@@ -1,3 +1,7 @@
+* 1.0.25 (28 May 2014)
+- Fix a bug that the Subscription couldn't retry because there was not any object referenced to the created Timer
+  https://github.com/vanthoainguyen/Burrow.NET/issues/14
+  
 * 1.0.24 (03 Feb 2014)
 - Fix a bug on RabbitSetup class that created 2 connections but never dispose the first one.
   https://github.com/vanthoainguyen/Burrow.NET/issues/13
