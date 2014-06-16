@@ -40,8 +40,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             connectionFactory.VirtualHost = virtualHost;
             if (typeof(T) == typeof(ManagedConnectionFactory))
             {
-                connectionFactory.CreateConnection().Returns(conn)
-                                 .AndDoes(callInfo => (connectionFactory as ManagedConnectionFactory).SaveConnection(conn));
+                (connectionFactory as ManagedConnectionFactory).EstablishConnection().Returns(conn);
             }
             else
             {

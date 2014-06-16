@@ -16,7 +16,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             var retryPolicy = Substitute.For<IRetryPolicy>();
             var watcher = Substitute.For<IRabbitWatcher>();
             IConnection rmqConnection;
-            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/", out rmqConnection);
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/vHost19", out rmqConnection);
 
             var channel = Substitute.For<IModel>();
             rmqConnection.CreateModel().Returns(channel);

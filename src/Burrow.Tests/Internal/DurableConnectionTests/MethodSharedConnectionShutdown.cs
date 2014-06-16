@@ -18,7 +18,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             var retryPolicy = Substitute.For<IRetryPolicy>();
             var watcher = Substitute.For<IRabbitWatcher>();
             IConnection rmqConnection;
-            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/", out rmqConnection);
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/vHost20", out rmqConnection);
             
             
             var durableConnection = new DurableConnection(retryPolicy, watcher, connectionFactory);
@@ -39,7 +39,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             var retryPolicy = Substitute.For<IRetryPolicy>();
             var watcher = Substitute.For<IRabbitWatcher>();
             IConnection rmqConnection;
-            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/", out rmqConnection);
+            var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/vHost21", out rmqConnection);
 
 
             var durableConnection = new DurableConnection(retryPolicy, watcher, connectionFactory);

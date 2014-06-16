@@ -12,8 +12,22 @@ namespace Burrow.Internal
     /// </summary>
     public class DurableConnection : IDurableConnection
     {
-        private readonly IRetryPolicy _retryPolicy;
-        private readonly IRabbitWatcher _watcher;
+        internal DurableConnection(IRetryPolicy retryPolicy, IRabbitWatcher watcher)
+        {
+            if (retryPolicy == null)
+            {
+                throw new ArgumentNullException("retryPolicy");
+            }
+            if (watcher == null)
+            {
+                throw new ArgumentNullException("watcher");
+            }
+            _retryPolicy = retryPolicy;
+            _watcher = watcher;
+        }
+
+        protected readonly IRetryPolicy _retryPolicy;
+        protected readonly IRabbitWatcher _watcher;
 
         /// <summary>
         /// An event that will be fired if Connection established
@@ -31,23 +45,23 @@ namespace Burrow.Internal
         /// <param name="watcher"></param>
         /// <param name="connectionFactory"></param>
         public DurableConnection(IRetryPolicy retryPolicy, IRabbitWatcher watcher, ConnectionFactory connectionFactory)
+            : this(retryPolicy, watcher)
         {
-            if (retryPolicy == null)
-            {
-                throw new ArgumentNullException("retryPolicy");
-            }
-            if (watcher == null)
-            {
-                throw new ArgumentNullException("watcher");
-            }
             if (connectionFactory == null)
             {
                 throw new ArgumentNullException("connectionFactory");
             }
 
-            _retryPolicy = retryPolicy;
-            _watcher = watcher;
+            
             _connectionFactory = ManagedConnectionFactory.CreateFromConnectionFactory(connectionFactory);
+            ManagedConnectionFactory.ConnectionEstablished += (endpoint, virtualHost) =>
+            {
+                if (_connectionFactory.Endpoint + _connectionFactory.VirtualHost == endpoint + virtualHost)
+                {
+                    //NOTE: Fire connected event whenever a new connection to 1 of the servers in the cluster is made
+                    FireConnectedEvent();
+                }
+            };
         }
 
         /// <summary>
@@ -55,23 +69,21 @@ namespace Burrow.Internal
         /// </summary>
         public virtual void Connect()
         {
+            Monitor.Enter(ManagedConnectionFactory.SyncConnection);
             try
             {
-                Monitor.Enter(ManagedConnectionFactory.SyncConnection);
+                
+                if (IsConnected || _retryPolicy.IsWaiting)
                 {
-                    if (IsConnected || _retryPolicy.IsWaiting)
-                    {
-                        return;
-                    }
-
-                    _watcher.DebugFormat("Trying to connect to endpoint: '{0}'", ConnectionFactory.Endpoint);
-                    var newConnection = ConnectionFactory.CreateConnection();
-                    newConnection.ConnectionShutdown += SharedConnectionShutdown;
-
-                    FireConnectedEvent();
-                    _retryPolicy.Reset();
-                    _watcher.InfoFormat("Connected to RabbitMQ. Broker: '{0}', VHost: '{1}'", ConnectionFactory.Endpoint, ConnectionFactory.VirtualHost);
+                    return;
                 }
+
+                _watcher.DebugFormat("Trying to connect to endpoint: '{0}'", ConnectionFactory.Endpoint);
+                var newConnection = ConnectionFactory.CreateConnection();
+                newConnection.ConnectionShutdown += SharedConnectionShutdown;
+                    
+                _retryPolicy.Reset();
+                _watcher.InfoFormat("Connected to RabbitMQ. Broker: '{0}', VHost: '{1}'", ConnectionFactory.Endpoint, ConnectionFactory.VirtualHost);
             }
             catch (ConnectFailureException connectFailureException)
             {
@@ -100,6 +112,9 @@ namespace Burrow.Internal
             _retryPolicy.WaitForNextRetry(Connect);
         }
 
+        /// <summary>
+        /// This should be called whenever a physical connection to rabbitMQ which has the same endpoint/virtual host is made
+        /// </summary>
         protected void FireConnectedEvent()
         {
             if (Connected != null)

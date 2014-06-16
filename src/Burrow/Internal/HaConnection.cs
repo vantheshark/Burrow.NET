@@ -12,8 +12,6 @@ namespace Burrow.Internal
     /// </summary>
     public class HaConnection : DurableConnection
     {
-        private readonly IRetryPolicy _retryPolicy;
-        private readonly IRabbitWatcher _watcher;
         private readonly RoundRobinList<ConnectionFactory> _connectionFactories;
         private int _nodeTried;
 
@@ -24,12 +22,16 @@ namespace Burrow.Internal
         /// <param name="retryPolicy"></param>
         /// <param name="watcher"></param>
         /// <param name="connectionFactories"></param>
-        public HaConnection(IRetryPolicy retryPolicy, IRabbitWatcher watcher, IList<ManagedConnectionFactory> connectionFactories)
-            : base(retryPolicy, watcher, connectionFactories.FirstOrDefault())
-        {            
+        public HaConnection(IRetryPolicy retryPolicy, IRabbitWatcher watcher, IList<ManagedConnectionFactory> connectionFactories) : base(retryPolicy, watcher)
+        {        
             _connectionFactories = new RoundRobinList<ConnectionFactory>(connectionFactories);
-            _retryPolicy = retryPolicy;
-            _watcher = watcher;
+            ManagedConnectionFactory.ConnectionEstablished += (endpoint, virtualHost) =>
+            {
+                if (_connectionFactories.All.Any(f => f.Endpoint + f.VirtualHost == endpoint + virtualHost))
+                {
+                    FireConnectedEvent();
+                }
+            };
         }
 
         public override ConnectionFactory ConnectionFactory
@@ -39,9 +41,10 @@ namespace Burrow.Internal
 
         public override void Connect()
         {
+            Monitor.Enter(ManagedConnectionFactory.SyncConnection);
             try
             {
-                Monitor.Enter(ManagedConnectionFactory.SyncConnection);
+                
                 if (IsConnected || _retryPolicy.IsWaiting)
                 {
                     return;
@@ -50,8 +53,7 @@ namespace Burrow.Internal
                 _watcher.DebugFormat("Trying to connect to endpoint: '{0}'", ConnectionFactory.Endpoint);
                 var newConnection = ConnectionFactory.CreateConnection();
                 newConnection.ConnectionShutdown += SharedConnectionShutdown;
-                    
-                FireConnectedEvent();
+                
                 _retryPolicy.Reset();
                 _nodeTried = 0;
                 _watcher.InfoFormat("Connected to RabbitMQ. Broker: '{0}', VHost: '{1}'", ConnectionFactory.Endpoint, ConnectionFactory.VirtualHost);

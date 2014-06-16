@@ -138,8 +138,7 @@ namespace Burrow.Tests.Internal.HaConnectionTests
                     Protocol = factory.Protocol,
                     Ssl = factory.Ssl
                 });
-                factory.CreateConnection().Returns(connection)
-                       .AndDoes(callInfo => factory.SaveConnection(connection));
+                factory.EstablishConnection().Returns(connection);
             }
             else
             {
@@ -152,6 +151,39 @@ namespace Burrow.Tests.Internal.HaConnectionTests
                        });
             }
             return factory;
+        }
+
+        [TestMethod]
+        public void Should_be_notified_about_a_new_established_connection()
+        {
+            // Arrange
+            var haConnectionEstablished = false;
+            var retryPolicty = Substitute.For<IRetryPolicy>();
+            var haConnection = new HaConnection(retryPolicty,
+                                              Substitute.For<IRabbitWatcher>(),
+                                              new List<ManagedConnectionFactory> { new ManagedConnectionFactory() });
+
+            haConnection.ConnectionFactories.ClearAll();
+            var f1 = CreateManagedConnectionFactory(5671);
+            var f2 = CreateManagedConnectionFactory(5672);
+            var f3 = CreateManagedConnectionFactory(5673);
+            haConnection.ConnectionFactories.Add(f1);
+            haConnection.ConnectionFactories.Add(f2);
+            haConnection.ConnectionFactories.Add(f3);
+
+            var durableConnection = new DurableConnection(Substitute.For<IRetryPolicy>(),
+                                                          Substitute.For<IRabbitWatcher>(),
+                                                          CreateManagedConnectionFactory(5671));
+
+            haConnection.Connected += () => haConnectionEstablished = true;
+            
+
+            // Action
+            durableConnection.Connect();
+
+
+            // Assert
+            Assert.IsTrue(haConnectionEstablished);
         }
     }
 }

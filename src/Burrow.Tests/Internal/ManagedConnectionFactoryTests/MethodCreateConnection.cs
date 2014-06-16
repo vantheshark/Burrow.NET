@@ -20,8 +20,7 @@ namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
             var factory = Substitute.For<ManagedConnectionFactory>();
             factory.HostName = "localhost";
             factory.VirtualHost = "/virtualhost";
-            factory.CreateConnection().Returns(connection)
-                                      .AndDoes(callInfo => factory.SaveConnection(connection));
+            factory.EstablishConnection().Returns(connection);
 
             // Action
             factory.CreateConnection();
@@ -29,26 +28,6 @@ namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
             // Assert
             Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
         }
-
-        [TestMethod]
-        public void Should_save_created_connection2()
-        {
-            // Arrange
-            var connection = Substitute.For<IConnection>();
-            connection.IsOpen.Returns(true);
-            var factory = Substitute.For<ManagedConnectionFactory>();
-            factory.HostName = "localhost";
-            factory.VirtualHost = "/virtualhost";
-            factory.CreateConnection(Arg.Any<int>()).Returns(connection)
-                                      .AndDoes(callInfo => factory.SaveConnection(connection));
-
-            // Action
-            factory.CreateConnection(2);
-
-            // Assert
-            Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
-        }
-
 
         [TestMethod]
         public void Should_clear_existing_connection_from_shared_connection_list_if_connection_is_dropped_by_peer()
@@ -59,8 +38,7 @@ namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
             var factory = Substitute.For<ManagedConnectionFactory>();
             factory.HostName = "localhost";
             factory.VirtualHost = "/virtualhost";
-            factory.CreateConnection().Returns(connection)
-                                      .AndDoes(callInfo => factory.SaveConnection(connection));
+            factory.EstablishConnection().Returns(connection);
 
             // Action
             factory.CreateConnection();
@@ -68,6 +46,25 @@ namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
             connection.ConnectionShutdown += Raise.Event<ConnectionShutdownEventHandler>(connection, new ShutdownEventArgs(ShutdownInitiator.Application, 0, "Connection dropped for unknow reason ;)"));
             // Assert
             Assert.AreEqual(0, ManagedConnectionFactory.SharedConnections.Count);
+        }
+
+        [TestMethod]
+        public void Should_fire_event_when_new_connection_established()
+        {
+            var connectedEndpoint = string.Empty;
+            var connection1 = Substitute.For<IConnection>();
+            connection1.IsOpen.Returns(true);
+
+            var factory1 = Substitute.For<ManagedConnectionFactory>();
+            factory1.HostName = "localhost";
+            factory1.VirtualHost = "/virtualhost";
+            factory1.EstablishConnection().Returns(connection1);
+
+            ManagedConnectionFactory.ConnectionEstablished += (a, b) => { connectedEndpoint = a + b; };
+
+            // Action
+            factory1.CreateConnection();
+            Assert.AreEqual("amqp-0-9://localhost:5672/virtualhost", connectedEndpoint);
         }
     }
 }

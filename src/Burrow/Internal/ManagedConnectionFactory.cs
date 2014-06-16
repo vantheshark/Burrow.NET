@@ -7,6 +7,13 @@ using RabbitMQ.Client;
 namespace Burrow.Internal
 {
     /// <summary>
+    /// An event to fire when a physical connection to RabbitMQ server is made.
+    /// </summary>
+    /// <param name="endpoint"></param>
+    /// <param name="virtualHost"></param>
+    public delegate void ConnectionEstablished(AmqpTcpEndpoint endpoint, string virtualHost);
+
+    /// <summary>
     /// A simple wrapper of <see cref="ConnectionFactory"/> which will store any created <see cref="IConnection"/>
     /// to memory and share them within the AppDomain.
     /// The purpose of this is keeping the amount of connection to RabbitMQ server as low as possible
@@ -14,6 +21,14 @@ namespace Burrow.Internal
     public class ManagedConnectionFactory : ConnectionFactory
     {
         internal static readonly object SyncConnection = new object();
+
+        /// <summary>
+        /// An event that will fire when a physical connection to RabbitMQ server is made.
+        /// <para>The application can use TunnelFactory object to create tunnel manytime, during the creation, many instance of <see cref="ManagedConnectionFactory"/> are created</para>
+        /// <para>If the connection to rabbitMQ server lost, the <see cref="IDurableConnection"/> implementation will retry and of of them will make the connection to rabbitMQ server established</para>
+        /// <para>All the other <see cref="IDurableConnection"/> instances should also know about this and retry their channels & subscriptions</para>
+        /// </summary>
+        public static ConnectionEstablished ConnectionEstablished { get; set; }
 
         /// <summary>
         /// Create a <see cref="ManagedConnectionFactory"/> from a known <see cref="ConnectionFactory"/>
@@ -75,29 +90,37 @@ namespace Burrow.Internal
             VirtualHost = factory.VirtualHost;
         }
 
-        [ExcludeFromCodeCoverage]
-        public override IConnection CreateConnection()
+        public sealed override IConnection CreateConnection()
         {
-            var connection = base.CreateConnection();
+            var connection = EstablishConnection();
             SaveConnection(connection);
             return connection;
         }
 
+        /// <summary>
+        /// Call the base method to establish the connection to RabbitMQ
+        /// Burrow.NET uses different way of managing the host addresses in the cluster
+        /// TODO: Use <see cref="AmqpTcpEndpoint"/> instead of <see cref="ConnectionString"/>
+        /// </summary>
+        /// <returns></returns>
         [ExcludeFromCodeCoverage]
-        public override IConnection CreateConnection(int maxRedirects)
+        public virtual IConnection EstablishConnection()
         {
-            var connection = base.CreateConnection(maxRedirects);
-            SaveConnection(connection);
-            return connection;
+            return base.CreateConnection();
         }
-
-        internal void SaveConnection(IConnection connection)
+       
+        private void SaveConnection(IConnection connection)
         {
             if (connection != null && connection.IsOpen)
             {
                 var key = Endpoint + VirtualHost;
                 SharedConnections[key] = connection;
                 connection.ConnectionShutdown += ConnectionShutdown;
+                
+                if (ConnectionEstablished != null)
+                {
+                    ConnectionEstablished(Endpoint, VirtualHost);
+                }
             }
         }
 

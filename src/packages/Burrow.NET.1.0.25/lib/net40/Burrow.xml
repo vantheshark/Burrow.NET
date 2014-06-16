@@ -616,11 +616,6 @@
             Try to connect to rabbitmq server, retry if it cann't connect to the broker.
             </summary>
         </member>
-        <member name="M:Burrow.Internal.DurableConnection.FireConnectedEvent">
-            <summary>
-            This should be called whenever a physical connection to rabbitMQ which has the same endpoint/virtual host is made
-            </summary>
-        </member>
         <member name="M:Burrow.Internal.DurableConnection.CreateChannel">
             <summary>
             Create a RabbitMQ channel
@@ -646,13 +641,6 @@
             <summary>
             Return current ConnectionFactory
             </summary>
-        </member>
-        <member name="T:Burrow.Internal.ConnectionEstablished">
-            <summary>
-            An event to fire when a physical connection to RabbitMQ server is made.
-            </summary>
-            <param name="endpoint"></param>
-            <param name="virtualHost"></param>
         </member>
         <member name="T:Burrow.Internal.ManagedConnectionFactory">
             <summary>
@@ -685,15 +673,6 @@
             <param name="factory"></param>
             <returns></returns>
         </member>
-        <member name="M:Burrow.Internal.ManagedConnectionFactory.EstablishConnection">
-            <summary>
-            Call the base method to establish the connection to RabbitMQ
-            Burrow.NET uses different way of managing the host addresses in the cluster
-            TODO: Use <see cref="T:RabbitMQ.Client.AmqpTcpEndpoint"/> instead of <see cref="T:Burrow.ConnectionString"/>
-            </summary>
-            <returns></returns>
-        </member>
-        <!-- Badly formed XML comment ignored for member "P:Burrow.Internal.ManagedConnectionFactory.ConnectionEstablished" -->
         <member name="T:Burrow.ConnectionString">
             <summary>
             Parses a connection string for the values required to connect to a RabbitMQ broker instance.
