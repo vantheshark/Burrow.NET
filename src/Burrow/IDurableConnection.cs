@@ -21,11 +21,22 @@ namespace Burrow
         /// </summary>
         
         bool IsConnected { get; }
+
         /// <summary>
-        /// Get the ConnectionFactory object
+        /// Get the current connected host name
         /// </summary>
-        
-        ConnectionFactory ConnectionFactory { get; }
+        string HostName { get; }
+
+        /// <summary>
+        /// Get the current connected virtual host
+        /// </summary>
+        string VirtualHost { get; }
+
+        /// <summary>
+        /// Get the current connected username
+        /// </summary>
+        string UserName { get; }
+
         /// <summary>
         /// Connect to rabbitmq server
         /// </summary>

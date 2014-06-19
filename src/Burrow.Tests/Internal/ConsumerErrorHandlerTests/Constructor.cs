@@ -1,7 +1,6 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Burrow.Internal;
-using RabbitMQ.Client;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
@@ -18,13 +17,13 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
         [TestMethod, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_serializer_is_null()
         {
-            new ConsumerErrorHandler(() => NSubstitute.Substitute.For<ConnectionFactory>(), null, NSubstitute.Substitute.For<IRabbitWatcher>());
+            new ConsumerErrorHandler(NSubstitute.Substitute.For<IDurableConnection>(), null, NSubstitute.Substitute.For<IRabbitWatcher>());
         }
 
         [TestMethod, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_watcher_is_null()
         {
-            new ConsumerErrorHandler(() => NSubstitute.Substitute.For<ConnectionFactory>(), NSubstitute.Substitute.For<ISerializer>(), null);
+            new ConsumerErrorHandler(NSubstitute.Substitute.For<IDurableConnection>(), NSubstitute.Substitute.For<ISerializer>(), null);
         }
     }
 }

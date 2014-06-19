@@ -154,10 +154,26 @@ namespace Burrow.Internal
                                                          c.Value != null && c.Value.IsOpen); 
             }
         }
+
+        public string HostName
+        {
+            get { return ConnectionFactory.HostName; }
+        }
+
+        public string VirtualHost
+        {
+            get { return ConnectionFactory.VirtualHost; }
+        }
+
+        public string UserName
+        {
+            get { return ConnectionFactory.UserName; }
+        }
+
         /// <summary>
         /// Return current ConnectionFactory
         /// </summary>
-        public virtual ConnectionFactory ConnectionFactory
+        internal protected virtual ConnectionFactory ConnectionFactory
         {
             get { return _connectionFactory; }
         }

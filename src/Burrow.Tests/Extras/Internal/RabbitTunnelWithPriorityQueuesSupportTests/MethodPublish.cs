@@ -19,7 +19,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             newChannel.IsOpen.Returns(true);
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();
@@ -46,7 +46,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             newChannel.IsOpen.Returns(true);
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();
@@ -76,7 +76,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             newChannel.IsOpen.Returns(true);
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();
@@ -97,7 +97,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             newChannel.IsOpen.Returns(false);
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();
@@ -120,7 +120,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             var routeFinder = Substitute.For<IRouteFinder>();
             routeFinder.When(x =>x.FindExchangeName<string>()).Do(callInfo => { throw new Exception("Test message");});
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();

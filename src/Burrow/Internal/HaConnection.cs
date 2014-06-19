@@ -34,7 +34,7 @@ namespace Burrow.Internal
             };
         }
 
-        public override ConnectionFactory ConnectionFactory
+        internal protected override ConnectionFactory ConnectionFactory
         {
             get { return _connectionFactories.Current; }
         }

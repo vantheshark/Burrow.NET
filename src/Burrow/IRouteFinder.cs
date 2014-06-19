@@ -28,4 +28,17 @@
         /// <returns></returns>
         string FindQueueName<T>(string subscriptionName);
     }
+
+    /// <summary>
+    /// Implement this interface to provide flexible topic routing key based on the message itself
+    /// </summary>
+    public interface ITopicExchangeRouteFinder : IRouteFinder
+    {
+        /// <summary>
+        /// Find the routing key based on the message 
+        /// </summary>
+        /// <typeparam name="T">AKA Topic</typeparam>
+        /// <returns></returns>
+        string FindRoutingKey<T>(T message);
+    }
 }

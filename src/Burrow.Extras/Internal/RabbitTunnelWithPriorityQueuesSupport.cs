@@ -13,7 +13,7 @@ namespace Burrow.Extras.Internal
 
         public RabbitTunnelWithPriorityQueuesSupport(IRouteFinder routeFinder, IDurableConnection connection)
             : this(new ConsumerManager(Global.DefaultWatcher,
-                                       new DefaultMessageHandlerFactory(new ConsumerErrorHandler(() => connection.ConnectionFactory, 
+                                       new DefaultMessageHandlerFactory(new ConsumerErrorHandler(connection, 
                                                                                                  Global.DefaultSerializer, 
                                                                                                  Global.DefaultWatcher), 
                                                                         Global.DefaultSerializer,

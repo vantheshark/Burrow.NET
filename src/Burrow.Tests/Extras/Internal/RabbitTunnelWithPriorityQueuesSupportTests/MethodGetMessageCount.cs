@@ -22,7 +22,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
             durableConnection.IsConnected.Returns(true);
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.CreateChannel().Returns(newChannel);
             var tunnel = new RabbitTunnelWithPriorityQueuesSupport(routeFinder, durableConnection);
 
@@ -49,7 +49,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
             durableConnection.IsConnected.Returns(true);
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.CreateChannel().Returns(newChannel);
             var tunnel = new RabbitTunnelWithPriorityQueuesSupport(routeFinder, durableConnection);
 

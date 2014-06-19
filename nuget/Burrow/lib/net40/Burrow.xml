@@ -333,12 +333,25 @@
             A public access to <see cref="T:Burrow.IMessageHandlerFactory"/>
             </summary>
         </member>
+        <member name="T:Burrow.Internal.ConsumerErrorHandler">
+            <summary>
+            This is a simple error handler that will push the error message to a predefined queue
+            </summary>
+        </member>
         <member name="M:Burrow.IConsumerErrorHandler.HandleError(RabbitMQ.Client.Events.BasicDeliverEventArgs,System.Exception)">
             <summary>
             Provide an error handling strategy when there is an error processing the message
             </summary>
             <param name="deliverEventArgs"></param>
             <param name="exception"></param>
+        </member>
+        <member name="M:Burrow.Internal.ConsumerErrorHandler.#ctor(Burrow.IDurableConnection,Burrow.ISerializer,Burrow.IRabbitWatcher)">
+            <summary>
+            Initialize an error handler
+            </summary>
+            <param name="durableConnection"></param>
+            <param name="serializer"></param>
+            <param name="watcher"></param>
         </member>
         <member name="T:Burrow.IMessageHandlerFactory">
             <summary>
@@ -542,9 +555,19 @@
             Determine whether there is a connection to rabbitmq server
             </summary>
         </member>
-        <member name="P:Burrow.IDurableConnection.ConnectionFactory">
+        <member name="P:Burrow.IDurableConnection.HostName">
             <summary>
-            Get the ConnectionFactory object
+            Get the current connected host name
+            </summary>
+        </member>
+        <member name="P:Burrow.IDurableConnection.VirtualHost">
+            <summary>
+            Get the current connected virtual host
+            </summary>
+        </member>
+        <member name="P:Burrow.IDurableConnection.UserName">
+            <summary>
+            Get the current connected username
             </summary>
         </member>
         <member name="T:Burrow.Internal.DefaultRetryPolicy">
@@ -923,6 +946,18 @@
             <summary>
             The number of threads to process messages, Default is Global.DefaultConsumerBatchSize
             </summary>
+        </member>
+        <member name="T:Burrow.ITopicExchangeRouteFinder">
+            <summary>
+            Implement this interface to provide flexible topic routing key based on the message itself
+            </summary>
+        </member>
+        <member name="M:Burrow.ITopicExchangeRouteFinder.FindRoutingKey``1(``0)">
+            <summary>
+            Find the routing key based on the message 
+            </summary>
+            <typeparam name="T">AKA Topic</typeparam>
+            <returns></returns>
         </member>
         <member name="T:Burrow.AsyncSubscriptionOption`1">
             <summary>

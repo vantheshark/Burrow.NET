@@ -104,7 +104,7 @@ namespace Burrow.Internal
         /// </summary>
         /// <returns></returns>
         [ExcludeFromCodeCoverage]
-        public virtual IConnection EstablishConnection()
+        internal protected virtual IConnection EstablishConnection()
         {
             return base.CreateConnection();
         }

@@ -767,11 +767,6 @@
             use with the Stream content class.
              (unsupported in AMQP 0-9-1)</summary>
         </member>
-        <member name="M:RabbitMQ.Client.IModel.ChannelFlow(System.Boolean)">
-            <summary>(Spec method) Channel flow control functionality.</summary>
-            <remarks>
-            </remarks>
-        </member>
         <member name="M:RabbitMQ.Client.IModel.ExchangeDeclare(System.String,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">
             <summary>(Spec method) Declare an exchange.</summary>
             <remarks>
@@ -1141,9 +1136,13 @@
             otherwise.</summary>
         </member>
         <member name="P:RabbitMQ.Client.IModel.IsOpen">
-            <summary>Returns true if the session is still in a state
+            <summary>Returns true if the model is still in a state
             where it can be used. Identical to checking if CloseReason
             == null.</summary>
+        </member>
+        <member name="P:RabbitMQ.Client.IModel.IsClosed">
+            <summary>Returns true if the model is no longer in a state
+            where it can be used.</summary>
         </member>
         <member name="P:RabbitMQ.Client.IModel.NextPublishSeqNo">
             <summary>When in confirm mode, return the sequence number
@@ -4822,7 +4821,7 @@
             to set up an SSL connection, using the config options in an SslOption
             to make things cleaner</summary>
         </member>
-        <member name="M:RabbitMQ.Client.SslHelper.TcpUpgrade(System.IO.Stream,RabbitMQ.Client.SslOption)">
+        <member name="M:RabbitMQ.Client.SslHelper.TcpUpgrade(System.IO.Stream,RabbitMQ.Client.SslOption,System.Int32)">
             <summary>Upgrade a Tcp stream to an Ssl stream using the SSL options
             provided</summary>
         </member>
@@ -4872,6 +4871,19 @@
         <member name="P:RabbitMQ.Client.SslOption.AcceptablePolicyErrors">
             <summary>Retrieve or set the set of ssl policy errors that
             are deemed acceptable</summary>
+        </member>
+        <member name="P:RabbitMQ.Client.SslOption.CertificateValidationCallback">
+            <summary>
+            An optional client specified SSL certificate validation callback.  If this is not specified,
+            the default callback will be used in conjunction with the AcceptablePolicyErrors property to 
+            determine if the remote server certificate is valid.
+            </summary>
+        </member>
+        <member name="P:RabbitMQ.Client.SslOption.CertificateSelectionCallback">
+            <summary>
+            An optional client specified SSL certificate selection callback.  If this is not specified,
+            the first valid certificate found will be used.
+            </summary>
         </member>
         <member name="T:RabbitMQ.Client.Content.BasicMessageBuilder">
             <summary>Framework for constructing various types of AMQP
@@ -5728,6 +5740,10 @@
              radically from release to release.
             </remarks>
         </member>
+        <member name="M:RabbitMQ.Client.Events.EventingBasicConsumer.#ctor(RabbitMQ.Client.IModel)">
+            <summary>Constructor which sets the Model property to the
+            given value.</summary>
+        </member>
         <member name="M:RabbitMQ.Client.Events.EventingBasicConsumer.HandleBasicCancelOk(System.String)">
             <summary>Fires the Unregistered event.</summary>
         </member>
@@ -5785,6 +5801,10 @@
         <member name="M:RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor(RabbitMQ.Client.ShutdownEventArgs)">
             <summary>Construct an OperationInterruptedException with
             the passed-in explanation, if any.</summary>
+        </member>
+        <member name="M:RabbitMQ.Client.Exceptions.OperationInterruptedException.#ctor(RabbitMQ.Client.ShutdownEventArgs,System.String)">
+            <summary>Construct an OperationInterruptedException with
+            the passed-in explanation and prefix, if any.</summary>
         </member>
         <member name="P:RabbitMQ.Client.Exceptions.OperationInterruptedException.ShutdownReason">
             <summary>Retrieves the explanation for the shutdown. May

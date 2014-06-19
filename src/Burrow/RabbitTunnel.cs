@@ -29,7 +29,7 @@ namespace Burrow
 
         protected ISerializer _serializer;
         protected IRouteFinder _routeFinder;
-        
+        private ITopicExchangeRouteFinder _topicExchangeRouteFinder;
         private bool _setPersistent;
         protected volatile bool _disposed;
 
@@ -56,8 +56,8 @@ namespace Burrow
         /// <param name="connection"></param>
         public RabbitTunnel(IRouteFinder routeFinder,
                             IDurableConnection connection)
-            : this(new ConsumerManager(Global.DefaultWatcher, 
-                                       new DefaultMessageHandlerFactory(new ConsumerErrorHandler(() => connection.ConnectionFactory, 
+            : this(new ConsumerManager(Global.DefaultWatcher,
+                                       new DefaultMessageHandlerFactory(new ConsumerErrorHandler(connection, 
                                                                                                  Global.DefaultSerializer, 
                                                                                                  Global.DefaultWatcher), 
                                                                         Global.DefaultSerializer,
@@ -267,7 +267,14 @@ namespace Burrow
 
         public void Publish<T>(T rabbit)
         {
-            Publish(rabbit, _routeFinder.FindRoutingKey<T>(), null);
+            if (_topicExchangeRouteFinder != null)
+            {
+                Publish(rabbit, _topicExchangeRouteFinder.FindRoutingKey(rabbit), null);
+            }
+            else
+            {
+                Publish(rabbit, _routeFinder.FindRoutingKey<T>(), null);
+            }
         }
 
         public virtual void Publish<T>(T rabbit, string routingKey)
@@ -277,7 +284,14 @@ namespace Burrow
 
         public void Publish<T>(T rabbit, IDictionary<string, object> customHeaders)
         {
-            Publish(rabbit, _routeFinder.FindRoutingKey<T>(), customHeaders);
+            if (_topicExchangeRouteFinder != null)
+            {
+                Publish(rabbit, _topicExchangeRouteFinder.FindRoutingKey(rabbit), null);
+            }
+            else
+            {
+                Publish(rabbit, _routeFinder.FindRoutingKey<T>(), customHeaders);
+            }
         }
 
         private void Publish<T>(T rabbit, string routingKey, IDictionary<string, object> customHeaders)
@@ -535,6 +549,7 @@ namespace Burrow
                 throw new ArgumentNullException("routeFinder");
             }
             _routeFinder = routeFinder;
+            _topicExchangeRouteFinder = _routeFinder as ITopicExchangeRouteFinder;
         }
         
         public void SetSerializer(ISerializer serializer)

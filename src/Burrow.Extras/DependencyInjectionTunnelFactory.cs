@@ -68,7 +68,7 @@ namespace Burrow.Extras
 
             Func<IConsumerErrorHandler> errorHandler = () =>
             {
-                var handdler = new ConsumerErrorHandler(() => durableConnection.ConnectionFactory, serializer, rabbitWatcher);
+                var handdler = new ConsumerErrorHandler(durableConnection, serializer, rabbitWatcher);
                 abc.FireEvent(handdler);
                 return handdler;
             };

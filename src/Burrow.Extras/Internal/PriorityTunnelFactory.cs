@@ -61,7 +61,7 @@ namespace Burrow.Extras.Internal
 
         private ITunnel Create(DurableConnection durableConnection, IRabbitWatcher rabbitWatcher)
         {
-            var errorHandler = new ConsumerErrorHandler(() => durableConnection.ConnectionFactory, Global.DefaultSerializer, rabbitWatcher);
+            var errorHandler = new ConsumerErrorHandler(durableConnection, Global.DefaultSerializer, rabbitWatcher);
             var msgHandlerFactory = new PriorityMessageHandlerFactory(errorHandler, Global.DefaultSerializer, rabbitWatcher);
             var consumerManager = new ConsumerManager(rabbitWatcher, msgHandlerFactory, Global.DefaultSerializer);
 

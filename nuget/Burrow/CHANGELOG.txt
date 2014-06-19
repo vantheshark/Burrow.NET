@@ -1,3 +1,8 @@
+* 1.0.27 (19 June 2014)
+- Fix a bug about the the ConsumerErrorHandler creates a new connection which fire the connected event and make all existing subscribers to connect again
+- Breaking API: IDurableConnection will no longer expose public ConnectionFactory getter, it exposes HostName, VirtualHost and UserName instead
+- Add ITopicExchangeRouteFinder to support dynamic routing key for topic exchange bases on message value
+  
 * 1.0.26 (16 June 2014)
 - Fix a bug about the connection established event not fire to all IDurableConnection object
   https://github.com/vanthoainguyen/Burrow.NET/issues/15

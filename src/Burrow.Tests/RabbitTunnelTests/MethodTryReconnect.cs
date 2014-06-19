@@ -20,7 +20,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             channel.IsOpen.Returns(true);
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();
@@ -53,7 +53,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             channel.IsOpen.Returns(true);
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();

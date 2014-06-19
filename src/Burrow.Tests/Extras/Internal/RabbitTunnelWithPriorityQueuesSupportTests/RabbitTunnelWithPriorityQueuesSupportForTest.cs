@@ -28,7 +28,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             var routeFinder = Substitute.For<IRouteFinder>();
             routeFinder.FindQueueName<Customer>(null).ReturnsForAnyArgs("Queue");
             durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             var conn = durableConnection;
             durableConnection.When(x => x.Connect()).Do(callInfo => // Because this is a mock objectd
             {

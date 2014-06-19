@@ -18,7 +18,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.IsOpen.Returns(true);
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            ////durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();
@@ -37,6 +37,34 @@ namespace Burrow.Tests.RabbitTunnelTests
         }
 
         [TestMethod]
+        public void Should_use_topic_route_finder_to_find_routing_key_if_provided()
+        {
+            // Arrange
+            var newChannel = Substitute.For<IModel>();
+            newChannel.IsOpen.Returns(true);
+            var routeFinder = Substitute.For<ITopicExchangeRouteFinder>();
+            routeFinder.FindRoutingKey("This.Is.A.Topic").Returns("This.Is.A.Topic");
+            var durableConnection = Substitute.For<IDurableConnection>();
+            ////durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            durableConnection.When(x => x.Connect()).Do(callInfo =>
+            {
+                durableConnection.Connected += Raise.Event<Action>();
+                durableConnection.IsConnected.Returns(true);
+            });
+
+            durableConnection.CreateChannel().Returns(newChannel);
+            var tunnel = new RabbitTunnel(routeFinder, durableConnection);
+
+            // Action
+            tunnel.Publish("This.Is.A.Topic");
+            tunnel.Publish("This.Is.A.Topic", new Dictionary<string, object>());
+
+            // Assert
+            routeFinder.Received(2).FindRoutingKey("This.Is.A.Topic");
+            newChannel.Received(2).BasicPublish(Arg.Any<string>(), "This.Is.A.Topic", Arg.Any<IBasicProperties>(), Arg.Any<byte[]>());
+        }
+
+        [TestMethod]
         public void Should_be_able_to_publish_with_routingKey()
         {
             // Arrange
@@ -44,7 +72,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.IsOpen.Returns(true);
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();
@@ -70,7 +98,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.IsOpen.Returns(true);
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();
@@ -122,7 +150,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             var routeFinder = Substitute.For<IRouteFinder>();
             routeFinder.When(x =>x.FindExchangeName<string>()).Do(callInfo => { throw new Exception("Test message");});
             var durableConnection = Substitute.For<IDurableConnection>();
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.When(x => x.Connect()).Do(callInfo =>
             {
                 durableConnection.Connected += Raise.Event<Action>();
@@ -145,7 +173,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             var routeFinder = Substitute.For<IRouteFinder>();
             var durableConnection = Substitute.For<IDurableConnection>();
             durableConnection.IsConnected.Returns(true);
-            durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
+            //durableConnection.ConnectionFactory.Returns(Substitute.For<ConnectionFactory>());
             durableConnection.CreateChannel().Returns(newChannel);
             var tunnel = new RabbitTunnel(routeFinder, durableConnection);
 
