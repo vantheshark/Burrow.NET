@@ -77,6 +77,7 @@ Some blog posts:
 * [Priority With RabbitMQ implementation in .NET](http://thoai-nguyen.blogspot.com.au/2012/07/priority-queue-rabbitmq-burrownet.html)
 * [Implement RPC service using Burrow.NET and RabbitMQ](http://thoai-nguyen.blogspot.com.au/2012/10/rpc-with-burrownet-and-rabbitmq.html)
 * [Monitor RabbitMQ queues & count total messages](http://thoai-nguyen.blogspot.com.au/2013/07/monitor-rabbitmq-queues-count-message.html)
+* [Using RabbitMQ Header Exchange with Burrow.NET](http://thoai-nguyen.blogspot.com.au/2014/06/using-rabbitmq-header-exchange-with.html)
 
 Nuget library is also added at http://nuget.org/packages/Burrow.NET
 
