@@ -29,6 +29,22 @@ namespace Burrow.Internal
             {
                 if (_connectionFactories.All.Any(f => f.Endpoint + f.VirtualHost == endpoint + virtualHost))
                 {
+                    if (!IsConnected)
+                    {
+                        while (_connectionFactories.Current.Endpoint + _connectionFactories.Current.VirtualHost != endpoint + virtualHost)
+                        {
+                            //IF there are 2 different Tunnels using 2 HaConnection with 2 lists of cluster nodes in different orders:
+                            //Example:
+
+                            // ConnectionString1: host=q1;username=guest;password=guest|host=q2;username=guest;password=guest|host=q3;username=guest;password=guest
+                            // ConnectionString2: host=q2;username=guest;password=guest|host=q3;username=guest;password=guest|host=q1;username=guest;password=guest
+
+                            // When the first tunnel established the connection successfully to q1, it fires event and these lines of code is triggered.
+                            // The 2nd HaConnection needs to set it's _connectionFactories.Current to q1 established by other tunnel. Before changing, _connectionFactories.Current is q3 by the order in the ConnectionString2 
+                            _connectionFactories.GetNext();
+                        }
+                    }
+
                     FireConnectedEvent();
                 }
             };

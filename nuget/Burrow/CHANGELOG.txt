@@ -1,3 +1,6 @@
+* 1.0.28 (12 July 2014)
+- Fix a bug on HaConnection class when using different Tunnel with different node clusters in different node orders in config
+
 * 1.0.27 (19 June 2014)
 - Fix a bug about the the ConsumerErrorHandler creates a new connection which fire the connected event and make all existing subscribers to connect again
 - Breaking API: IDurableConnection will no longer expose public ConnectionFactory getter, it exposes HostName, VirtualHost and UserName instead

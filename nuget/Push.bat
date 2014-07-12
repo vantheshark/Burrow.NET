@@ -4,7 +4,7 @@
 DIR /B *.nupkg
 @echo:
 SETLOCAL
-SET VERSION=1.0.26
+SET VERSION=1.0.28
 pause
 nuget push Burrow.NET.%VERSION%.nupkg
 nuget push Burrow.Extras.%VERSION%.nupkg

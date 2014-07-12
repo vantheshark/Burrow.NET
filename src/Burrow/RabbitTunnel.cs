@@ -185,7 +185,7 @@ namespace Burrow
         {
             if (_dedicatedPublishingChannel == null || !_dedicatedPublishingChannel.IsOpen)
             {
-                _watcher.InfoFormat("Creating dedicated publishing channel");
+                _watcher.InfoFormat("Creating dedicated publishing channel to Broker: '{0}', VHost: '{1}'", _connection.HostName, _connection.VirtualHost);
                 _dedicatedPublishingChannel = _connection.CreateChannel();
                 
                 // If still failed, it's time to throw exception
@@ -199,9 +199,9 @@ namespace Burrow
                 _dedicatedPublishingChannel.BasicAcks += OnBrokerReceivedMessage;
                 _dedicatedPublishingChannel.BasicNacks += OnBrokerRejectedMessage;
                 _dedicatedPublishingChannel.BasicReturn += OnMessageIsUnrouted;
-                _dedicatedPublishingChannel.ModelShutdown += (channel, reason) => _watcher.WarnFormat("Dedicated publishing channel is shutdown: {0}", reason.ReplyText);
-                
-                _watcher.InfoFormat("Dedicated publishing channel established");
+                _dedicatedPublishingChannel.ModelShutdown += (channel, reason) => _watcher.WarnFormat("Dedicated publishing channel to Broker: '{0}', VHost: '{1}' was shutdown: {2}", _connection.HostName, _connection.VirtualHost, reason.ReplyText);
+
+                _watcher.InfoFormat("Dedicated publishing channel to Broker: '{0}', VHost: '{1}' established", _connection.HostName, _connection.VirtualHost);
             }
         }
 
