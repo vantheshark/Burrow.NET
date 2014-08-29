@@ -13,6 +13,11 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
     [TestClass]
     public class MethodReady
     {
+        static MethodReady()
+        {
+            Global.ConsumerDisposeTimeoutInSeconds = 1;
+        }
+
         [TestMethod, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_subscription_is_null()
         {

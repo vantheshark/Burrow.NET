@@ -32,7 +32,7 @@ namespace Burrow.Tests.BurrowConsumerTests
                                null, false, 3);
         }
 
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [TestMethod, ExpectedException(typeof(ArgumentException))]
         public void Should_throw_exception_if_provide_batchSize_less_than_1()
         {
             // Action

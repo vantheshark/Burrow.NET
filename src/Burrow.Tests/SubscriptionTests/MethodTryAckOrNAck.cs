@@ -18,7 +18,7 @@ namespace Burrow.Tests.SubscriptionTests
             var watcher = Substitute.For<IRabbitWatcher>();
 
             // Action
-            Subscription.TryAckOrNAck(x => x.BasicAck(0, false), null, watcher);
+            Subscription.TryAckOrNack(true, null, 0, true, false, watcher);
 
             // Assert
             watcher.Received(1).InfoFormat("Trying ack/nack msg but the Channel is null, will not do anything");
@@ -32,7 +32,7 @@ namespace Burrow.Tests.SubscriptionTests
             var watcher = Substitute.For<IRabbitWatcher>();
 
             // Action
-            Subscription.TryAckOrNAck(x => x.BasicAck(0, false), model, watcher);
+            Subscription.TryAckOrNack(true, model, 0, true, false, watcher);
 
             // Assert
             model.DidNotReceive().BasicAck(Arg.Any<ulong>(), Arg.Any<bool>());
@@ -48,7 +48,7 @@ namespace Burrow.Tests.SubscriptionTests
             var watcher = Substitute.For<IRabbitWatcher>();
 
             // Action
-            Subscription.TryAckOrNAck(x => { throw new AlreadyClosedException(new ShutdownEventArgs(ShutdownInitiator.Application, 0, ""));}, model, watcher);
+            Subscription.TryAckOrNack(true, model, 100, false, false, watcher);
             
             // Assert
             watcher.Received().WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());
@@ -60,11 +60,12 @@ namespace Burrow.Tests.SubscriptionTests
             // Arrange
             var model = Substitute.For<IModel>();
             model.IsOpen.Returns(true);
-            model.When(x => x.BasicAck(Arg.Any<ulong>(), Arg.Any<bool>())).Do(callInfo => { throw new AlreadyClosedException(new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "Shutdown")); });
+            model.When(x => x.BasicAck(Arg.Any<ulong>(), Arg.Any<bool>())).Do(callInfo => { throw new IOException(); });
             var watcher = Substitute.For<IRabbitWatcher>();
 
             // Action
-            Subscription.TryAckOrNAck(x => { throw new IOException(); }, model, watcher);
+            //Subscription.TryAckOrNAck(x => { throw new IOException(); }, model, watcher);
+            Subscription.TryAckOrNack(true, model, 100, false, false, watcher);
 
             // Assert
             watcher.Received().WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());
@@ -76,11 +77,12 @@ namespace Burrow.Tests.SubscriptionTests
             // Arrange
             var model = Substitute.For<IModel>();
             model.IsOpen.Returns(true);
-            model.When(x => x.BasicAck(Arg.Any<ulong>(), Arg.Any<bool>())).Do(callInfo => { throw new AlreadyClosedException(new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "Shutdown")); });
+            model.When(x => x.BasicNack(Arg.Any<ulong>(), Arg.Any<bool>(), Arg.Any<bool>())).Do(callInfo => { throw new Exception(); });
             var watcher = Substitute.For<IRabbitWatcher>();
 
             // Action
-            Subscription.TryAckOrNAck(x => { throw new Exception("Other exceptions"); }, model, watcher);
+            //Subscription.TryAckOrNAck(x => { throw new Exception("Other exceptions"); }, model, watcher);
+            Subscription.TryAckOrNack(false, model, 100, false, false, watcher);
 
             // Assert
             watcher.Received().WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());

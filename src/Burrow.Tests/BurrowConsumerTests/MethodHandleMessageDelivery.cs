@@ -43,7 +43,7 @@ namespace Burrow.Tests.BurrowConsumerTests
         }
 
         [TestMethod]
-        public void When_called_should_throw_BadMessageHandlerException_if_the_message_handler_throws_exception()
+        public void When_called_should_dispose_if_the_message_handler_throws_exception()
         {
             var waitHandler = new ManualResetEvent(false);
             var watcher = Substitute.For<IRabbitWatcher>();
@@ -57,7 +57,7 @@ namespace Burrow.Tests.BurrowConsumerTests
                     }
                 );
 
-            watcher.When(x => x.Error(Arg.Any<BadMessageHandlerException>())).Do(callInfo => waitHandler.Set());
+            watcher.When(x => x.Error(Arg.Any<Exception>())).Do(callInfo => waitHandler.Set());
             var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3);
 
             // Action
@@ -68,7 +68,8 @@ namespace Burrow.Tests.BurrowConsumerTests
             waitHandler.WaitOne();
 
             // Assert
-            watcher.Received(1).Error(Arg.Any<BadMessageHandlerException>());
+            watcher.Received(1).Error(Arg.Any<Exception>());
+            Assert.IsTrue(consumer.IsDisposed);
         }
     }
 }

@@ -29,8 +29,6 @@ namespace Burrow.Extras.Internal
         protected override void HandleMessage(BasicDeliverEventArgs eventArgs, out bool msgHandled)
         {
             var priority = PriorityMessageHandler.GetMsgPriority(eventArgs);
-            var currentThread = System.Threading.Thread.CurrentThread;
-            currentThread.IsBackground = true;
 #if DEBUG
             _watcher.DebugFormat("4. A task to execute the provided callback with DTag: {0} by CTag: {1}, Priority {2} has been started using {3}.",
                                  eventArgs.DeliveryTag,

@@ -19,7 +19,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             consumer.Queue.Enqueue(null);
 
             // Action
-            consumer.WaitAndHandleMessageDelivery();
+            consumer.WaitAndHandleMessageDelivery(x => { });
 
 
             // Assert

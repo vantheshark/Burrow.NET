@@ -5,14 +5,18 @@ namespace Burrow.Tests.BurrowConsumerTests
 {
     public class BurrowConsumerForTest : BurrowConsumer
     {
+        static BurrowConsumerForTest()
+        {
+            Global.ConsumerDisposeTimeoutInSeconds = 1;
+        }
+
         public BurrowConsumerForTest(IModel channel, IMessageHandler messageHandler, IRabbitWatcher watcher, bool autoAck, int batchSize) 
             : base(channel, messageHandler, watcher, autoAck, batchSize)
         {
              WaitHandler = new AutoResetEvent(false);
         }
 
-
-        protected override void DoAck(RabbitMQ.Client.Events.BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
+        internal protected override void DoAck(RabbitMQ.Client.Events.BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
         {
             base.DoAck(basicDeliverEventArgs, subscriptionInfo);
             WaitHandler.Set();

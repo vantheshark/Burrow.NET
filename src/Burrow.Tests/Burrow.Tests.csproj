@@ -63,7 +63,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BadMessageHandlerExceptionTests\PropertyMessage.cs" />
     <Compile Include="BurrowConsumerTests\BurrowConsumerForTest.cs" />
     <Compile Include="BurrowConsumerTests\Constructor.cs" />
     <Compile Include="BurrowConsumerTests\MessageWasNotHandled.cs" />
@@ -95,12 +94,8 @@
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodInit.cs" />
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodHandleBasicDeliver.cs" />
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodOnCancel.cs" />
-    <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodDispose.cs" />
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodDoAck.cs" />
-    <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodHandleMessageDelivery.cs" />
-    <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodMessageHandlerHandlingComplete.cs" />
     <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodReady.cs" />
-    <Compile Include="Extras\Internal\PriorityBurrowConsumerTests\MethodWhenChannelShutdown.cs" />
     <Compile Include="Extras\Internal\PriorityComparerTests\MethodCompare.cs" />
     <Compile Include="Extras\Internal\PriorityMessageHandlerTests\MethodHandleMessage.cs" />
     <Compile Include="Extras\Internal\RabbitTunnelWithPriorityQueuesSupportTests\MethodGetMessageCount.cs" />

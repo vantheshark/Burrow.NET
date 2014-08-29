@@ -1,8 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -10,6 +8,7 @@ namespace Burrow
 {
     public class DefaultMessageHandler<T> : IMessageHandler
     {
+        protected readonly string _typeName = Global.DefaultTypeNameSerializer.Serialize(typeof(T));
         protected readonly string _subscriptionName;
         protected readonly IRabbitWatcher _watcher;
         protected readonly Action<T, MessageDeliverEventArgs> _msgHandlingAction;
@@ -50,6 +49,8 @@ namespace Burrow
             _consumerErrorHandler = consumerErrorHandler;
             _messageSerializer = messageSerializer;
             _msgHandlingAction = msgHandlingAction;
+            _typeName = Global.DefaultTypeNameSerializer.Serialize(typeof(T));
+            
         }
 
         /// <summary>
@@ -102,41 +103,42 @@ namespace Burrow
         }
 
         /// <summary>
-        /// This method creates a background Task to handle the job.
         /// It will catch all exceptions
         /// </summary>
         /// <param name="eventArgs"></param>
         public void HandleMessage(BasicDeliverEventArgs eventArgs)
         {
-            Task.Factory.StartNew(() =>
+#if DEBUG
+            if (_watcher.IsDebugEnable)
             {
-                bool msgHandled = false;
+                _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}", basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.DeliveryTag);
+            }
+#endif
+            bool msgHandled = false;
+            try
+            {
+                BeforeHandlingMessage(eventArgs);
+                HandleMessage(eventArgs, out msgHandled);
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                _watcher.ErrorFormat("5. The task to execute the provided callback with DTag: {0} by CTag: {1} has been finished but there is an error", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
+#endif
+                _watcher.Error(ex);
                 try
                 {
-                    BeforeHandlingMessage(eventArgs);
-                    HandleMessage(eventArgs, out msgHandled);
+                    HandleError(eventArgs, ex);
                 }
-                catch (Exception ex)
+                catch (Exception errorHandlingEx)
                 {
-#if DEBUG
-                    _watcher.ErrorFormat("5. The task to execute the provided callback with DTag: {0} by CTag: {1} has been finished but there is an error", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
-#endif
-                    _watcher.Error(ex);
-                    try
-                    {
-                        HandleError(eventArgs, ex);
-                    }
-                    catch (Exception errorHandlingEx)
-                    {
-                        _watcher.ErrorFormat("Failed to handle the exception: {0} because of {1}", ex.Message, errorHandlingEx.StackTrace);
-                    }
+                    _watcher.ErrorFormat("Failed to handle the exception: {0} because of {1}", ex.Message, errorHandlingEx.StackTrace);
                 }
-                finally
-                {
-                    CleanUp(eventArgs, msgHandled);
-                }
-                
-            }, Global.DefaultTaskCreationOptionsProvider());
+            }
+            finally
+            {
+                CleanUp(eventArgs, msgHandled);
+            }
         }
 
         /// <summary>
@@ -146,9 +148,6 @@ namespace Burrow
         /// <param name="msgHandled">If message is delivered to client, set to true</param>
         protected virtual void HandleMessage(BasicDeliverEventArgs eventArgs, out bool msgHandled)
         {
-            var currentThread = Thread.CurrentThread;
-            currentThread.IsBackground = true;
-            currentThread.Priority = ThreadPriority.Highest;
 #if DEBUG
             _watcher.DebugFormat("4. A task to execute the provided callback with DTag: {0} by CTag: {1} has been started using {2}.",
                                  eventArgs.DeliveryTag,
@@ -157,7 +156,6 @@ namespace Burrow
 #endif
             CheckMessageType(eventArgs.BasicProperties);
             var message = _messageSerializer.Deserialize<T>(eventArgs.Body);
-
             
             _msgHandlingAction(message, new MessageDeliverEventArgs
             {
@@ -220,11 +218,10 @@ namespace Burrow
 
         protected void CheckMessageType(IBasicProperties properties)
         {
-            var typeName = Global.DefaultTypeNameSerializer.Serialize(typeof(T));
-            if (properties.Type != typeName)
+            if (properties.Type != _typeName)
             {
-                _watcher.ErrorFormat("Message type is incorrect. Expected '{0}', but was '{1}'", typeName, properties.Type);
-                throw new Exception(string.Format("Message type is incorrect. Expected '{0}', but was '{1}'", typeName, properties.Type));
+                _watcher.ErrorFormat("Message type is incorrect. Expected '{0}', but was '{1}'", _typeName, properties.Type);
+                throw new Exception(string.Format("Message type is incorrect. Expected '{0}', but was '{1}'", _typeName, properties.Type));
             }
         }
     }

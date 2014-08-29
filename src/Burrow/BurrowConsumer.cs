@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,12 @@ namespace Burrow
     /// </summary>
     public class BurrowConsumer : QueueingBasicConsumer, IDisposable
     {
+        internal static Dictionary<IModel, List<ulong>> OutstandingDeliveryTags = new Dictionary<IModel, List<ulong>>();
+
+        /// <summary>
+        /// The number of threads to process messages, Default is Global.DefaultConsumerBatchSize
+        /// </summary>
+        public int BatchSize { get; private set; }
         protected readonly IRabbitWatcher _watcher;
         private readonly bool _autoAck;
         private bool _channelShutdown;
@@ -22,10 +29,8 @@ namespace Burrow
         /// <summary>
         /// Control the sharedqueue to receive enough messages to process in parallel if <see cref="BatchSize"/> greater than 1
         /// </summary>
-        protected SafeSemaphore _pool { get; private set; }
+        protected SafeSemaphore _pool { get; set; }
         private readonly IMessageHandler _messageHandler;
-
-        private int _messagesInProgressCount;
 
         /// <summary>
         /// Initialize an object of <see cref="BurrowConsumer"/>
@@ -38,9 +43,26 @@ namespace Burrow
         public BurrowConsumer(IModel channel,
                               IMessageHandler messageHandler,
                               IRabbitWatcher watcher,
-
                               bool autoAck,
-                              int batchSize)
+                              int batchSize) : this(channel, messageHandler, watcher, autoAck, batchSize, true)
+        {
+            // This is the public constructor to start the consuming thread straight away
+        }
+
+        /// <summary>
+        /// Initialize an object of <see cref="BurrowConsumer"/>
+        /// </summary>
+        /// <param name="channel">RabbitMQ.Client channel</param>
+        /// <param name="messageHandler">An instance of message handler to handle the message from queue</param>
+        /// <param name="watcher"></param>
+        /// <param name="autoAck">If set to true, the msg will be acked after processed</param>
+        /// <param name="batchSize"></param>
+        /// <param name="startThread"></param>
+        protected BurrowConsumer(IModel channel,
+                                 IMessageHandler messageHandler,
+                                 IRabbitWatcher watcher,
+                                 bool autoAck,
+                                 int batchSize, bool startThread = true)
             : base(channel, new SharedQueue<BasicDeliverEventArgs>())
         {
             if (channel == null)
@@ -58,11 +80,12 @@ namespace Burrow
 
             if (batchSize < 1)
             {
-                throw new ArgumentNullException("batchSize", "batchSize must be greater than or equal 1");
+                throw new ArgumentException("batchSize", "batchSize must be greater than or equal 1");
             }
 
             Model.ModelShutdown += WhenChannelShutdown;
             Model.BasicRecoverAsync(true);
+            OutstandingDeliveryTags[Model] = new List<ulong>();
             BatchSize = batchSize;
 
             _pool = new SafeSemaphore(watcher, BatchSize, BatchSize);
@@ -73,15 +96,28 @@ namespace Burrow
             _messageHandler = messageHandler;
             _messageHandler.HandlingComplete += MessageHandlerHandlingComplete;
             _messageHandler.MessageWasNotHandled += MessageWasNotHandled;
-            
-            Task.Factory.StartNew(() =>
+
+            if (startThread)
+            {
+                StartConsumerThread(string.Format("Consumer thread: {0}", ConsumerTag));
+            }
+        }
+
+        protected void StartConsumerThread(string threadName)
+        {
+            ThreadStart startDelegate = () =>
             {
                 try
                 {
-                    Thread.CurrentThread.Name = string.Format("Consumer thread: {0}", ConsumerTag);
+                    Action<BasicDeliverEventArgs> handler = HandleMessageDeliveryInSameThread;
+                    if (BatchSize > 1)
+                    {
+                        handler = HandleMessageDeliveryInSeperatedThread;
+                    }
+
                     while (!_disposed && !_channelShutdown)
                     {
-                        WaitAndHandleMessageDelivery();
+                        WaitAndHandleMessageDelivery(handler);
                     }
                 }
                 catch (ThreadStateException tse)
@@ -96,10 +132,28 @@ namespace Burrow
                 {
                     _watcher.WarnFormat("The consumer thread {0} is aborted", ConsumerTag);
                 }
-            }, TaskCreationOptions.LongRunning);
+            };
+
+            var threadOne = new Thread(startDelegate)
+            {
+                Name = threadName,
+                Priority = ThreadPriority.AboveNormal,
+                IsBackground = true
+            };
+            threadOne.Start();
         }
 
-        internal virtual void WaitAndHandleMessageDelivery()
+        protected virtual BasicDeliverEventArgs Dequeue()
+        {
+            return Queue.Dequeue(); 
+        }
+
+        protected virtual void CloseQueue()
+        {
+            Queue.Close();
+        }
+
+        internal void WaitAndHandleMessageDelivery(Action<BasicDeliverEventArgs> handler)
         {
             try
             {
@@ -115,8 +169,8 @@ namespace Burrow
 #endif
 					if (!_disposed)
                     {
-                    	deliverEventArgs = Queue.Dequeue();
-					}
+                        deliverEventArgs = Dequeue();
+                    }
 #if DEBUG
 
                     _watcher.DebugFormat("3. Msg from RabbitMQ arrived (probably the previous msg has been acknownledged), prepare to handle it");
@@ -124,7 +178,12 @@ namespace Burrow
                 }
                 if (deliverEventArgs != null)
                 {
-                    HandleMessageDelivery(deliverEventArgs);
+                    lock (OutstandingDeliveryTags)
+                    {
+                        OutstandingDeliveryTags[Model].Add(deliverEventArgs.DeliveryTag);
+                    }
+
+                    handler(deliverEventArgs);
                 }
                 else
                 {
@@ -144,11 +203,6 @@ namespace Burrow
 
 #endif
                 _pool.Release();
-            }
-            catch (BadMessageHandlerException ex)
-            {
-                _watcher.Error(ex);
-                Dispose();
             }
         }
 
@@ -192,51 +246,69 @@ namespace Burrow
 
 #endif
                 _pool.Release();
-                Interlocked.Decrement(ref _messagesInProgressCount);
             }
         }
 
         protected virtual void WhenChannelShutdown(IModel model, ShutdownEventArgs reason)
         {
-            Queue.Close();
+            if (OutstandingDeliveryTags.ContainsKey(model))
+            {
+                OutstandingDeliveryTags.Remove(model);
+            }
+            CloseQueue();
             _channelShutdown = true;
             _watcher.WarnFormat("Channel on queue {0} is shutdown: {1}", ConsumerTag, reason.ReplyText);
         }
+        
+        private void HandleMessageDeliveryInSeperatedThread(BasicDeliverEventArgs basicDeliverEventArgs)
+        {
+            Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    _messageHandler.HandleMessage(basicDeliverEventArgs);
+                }
+                catch (Exception ex)
+                {
+                    _watcher.Error(ex);
+                    Dispose();
+                }
+            }, Global.DefaultTaskCreationOptionsProvider());
+        }
 
-        private void HandleMessageDelivery(BasicDeliverEventArgs basicDeliverEventArgs)
+        private void HandleMessageDeliveryInSameThread(BasicDeliverEventArgs basicDeliverEventArgs)
         {
             try
             {
-                if (_watcher.IsDebugEnable)
-                {
-                    _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}", basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.DeliveryTag);
-                }
-                //NOTE: We dont have to catch exception here 
                 _messageHandler.HandleMessage(basicDeliverEventArgs);
-                Interlocked.Increment(ref _messagesInProgressCount);
             }
             catch (Exception ex)
             {
-                throw new BadMessageHandlerException(ex);
+                _watcher.Error(ex);
+                Dispose();
             }
         }
 
-        protected virtual void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
+        internal protected virtual void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
         {
             if (_disposed)
             {
                 return;
             }
 
-            Subscription.TryAckOrNAck(channel => channel.BasicAck(basicDeliverEventArgs.DeliveryTag, false), subscriptionInfo.Model, _watcher);
+            Subscription.TryAckOrNack(true, subscriptionInfo.Model, basicDeliverEventArgs.DeliveryTag, false, false, _watcher);
         }
 
-        /// <summary>
-        /// The number of threads to process messages, Default is Global.DefaultConsumerBatchSize
-        /// </summary>
-        public int BatchSize { get; private set; }
+        protected volatile bool _disposed;
 
-        private volatile bool _disposed;
+        /// <summary>
+        /// Determine whether the object has been disposed
+        /// </summary>
+        public bool IsDisposed
+        {
+            get { return _disposed; }
+        }
+
         public virtual void Dispose()
         {
             if (_disposed)
@@ -247,14 +319,25 @@ namespace Burrow
 
             //NOTE: Wait all current running tasks to finish and after that dispose the objects
             DateTime timeOut = DateTime.Now.AddSeconds(Global.ConsumerDisposeTimeoutInSeconds);
-            while (_messagesInProgressCount > 0 && DateTime.Now <= timeOut)
+
+            while (MessageInProgressCount(Model) > 0 && DateTime.Now <= timeOut)
             {
-                _watcher.InfoFormat("Wait for {0} messages in progress", _messagesInProgressCount);
+                _watcher.InfoFormat("Wait for {0} messages in progress", MessageInProgressCount(Model));
                 Thread.Sleep(1000);
             }
 
             _pool.Dispose();
-            Queue.Close();
+            CloseQueue();
+        }
+
+        internal static int MessageInProgressCount(IModel channel)
+        {
+            lock(OutstandingDeliveryTags)
+            {
+                return OutstandingDeliveryTags.ContainsKey(channel)
+                                    ? OutstandingDeliveryTags[channel].Count
+                                    : 0;
+            }
         }
     }
 }

@@ -1,12 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Threading;
+﻿using System.Threading;
 using Burrow.Extras.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
@@ -28,15 +25,12 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
 
             // Action
             consumer.Dispose();
-            consumer.DoAck(new BasicDeliverEventArgs());
+            consumer.DoAck(new BasicDeliverEventArgs(), consumer);
 
             // Assert
             model.DidNotReceive().BasicAck(Arg.Any<ulong>(), Arg.Any<bool>());
             waitHandler.Set();
         }
-
-
-        
     }
 }
 // ReSharper restore InconsistentNaming
