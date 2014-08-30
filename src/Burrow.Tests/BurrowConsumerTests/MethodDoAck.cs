@@ -20,8 +20,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             // Arrange
             var model = Substitute.For<IModel>();
             var msgHandler = Substitute.For<IMessageHandler>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler,
-                                                     Substitute.For<IRabbitWatcher>(), true, 3);
+            var consumer = new BurrowConsumerForTest(model, msgHandler, Substitute.For<IRabbitWatcher>(), true, 3);
 
             // Action
             consumer.DoAckForTest(new BasicDeliverEventArgs(), consumer);

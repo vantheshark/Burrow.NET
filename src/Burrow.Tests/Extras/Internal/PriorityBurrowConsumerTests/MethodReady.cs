@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using Burrow.Extras.Internal;
+using Burrow.Tests.BurrowConsumerTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RabbitMQ.Client;
@@ -59,9 +60,10 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
 
             var handler = Substitute.For<IMessageHandler>();
             handler.When(h => h.HandleMessage(Arg.Any<BasicDeliverEventArgs>()))
-                   .Do(callInfo => handler.HandlingComplete += Raise.Event<MessageHandlingEvent>(new BasicDeliverEventArgs()));
+                   .Do(callInfo => handler.HandlingComplete += Raise.Event<MessageHandlingEvent>(BurrowConsumerForTest.ADeliverEventArgs));
 
             var consumer = new PriorityBurrowConsumer(channel, handler, Substitute.For<IRabbitWatcher>(), true, 1);
+                               
 
             var sub = Substitute.For<CompositeSubscription>();
             sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });

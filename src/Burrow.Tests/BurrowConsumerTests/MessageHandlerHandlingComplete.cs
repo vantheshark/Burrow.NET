@@ -22,8 +22,8 @@ namespace Burrow.Tests.BurrowConsumerTests
 
 
             // Action
-            msgHandler.HandlingComplete += Raise.Event<MessageHandlingEvent>(Substitute.For<BasicDeliverEventArgs>());
-            consumer.WaitHandler.WaitOne();
+            msgHandler.HandlingComplete += Raise.Event<MessageHandlingEvent>(BurrowConsumerForTest.ADeliverEventArgs);
+            Assert.IsTrue(consumer.WaitHandler.WaitOne(5000), "Test wait timeout");
 
             // Assert
             model.Received().BasicAck(Arg.Any<ulong>(), false);
@@ -43,11 +43,11 @@ namespace Burrow.Tests.BurrowConsumerTests
             watcher.When(w => w.Error(Arg.Any<SubscriptionNotFoundException>())).Do(callInfo => waitHandler.Set());
 
             var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3);
-
+            consumer.ConsumerTag = "ConsumerTag";
 
             // Action
-            msgHandler.HandlingComplete += Raise.Event<MessageHandlingEvent>(Substitute.For<BasicDeliverEventArgs>());
-            waitHandler.WaitOne();
+            msgHandler.HandlingComplete += Raise.Event<MessageHandlingEvent>(BurrowConsumerForTest.ADeliverEventArgs);
+            Assert.IsTrue(waitHandler.WaitOne(5000), "Test wait timeout");
 
             // Assert
             consumer.Dispose();

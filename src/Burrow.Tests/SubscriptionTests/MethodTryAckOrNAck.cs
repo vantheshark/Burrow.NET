@@ -18,10 +18,10 @@ namespace Burrow.Tests.SubscriptionTests
             var watcher = Substitute.For<IRabbitWatcher>();
 
             // Action
-            Subscription.TryAckOrNack(true, null, 0, true, false, watcher);
+            Subscription.TryAckOrNack("", true, null, 0, true, false, watcher);
 
             // Assert
-            watcher.Received(1).InfoFormat("Trying ack/nack msg but the Channel is null, will not do anything");
+            watcher.Received(1).WarnFormat("Trying ack/nack msg but the Channel is null, will not do anything");
         }
 
         [TestMethod]
@@ -32,7 +32,7 @@ namespace Burrow.Tests.SubscriptionTests
             var watcher = Substitute.For<IRabbitWatcher>();
 
             // Action
-            Subscription.TryAckOrNack(true, model, 0, true, false, watcher);
+            Subscription.TryAckOrNack("", true, model, 0, true, false, watcher);
 
             // Assert
             model.DidNotReceive().BasicAck(Arg.Any<ulong>(), Arg.Any<bool>());
@@ -48,7 +48,7 @@ namespace Burrow.Tests.SubscriptionTests
             var watcher = Substitute.For<IRabbitWatcher>();
 
             // Action
-            Subscription.TryAckOrNack(true, model, 100, false, false, watcher);
+            Subscription.TryAckOrNack("", true, model, 100, false, false, watcher);
             
             // Assert
             watcher.Received().WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());
@@ -65,7 +65,7 @@ namespace Burrow.Tests.SubscriptionTests
 
             // Action
             //Subscription.TryAckOrNAck(x => { throw new IOException(); }, model, watcher);
-            Subscription.TryAckOrNack(true, model, 100, false, false, watcher);
+            Subscription.TryAckOrNack("", true, model, 100, false, false, watcher);
 
             // Assert
             watcher.Received().WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());
@@ -82,7 +82,7 @@ namespace Burrow.Tests.SubscriptionTests
 
             // Action
             //Subscription.TryAckOrNAck(x => { throw new Exception("Other exceptions"); }, model, watcher);
-            Subscription.TryAckOrNack(false, model, 100, false, false, watcher);
+            Subscription.TryAckOrNack("", false, model, 100, false, false, watcher);
 
             // Assert
             watcher.Received().WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());

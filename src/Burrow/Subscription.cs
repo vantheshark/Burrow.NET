@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using RabbitMQ.Client;
@@ -14,6 +15,7 @@ namespace Burrow
     public class Subscription
     {
         internal const string CloseByApplication = "Closed by application";
+        internal static ConcurrentDictionary<string, List<ulong>> OutstandingDeliveryTags = new ConcurrentDictionary<string, List<ulong>>();
 
         private IModel _channel;
         /// <summary>
@@ -95,10 +97,10 @@ namespace Burrow
                 return;
             }
 
-            lock (BurrowConsumer.OutstandingDeliveryTags)
+            lock (OutstandingDeliveryTags)
             {
                 var max = tags.Max();
-                if (BurrowConsumer.OutstandingDeliveryTags.ContainsKey(_channel) && CanAckNackAll(BurrowConsumer.OutstandingDeliveryTags[_channel], tags, max))
+                if (OutstandingDeliveryTags.ContainsKey(ConsumerTag) && CanAckNackAll(OutstandingDeliveryTags[ConsumerTag], tags, max))
                 {
                     TryAck(_channel, max, true);
                 }
@@ -166,10 +168,10 @@ namespace Burrow
                 return;
             }
 
-            lock (BurrowConsumer.OutstandingDeliveryTags)
+            lock (OutstandingDeliveryTags)
             {
                 var max = tags.Max();
-                if (BurrowConsumer.OutstandingDeliveryTags.ContainsKey(_channel) && CanAckNackAll(BurrowConsumer.OutstandingDeliveryTags[_channel], tags, max))
+                if (OutstandingDeliveryTags.ContainsKey(ConsumerTag) && CanAckNackAll(OutstandingDeliveryTags[ConsumerTag], tags, max))
                 {
                     TryNack(_channel, max, true, requeue);
                 }
@@ -190,47 +192,49 @@ namespace Burrow
         }
 
         private const string FailedToAckMessage = "Basic ack/nack failed because chanel was closed with message {0}. Message remains on RabbitMQ and will be retried.";
-        internal static void TryAckOrNack(bool ack, IModel channel, ulong deliveryTag, bool multiple, bool requeue, IRabbitWatcher watcher = null)
+        internal static void TryAckOrNack(string consumerTag, bool ack, IModel channel, ulong deliveryTag, bool multiple, bool requeue, IRabbitWatcher watcher = null)
         {
             try
             {
-                lock (BurrowConsumer.OutstandingDeliveryTags)
+                if (channel == null)
                 {
-                    if (channel == null)
+                    (watcher ?? Global.DefaultWatcher).WarnFormat("Trying ack/nack msg but the Channel is null, will not do anything");
+                }
+                else if (!channel.IsOpen)
+                {
+                    (watcher ?? Global.DefaultWatcher).WarnFormat("Trying ack/nack msg but the Channel is not open, will not do anything");
+                }
+                else
+                {
+                    if (ack)
                     {
-                        (watcher ?? Global.DefaultWatcher).InfoFormat("Trying ack/nack msg but the Channel is null, will not do anything");
-                    }
-                    else if (!channel.IsOpen)
-                    {
-                        (watcher ?? Global.DefaultWatcher).InfoFormat("Trying ack/nack msg but the Channel is not open, will not do anything");
+                        channel.BasicAck(deliveryTag, multiple);
                     }
                     else
                     {
-                        if (ack)
-                        {
-                            channel.BasicAck(deliveryTag, multiple);
-                        }
-                        else
-                        {
-                            channel.BasicNack(deliveryTag, multiple, requeue);
-                        }
+                        channel.BasicNack(deliveryTag, multiple, requeue);
+                    }
 
-                        if (BurrowConsumer.OutstandingDeliveryTags.ContainsKey(channel))
+                    lock (OutstandingDeliveryTags)
+                    {
+                        if (OutstandingDeliveryTags.ContainsKey(consumerTag))
                         {
                             if (deliveryTag == 0)
                             {
                                 // Ack/Nack all out standing
-                                BurrowConsumer.OutstandingDeliveryTags[channel].Clear();
+                                OutstandingDeliveryTags[consumerTag].Clear();
                             }
                             else if (multiple)
                             {
                                 // Ack/Nack all up to
-                                BurrowConsumer.OutstandingDeliveryTags[channel].RemoveAll(x => x <= deliveryTag);
+                                OutstandingDeliveryTags[consumerTag].RemoveAll(x => x <= deliveryTag);
+                                //(watcher ?? Global.DefaultWatcher).InfoFormat("Ack/Nack multiple tags <= {0} for consumer {1}", deliveryTag, consumerTag);
+                                //(watcher ?? Global.DefaultWatcher).InfoFormat("Outstanding tags {0}", String.Join(",", OutstandingDeliveryTags[consumerTag].OrderBy(x => x)));
                             }
                             else
                             {
-                                // Ack/Nack only 1 tag
-                                BurrowConsumer.OutstandingDeliveryTags[channel].Remove(deliveryTag);
+                                // Ack/Nack only 1 single tagtag
+                                OutstandingDeliveryTags[consumerTag].Remove(deliveryTag);
                             }
                         }
                     }
@@ -247,11 +251,11 @@ namespace Burrow
         }
         private void TryAck(IModel channel, ulong deliveryTag, bool multiple, IRabbitWatcher watcher = null)
         {
-            TryAckOrNack(true, channel, deliveryTag, multiple, false, watcher);
+            TryAckOrNack(ConsumerTag, true, channel, deliveryTag, multiple, false, watcher);
         }
         private void TryNack(IModel channel, ulong deliveryTag, bool multiple, bool requeue, IRabbitWatcher watcher = null)
         {
-            TryAckOrNack(false, channel, deliveryTag, multiple, requeue, watcher);
+            TryAckOrNack(ConsumerTag, false, channel, deliveryTag, multiple, requeue, watcher);
         }
 
         internal void TryCancel(Action<IModel> action, IModel channel, IRabbitWatcher watcher)

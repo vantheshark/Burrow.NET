@@ -254,6 +254,7 @@ namespace Burrow.Extras.Internal
                     
                     priorityConsumer.Init(priorityQueue, compositeSubscription, priority, sharedSemaphore);
                     priorityConsumer.ConsumerTag = subscription.ConsumerTag;
+                    Subscription.OutstandingDeliveryTags[subscription.ConsumerTag] = new List<ulong>();
                     subscription.SetChannel(channel);
 
                     //NOTE: The message will still be on the Unacknowledged list until it's processed and the method

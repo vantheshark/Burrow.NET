@@ -45,7 +45,8 @@ namespace Burrow.Tests.BurrowConsumerTests
                         Thread.Sleep(2000);
                         msgHandler.HandlingComplete += Raise.Event<MessageHandlingEvent>(new BasicDeliverEventArgs
                         {
-                            BasicProperties = Substitute.For<IBasicProperties>()
+                            BasicProperties = Substitute.For<IBasicProperties>(),
+                            ConsumerTag = "ConsumerTag"
                         });
                         fireHandlingComplete = true;
                     }));

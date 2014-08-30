@@ -32,7 +32,8 @@ namespace Burrow.Tests.BurrowConsumerTests
             // Action
             consumer.Queue.Enqueue(new BasicDeliverEventArgs
             {
-                BasicProperties = Substitute.For<IBasicProperties>()
+                BasicProperties = Substitute.For<IBasicProperties>(),
+                ConsumerTag = "ConsumerTag"
             });
             waitHandler.WaitOne();
 

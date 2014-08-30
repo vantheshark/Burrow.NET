@@ -15,8 +15,6 @@ namespace Burrow
     /// </summary>
     public class BurrowConsumer : QueueingBasicConsumer, IDisposable
     {
-        internal static Dictionary<IModel, List<ulong>> OutstandingDeliveryTags = new Dictionary<IModel, List<ulong>>();
-
         /// <summary>
         /// The number of threads to process messages, Default is Global.DefaultConsumerBatchSize
         /// </summary>
@@ -57,12 +55,12 @@ namespace Burrow
         /// <param name="watcher"></param>
         /// <param name="autoAck">If set to true, the msg will be acked after processed</param>
         /// <param name="batchSize"></param>
-        /// <param name="startThread"></param>
+        /// <param name="startThread">Whether should start the consuming thread straight away</param>
         protected BurrowConsumer(IModel channel,
                                  IMessageHandler messageHandler,
                                  IRabbitWatcher watcher,
                                  bool autoAck,
-                                 int batchSize, bool startThread = true)
+                                 int batchSize, bool startThread)
             : base(channel, new SharedQueue<BasicDeliverEventArgs>())
         {
             if (channel == null)
@@ -80,18 +78,16 @@ namespace Burrow
 
             if (batchSize < 1)
             {
-                throw new ArgumentException("batchSize", "batchSize must be greater than or equal 1");
+                throw new ArgumentException("batchSize must be greater than or equal 1", "batchSize");
             }
 
             Model.ModelShutdown += WhenChannelShutdown;
             Model.BasicRecoverAsync(true);
-            OutstandingDeliveryTags[Model] = new List<ulong>();
             BatchSize = batchSize;
 
             _pool = new SafeSemaphore(watcher, BatchSize, BatchSize);
             _watcher = watcher;
             _autoAck = autoAck;
-
 
             _messageHandler = messageHandler;
             _messageHandler.HandlingComplete += MessageHandlerHandlingComplete;
@@ -178,9 +174,9 @@ namespace Burrow
                 }
                 if (deliverEventArgs != null)
                 {
-                    lock (OutstandingDeliveryTags)
+                    lock (Subscription.OutstandingDeliveryTags)
                     {
-                        OutstandingDeliveryTags[Model].Add(deliverEventArgs.DeliveryTag);
+                        Subscription.OutstandingDeliveryTags[deliverEventArgs.ConsumerTag].Add(deliverEventArgs.DeliveryTag);
                     }
 
                     handler(deliverEventArgs);
@@ -251,9 +247,13 @@ namespace Burrow
 
         protected virtual void WhenChannelShutdown(IModel model, ShutdownEventArgs reason)
         {
-            if (OutstandingDeliveryTags.ContainsKey(model))
+            lock (Subscription.OutstandingDeliveryTags)
             {
-                OutstandingDeliveryTags.Remove(model);
+                if (Subscription.OutstandingDeliveryTags.ContainsKey(ConsumerTag))
+                {
+                    List<ulong> list;
+                    Subscription.OutstandingDeliveryTags.TryRemove(ConsumerTag, out list);
+                }
             }
             CloseQueue();
             _channelShutdown = true;
@@ -296,7 +296,7 @@ namespace Burrow
                 return;
             }
 
-            Subscription.TryAckOrNack(true, subscriptionInfo.Model, basicDeliverEventArgs.DeliveryTag, false, false, _watcher);
+            Subscription.TryAckOrNack(basicDeliverEventArgs.ConsumerTag, true, subscriptionInfo.Model, basicDeliverEventArgs.DeliveryTag, false, false, _watcher);
         }
 
         protected volatile bool _disposed;
@@ -320,9 +320,9 @@ namespace Burrow
             //NOTE: Wait all current running tasks to finish and after that dispose the objects
             DateTime timeOut = DateTime.Now.AddSeconds(Global.ConsumerDisposeTimeoutInSeconds);
 
-            while (MessageInProgressCount(Model) > 0 && DateTime.Now <= timeOut)
+            while (MessageInProgressCount() > 0 && DateTime.Now <= timeOut)
             {
-                _watcher.InfoFormat("Wait for {0} messages in progress", MessageInProgressCount(Model));
+                _watcher.InfoFormat("Wait for {0} messages in progress", MessageInProgressCount());
                 Thread.Sleep(1000);
             }
 
@@ -330,12 +330,12 @@ namespace Burrow
             CloseQueue();
         }
 
-        internal static int MessageInProgressCount(IModel channel)
+        private int MessageInProgressCount()
         {
-            lock(OutstandingDeliveryTags)
+            lock (Subscription.OutstandingDeliveryTags)
             {
-                return OutstandingDeliveryTags.ContainsKey(channel)
-                                    ? OutstandingDeliveryTags[channel].Count
+                return Subscription.OutstandingDeliveryTags.ContainsKey(ConsumerTag)
+                                    ? Subscription.OutstandingDeliveryTags[ConsumerTag].Count
                                     : 0;
             }
         }

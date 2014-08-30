@@ -500,14 +500,15 @@ namespace Burrow
                 channel.BasicQos(0, prefetchSize, false);
 
                 _createdChannels.Add(channel);
-                
-                subscription.SetChannel(channel);
 
                 var consumer = createConsumer(channel, subscription.ConsumerTag);
                 if (consumer is DefaultBasicConsumer)
                 {
                     (consumer as DefaultBasicConsumer).ConsumerTag = subscription.ConsumerTag;
                 }
+
+                Subscription.OutstandingDeliveryTags[subscription.ConsumerTag] = new List<ulong>();
+                subscription.SetChannel(channel);
                 //NOTE: The message will still be on the Unacknowledged list until it's processed and the method
                 //      DoAck is call.
                 channel.BasicConsume(subscription.QueueName, false /* noAck, must be false */, subscription.ConsumerTag, consumer);

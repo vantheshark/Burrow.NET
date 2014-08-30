@@ -13,7 +13,10 @@ namespace Burrow.Tests.SubscriptionTests
         {
             var channel = Substitute.For<IModel>();
             channel.IsOpen.Returns(true);
-            var subscription = new Subscription(channel);
+            var subscription = new Subscription(channel)
+            {
+                ConsumerTag = "ConsumerTag"
+            };
 
             // Action
             subscription.AckAllUpTo(10);
