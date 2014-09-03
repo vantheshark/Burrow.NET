@@ -18,12 +18,12 @@ namespace Burrow.Tests.BurrowConsumerTests
             var model = Substitute.For<IModel>();
             model.IsOpen.Returns(true);
             var msgHandler = Substitute.For<IMessageHandler>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler, Substitute.For<IRabbitWatcher>(), false, 3);
+            var consumer = new BurrowConsumerForTest(model, msgHandler, Substitute.For<IRabbitWatcher>(), false, 3) { ConsumerTag = "ConsumerTag" };
 
 
             // Action
-            msgHandler.MessageWasNotHandled += Raise.Event<MessageWasNotHandledEvent>(Substitute.For<BasicDeliverEventArgs>());
-            consumer.WaitHandler.WaitOne();
+            msgHandler.MessageWasNotHandled += Raise.Event<MessageWasNotHandledEvent>(BurrowConsumerForTest.ADeliverEventArgs);
+            Assert.IsTrue(consumer.WaitHandler.WaitOne(5000), "Test wait timeout");
 
             // Assert
             model.Received().BasicAck(Arg.Any<ulong>(), false);
@@ -42,11 +42,11 @@ namespace Burrow.Tests.BurrowConsumerTests
             var watcher = Substitute.For<IRabbitWatcher>();
             watcher.When(w => w.Error(Arg.Any<SubscriptionNotFoundException>())).Do(callInfo => waitHandler.Set());
 
-            var consumer = new BurrowConsumer(model, msgHandler, watcher, false, 3);
+            var consumer = new BurrowConsumer(model, msgHandler, watcher, false, 3) { ConsumerTag = "ConsumerTag" };
 
 
             // Action
-            msgHandler.MessageWasNotHandled += Raise.Event<MessageWasNotHandledEvent>(Substitute.For<BasicDeliverEventArgs>());
+            msgHandler.MessageWasNotHandled += Raise.Event<MessageWasNotHandledEvent>(BurrowConsumerForTest.ADeliverEventArgs);
             waitHandler.WaitOne();
 
             // Assert

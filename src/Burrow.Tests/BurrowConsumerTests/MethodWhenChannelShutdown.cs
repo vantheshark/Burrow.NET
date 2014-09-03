@@ -17,14 +17,14 @@ namespace Burrow.Tests.BurrowConsumerTests
             model.IsOpen.Returns(true);
             var msgHandler = Substitute.For<IMessageHandler>();
             var consumer = new BurrowConsumerForTest(model, msgHandler,
-                                                     Substitute.For<IRabbitWatcher>(), true, 3);
+                                                     Substitute.For<IRabbitWatcher>(), true, 3) { ConsumerTag = "ConsumerTag" };
 
             // Action
             model.ModelShutdown += Raise.Event<ModelShutdownEventHandler>(model, new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "Shutdown"));
             
 
             // Assert
-            consumer.WaitHandler.WaitOne();
+            Assert.IsTrue(consumer.WaitHandler.WaitOne(5000), "Test wait timeout");
             consumer.Dispose();
         }
     }

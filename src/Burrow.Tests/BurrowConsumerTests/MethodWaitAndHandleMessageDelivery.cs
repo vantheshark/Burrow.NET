@@ -15,7 +15,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             var model = Substitute.For<IModel>();
             var msgHandler = Substitute.For<IMessageHandler>();
             var watcher = Substitute.For<IRabbitWatcher>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, true, 1);
+            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, true, 1) { ConsumerTag = "ConsumerTag" };
             consumer.Queue.Enqueue(null);
 
             // Action

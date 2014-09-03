@@ -20,7 +20,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             // Arrange
             var model = Substitute.For<IModel>();
             var msgHandler = Substitute.For<IMessageHandler>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler, Substitute.For<IRabbitWatcher>(), true, 3);
+            var consumer = new BurrowConsumerForTest(model, msgHandler, Substitute.For<IRabbitWatcher>(), true, 3) { ConsumerTag = "ConsumerTag" };
 
             // Action
             consumer.DoAckForTest(new BasicDeliverEventArgs(), consumer);
@@ -37,7 +37,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             // Arrange
             var waitHandler = new ManualResetEvent(false);
             var model = Substitute.For<IModel>();
-            var consumer = new BurrowConsumerForTest(model, Substitute.For<IMessageHandler>(), Substitute.For<IRabbitWatcher>(), true, 3);
+            var consumer = new BurrowConsumerForTest(model, Substitute.For<IMessageHandler>(), Substitute.For<IRabbitWatcher>(), true, 3) { ConsumerTag = "ConsumerTag" };
             var queue = Substitute.For<IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>>();
             queue.When(x => x.Dequeue()).Do(callInfo => waitHandler.WaitOne());
            
@@ -63,7 +63,7 @@ namespace Burrow.Tests.BurrowConsumerTests
 
             var msgHandler = Substitute.For<IMessageHandler>();
             var watcher = Substitute.For<IRabbitWatcher>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler,watcher, true, 3);
+            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, true, 3) { ConsumerTag = "ConsumerTag" };
 
             // Action
             consumer.DoAckForTest(new BasicDeliverEventArgs(), consumer);
@@ -85,7 +85,7 @@ namespace Burrow.Tests.BurrowConsumerTests
 
             var msgHandler = Substitute.For<IMessageHandler>();
             var watcher = Substitute.For<IRabbitWatcher>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, true, 3);
+            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, true, 3) { ConsumerTag = "ConsumerTag" };
 
             // Action
             consumer.DoAckForTest(new BasicDeliverEventArgs(), consumer);
@@ -107,7 +107,7 @@ namespace Burrow.Tests.BurrowConsumerTests
 
             var msgHandler = Substitute.For<IMessageHandler>();
             var watcher = Substitute.For<IRabbitWatcher>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, true, 3);
+            var consumer = new BurrowConsumerForTest(model, msgHandler, watcher, true, 3) { ConsumerTag = "ConsumerTag" };
 
             // Action
             consumer.DoAckForTest(new BasicDeliverEventArgs(), consumer);

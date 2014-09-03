@@ -27,7 +27,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             watcher.IsDebugEnable.Returns(true);
             msgHandler.When(x => x.HandleMessage(Arg.Any<BasicDeliverEventArgs>()))
                       .Do(callInfo => waitHandler.Set());
-            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3); 
+            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3){ConsumerTag = "ConsumerTag"}; 
 
             // Action
             consumer.Queue.Enqueue(new BasicDeliverEventArgs
@@ -59,7 +59,7 @@ namespace Burrow.Tests.BurrowConsumerTests
                 );
 
             watcher.When(x => x.Error(Arg.Any<Exception>())).Do(callInfo => waitHandler.Set());
-            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3);
+            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3) { ConsumerTag = "ConsumerTag" };
 
             // Action
             consumer.Queue.Enqueue(new BasicDeliverEventArgs

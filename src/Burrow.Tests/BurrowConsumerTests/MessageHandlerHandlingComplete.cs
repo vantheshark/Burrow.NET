@@ -18,7 +18,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             var model = Substitute.For<IModel>();
             model.IsOpen.Returns(true);
             var msgHandler = Substitute.For<IMessageHandler>();
-            var consumer = new BurrowConsumerForTest(model, msgHandler, Substitute.For<IRabbitWatcher>(), true, 3);
+            var consumer = new BurrowConsumerForTest(model, msgHandler, Substitute.For<IRabbitWatcher>(), true, 3) {ConsumerTag = "ConsumerTag"};
 
 
             // Action
@@ -42,7 +42,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             var watcher = Substitute.For<IRabbitWatcher>();
             watcher.When(w => w.Error(Arg.Any<SubscriptionNotFoundException>())).Do(callInfo => waitHandler.Set());
 
-            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3);
+            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3) { ConsumerTag = "ConsumerTag" };
             consumer.ConsumerTag = "ConsumerTag";
 
             // Action

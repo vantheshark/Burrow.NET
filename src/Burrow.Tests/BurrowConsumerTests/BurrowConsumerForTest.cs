@@ -1,5 +1,4 @@
 ﻿using System.Threading;
-using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -7,7 +6,7 @@ namespace Burrow.Tests.BurrowConsumerTests
 {
     public class BurrowConsumerForTest : BurrowConsumer
     {
-        public static BasicDeliverEventArgs ADeliverEventArgs = Substitute.For<BasicDeliverEventArgs>();
+        public static BasicDeliverEventArgs ADeliverEventArgs =new BasicDeliverEventArgs();
 
         static BurrowConsumerForTest()
         {
@@ -22,13 +21,13 @@ namespace Burrow.Tests.BurrowConsumerTests
             ConsumerTag = "BurrowConsumerForTest";
         }
 
-        internal protected override void DoAck(RabbitMQ.Client.Events.BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
+        internal protected override void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
         {
             base.DoAck(basicDeliverEventArgs, subscriptionInfo);
             WaitHandler.Set();
         }
 
-        public void DoAckForTest(RabbitMQ.Client.Events.BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
+        public void DoAckForTest(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
         {
             DoAck(basicDeliverEventArgs, subscriptionInfo);
         }

@@ -113,13 +113,16 @@ namespace Burrow
 
         private bool CanAckNackAll(List<ulong> outstandingList, List<ulong> list, ulong maxTag)
         {
-            var minTag = list.Min();
-            var intersection = outstandingList.Except(list);
+            var dic = list.ToDictionary(x => x, x => true);
 
-            if (intersection.Any(x => x > minTag && x < maxTag))
+            foreach (var tag in outstandingList)
             {
-                return false;
+                if (!dic.ContainsKey(tag) && tag < maxTag)
+                {
+                    return false;
+                }
             }
+
             return true;
         }
 

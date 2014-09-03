@@ -16,7 +16,7 @@ namespace Burrow.Tests.BurrowConsumerTests
         {
             // Arrange
             var consumer = new BurrowConsumer(Substitute.For<IModel>(), Substitute.For<IMessageHandler>(),
-                                              Substitute.For<IRabbitWatcher>(), false, 3);
+                                              Substitute.For<IRabbitWatcher>(), false, 3) { ConsumerTag = "ConsumerTag" };
 
             // Action
             consumer.Dispose();
@@ -59,7 +59,7 @@ namespace Burrow.Tests.BurrowConsumerTests
                           waitHandler.Set();  // Release the waitHandler so Dispose can be called
                       }));
 
-            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3);
+            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3) { ConsumerTag = "ConsumerTag" };
 
             // Action
             // Enqueue only 1 msg
