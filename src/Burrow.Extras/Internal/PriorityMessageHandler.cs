@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using RabbitMQ.Client.Events;
 
 namespace Burrow.Extras.Internal
@@ -34,7 +35,7 @@ namespace Burrow.Extras.Internal
                                  eventArgs.DeliveryTag,
                                  eventArgs.ConsumerTag,
                                  Math.Max(priority, 0),
-                                 currentThread.IsThreadPoolThread ? "ThreadPool" : "dedicated Thread");
+                                 Thread.CurrentThread.IsThreadPoolThread ? "ThreadPool" : "dedicated Thread");
 #endif
             CheckMessageType(eventArgs.BasicProperties);
             var message = _messageSerializer.Deserialize<T>(eventArgs.Body);

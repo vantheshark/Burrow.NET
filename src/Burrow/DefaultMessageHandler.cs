@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -111,7 +112,7 @@ namespace Burrow
 #if DEBUG
             if (_watcher.IsDebugEnable)
             {
-                _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}", basicDeliverEventArgs.BasicProperties.CorrelationId, basicDeliverEventArgs.RoutingKey, basicDeliverEventArgs.DeliveryTag);
+                _watcher.DebugFormat("Received CId: {0}, RKey: {1}, DTag: {2}", eventArgs.BasicProperties.CorrelationId, eventArgs.RoutingKey, eventArgs.DeliveryTag);
             }
 #endif
             bool msgHandled = false;
@@ -152,7 +153,7 @@ namespace Burrow
             _watcher.DebugFormat("4. A task to execute the provided callback with DTag: {0} by CTag: {1} has been started using {2}.",
                                  eventArgs.DeliveryTag,
                                  eventArgs.ConsumerTag,
-                                 currentThread.IsThreadPoolThread ? "ThreadPool" : "dedicated Thread");
+                                 Thread.CurrentThread.IsThreadPoolThread ? "ThreadPool" : "dedicated Thread");
 #endif
             CheckMessageType(eventArgs.BasicProperties);
             var message = _messageSerializer.Deserialize<T>(eventArgs.Body);
