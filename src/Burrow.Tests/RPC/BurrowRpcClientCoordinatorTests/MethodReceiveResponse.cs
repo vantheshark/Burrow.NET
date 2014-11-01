@@ -59,7 +59,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             Task.Factory.StartNew(() => client.ReceiveResponse(res));
 
             // Assert
-            wait.WaitHandle.WaitOne();
+            Assert.IsTrue(wait.WaitHandle.WaitOne(1000));
             Assert.AreEqual(res, wait.Response);
         }
     }

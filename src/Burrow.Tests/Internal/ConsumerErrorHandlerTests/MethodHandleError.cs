@@ -43,7 +43,7 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
             
             var durableConnection = Substitute.For<IDurableConnection>();
             durableConnection.When(x => x.CreateChannel())
-                      .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<IDictionary<AmqpTcpEndpoint, int>>(), Substitute.For < IDictionary<AmqpTcpEndpoint, Exception>>(), Substitute.For<Exception>()); });
+                      .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<Exception>()); });
             var handler = new ConsumerErrorHandler(durableConnection, Substitute.For<ISerializer>(), watcher);
 
             // Action

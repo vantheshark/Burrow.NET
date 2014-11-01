@@ -15,7 +15,7 @@
     <copyright>Copyright 2014</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP Burrow.RPC RPC</tags>
     <dependencies>		
-		<dependency id="Burrow.NET" version="1.0.28" />
+		<dependency id="Burrow.NET" version="1.0.29" />
         <dependency id="Castle.Core" version="3.2.0" />
     </dependencies>
   </metadata>

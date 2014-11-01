@@ -15,7 +15,7 @@
     <copyright>Copyright 2014</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP Burrow.Extras</tags>
     <dependencies>		
-		<dependency id="Burrow.NET" version="1.0.28" />
+		<dependency id="Burrow.NET" version="1.0.29" />
 		<dependency id="Newtonsoft.Json" version="5.0.6" />
     </dependencies>
   </metadata>

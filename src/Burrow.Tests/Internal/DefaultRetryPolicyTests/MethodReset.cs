@@ -15,7 +15,7 @@ namespace Burrow.Tests.Internal.DefaultRetryPolicyTests
             var are = new AutoResetEvent(false);
             var policy = new DefaultRetryPolicy();
             policy.WaitForNextRetry(() => are.Set());
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(1000));
 
             // Action
             policy.Reset();

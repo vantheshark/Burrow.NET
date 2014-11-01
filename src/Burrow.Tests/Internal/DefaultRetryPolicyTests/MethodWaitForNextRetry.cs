@@ -18,7 +18,7 @@ namespace Burrow.Tests.Internal.DefaultRetryPolicyTests
             // Action
             policy.WaitForNextRetry(() => are.Set());
             
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(1000));
 
             // Assert
             Assert.AreEqual(1000, policy.DelayTime);
@@ -34,11 +34,11 @@ namespace Burrow.Tests.Internal.DefaultRetryPolicyTests
 
             // Action
             policy.WaitForNextRetry(() => are.Set());
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(3000));
             policy.WaitForNextRetry(() => are.Set());
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(6000));
             policy.WaitForNextRetry(() => are.Set());
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(12000));
 
             // Assert
             Assert.AreEqual(4000, policy.DelayTime);
@@ -54,11 +54,11 @@ namespace Burrow.Tests.Internal.DefaultRetryPolicyTests
 
             // Action
             policy.WaitForNextRetry(() => are.Set());
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(3000));
             policy.WaitForNextRetry(() => are.Set());
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(6000));
             policy.WaitForNextRetry(() => are.Set());
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(12000));
 
             // Assert
             Assert.AreEqual(2000, policy.DelayTime);

@@ -52,7 +52,7 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
 
             // Action
             handler.CleanUp(new BasicDeliverEventArgs(), false);
-            waitHandler.WaitOne();
+            Assert.IsTrue(waitHandler.WaitOne(1000));
 
             // Assert
             watcher.DidNotReceive().ErrorFormat(Arg.Is<string>(e => e == "There is an error when trying to fire MessageWasNotDelivered event"), Arg.Any<object[]>());
@@ -75,7 +75,7 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
 
             // Action
             handler.CleanUp(new BasicDeliverEventArgs(), false);
-            waitHandler.WaitOne();
+            Assert.IsTrue(waitHandler.WaitOne(1000));
 
             // Assert
             watcher.Received(1).ErrorFormat(Arg.Is<string>(e => e == "There is an error when trying to fire MessageWasNotDelivered event"), Arg.Any<object[]>());

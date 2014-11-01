@@ -52,11 +52,7 @@ namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
             subs.Ack("ConsumerTag", new[] { (ulong)1, (ulong)2, (ulong)3, (ulong)4, (ulong)5 });
 
             // Assert
-            channel.Received().BasicAck(1, false);
-            channel.Received().BasicAck(2, false);
-            channel.Received().BasicAck(3, false);
-            channel.Received().BasicAck(4, false);
-            channel.Received().BasicAck(5, false);
+            channel.Received().BasicAck(5, true);
         }
     }
 }

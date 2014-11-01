@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -27,7 +28,11 @@ namespace Burrow.Tests.BurrowConsumerTests
             watcher.IsDebugEnable.Returns(true);
             msgHandler.When(x => x.HandleMessage(Arg.Any<BasicDeliverEventArgs>()))
                       .Do(callInfo => waitHandler.Set());
-            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3){ConsumerTag = "ConsumerTag"}; 
+            var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3)
+                               {
+                                   ConsumerTag = "ConsumerTag"
+                               };
+            Subscription.OutstandingDeliveryTags[consumer.ConsumerTag] = new List<ulong>();
 
             // Action
             consumer.Queue.Enqueue(new BasicDeliverEventArgs
@@ -60,13 +65,15 @@ namespace Burrow.Tests.BurrowConsumerTests
 
             watcher.When(x => x.Error(Arg.Any<Exception>())).Do(callInfo => waitHandler.Set());
             var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3) { ConsumerTag = "ConsumerTag" };
+            Subscription.OutstandingDeliveryTags[consumer.ConsumerTag] = new List<ulong>();
 
             // Action
             consumer.Queue.Enqueue(new BasicDeliverEventArgs
             {
-                BasicProperties = Substitute.For<IBasicProperties>()
+                BasicProperties = Substitute.For<IBasicProperties>(),
+                ConsumerTag = "ConsumerTag"
             });
-            waitHandler.WaitOne();
+            Assert.IsTrue(waitHandler.WaitOne(1000));
 
             // Assert
             watcher.Received(1).Error(Arg.Any<Exception>());

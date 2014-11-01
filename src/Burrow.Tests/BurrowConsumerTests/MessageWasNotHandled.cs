@@ -3,7 +3,6 @@ using Burrow.Extras;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.BurrowConsumerTests
@@ -47,7 +46,7 @@ namespace Burrow.Tests.BurrowConsumerTests
 
             // Action
             msgHandler.MessageWasNotHandled += Raise.Event<MessageWasNotHandledEvent>(BurrowConsumerForTest.ADeliverEventArgs);
-            waitHandler.WaitOne();
+            Assert.IsTrue(waitHandler.WaitOne(1000));
 
             // Assert
             consumer.Dispose();

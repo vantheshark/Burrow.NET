@@ -27,7 +27,7 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
             handler.HandleMessage(new BasicDeliverEventArgs("tag", 1, false, "e", "r", p, new byte[0]));
 
             // Assert
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(1000));
             errorHanlder.DidNotReceive().HandleError(Arg.Any<BasicDeliverEventArgs>(), Arg.Any<Exception>());
         }
 
@@ -46,7 +46,7 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
             handler.HandleMessage(new BasicDeliverEventArgs("tag", 1, false, "e", "r", Substitute.For<IBasicProperties>(), new byte[0]));
 
             // Assert
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(1000));
             errorHanlder.Received().HandleError(Arg.Any<BasicDeliverEventArgs>(), Arg.Any<Exception>());
             
         }
@@ -70,7 +70,7 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
             handler.HandleMessage(new BasicDeliverEventArgs("tag", 1, false, "e", "r", p, new byte[0]));
 
             // Assert
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(1000));
             watcher.Received().Error(Arg.Is<Exception>(x => x.Message == "Task executed failed"));
             watcher.Received().ErrorFormat(Arg.Is<string>(x => x.StartsWith("Failed to handle the exception: ")), Arg.Any<object>(), Arg.Any<object>());
 

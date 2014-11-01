@@ -64,7 +64,7 @@ namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
 
             // Action
             factory1.CreateConnection();
-            Assert.AreEqual("amqp-0-9://localhost:5672/virtualhost", connectedEndpoint);
+            Assert.AreEqual("amqp://localhost:5672/virtualhost", connectedEndpoint);
         }
     }
 }

@@ -25,6 +25,13 @@ namespace Burrow.Tests.ConnectionStringTests
             var connection = new ConnectionString("host=localhost:1234;username=guest;password=guest");
             Assert.AreEqual(1234, connection.Port);
         }
+
+        [TestMethod]
+        public void Should_be_able_to_regconize_the_virtualHost()
+        {
+            var connection = new ConnectionString("host=localhost:1234;username=guest;password=guest;virtualHost=UAT");
+            Assert.AreEqual("UAT", connection.VirtualHost);
+        }
     }
 }
 // ReSharper restore InconsistentNaming}

@@ -22,9 +22,9 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             queue.When(x => x.Dequeue()).Do(callInfo => Thread.Sleep(100));
 
             var consumer = new PriorityBurrowConsumer(channel, handler, Substitute.For<IRabbitWatcher>(), true, 10);
-
+            consumer.ConsumerTag = "ConsumerTag";
             var sub = Substitute.For<CompositeSubscription>();
-            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });
+            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "ConsumerTag" });
             consumer.Init(queue, sub, 1, Guid.NewGuid().ToString());
             consumer.Ready();
 

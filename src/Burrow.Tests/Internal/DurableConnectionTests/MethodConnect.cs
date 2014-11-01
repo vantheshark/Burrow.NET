@@ -43,7 +43,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
 
             // Action
             durableConnection.Connect();
-            are.WaitOne();
+            Assert.IsTrue(are.WaitOne(1000));
 
             // Assert
             connectionFactory.Received(1).CreateConnection();
@@ -76,7 +76,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
 
             var connectionFactory = CreateMockConnectionFactory<ManagedConnectionFactory>("/vHost3");
             connectionFactory.When(x => x.CreateConnection())
-                             .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<IDictionary<AmqpTcpEndpoint, int>>(), Substitute.For<IDictionary<AmqpTcpEndpoint, Exception>>(), Substitute.For<Exception>()); });
+                             .Do(callInfo => { throw new BrokerUnreachableException(Substitute.For<Exception>()); });
             var durableConnection = new DurableConnection(retryPolicy, Substitute.For<IRabbitWatcher>(), connectionFactory);
             // Action
             durableConnection.Connect();

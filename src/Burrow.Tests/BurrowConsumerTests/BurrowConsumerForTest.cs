@@ -6,7 +6,7 @@ namespace Burrow.Tests.BurrowConsumerTests
 {
     public class BurrowConsumerForTest : BurrowConsumer
     {
-        public static BasicDeliverEventArgs ADeliverEventArgs =new BasicDeliverEventArgs();
+        public static BasicDeliverEventArgs ADeliverEventArgs = new BasicDeliverEventArgs();
 
         static BurrowConsumerForTest()
         {
@@ -18,7 +18,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             : base(channel, messageHandler, watcher, autoAck, batchSize)
         {
              WaitHandler = new AutoResetEvent(false);
-            ConsumerTag = "BurrowConsumerForTest";
+             ConsumerTag = "BurrowConsumerForTest";
         }
 
         internal protected override void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)

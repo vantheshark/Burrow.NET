@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Burrow.Extras.Internal;
@@ -51,29 +52,36 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             var dequeueCount = new AutoResetEvent(false);
             var enqueueCount = new AutoResetEvent(false);
             var channel = Substitute.For<IModel>();
+            var eventArg = new BasicDeliverEventArgs
+                               {
+                                   ConsumerTag = "ConsumerTag",
+                                   DeliveryTag = 1
+                               };
             
             var queue = Substitute.For<IInMemoryPriorityQueue<GenericPriorityMessage<BasicDeliverEventArgs>>>();
-            queue.Dequeue().Returns(new GenericPriorityMessage<BasicDeliverEventArgs>(new BasicDeliverEventArgs(), 1));
+            queue.Dequeue().Returns(new GenericPriorityMessage<BasicDeliverEventArgs>(eventArg, 1));
             queue.When(x => x.Dequeue()).Do(callInfo => dequeueCount.Set());
             queue.When(x => x.Enqueue(Arg.Any<GenericPriorityMessage<BasicDeliverEventArgs>>()))
                  .Do(callInfo => enqueueCount.Set());
 
             var handler = Substitute.For<IMessageHandler>();
             handler.When(h => h.HandleMessage(Arg.Any<BasicDeliverEventArgs>()))
-                   .Do(callInfo => handler.HandlingComplete += Raise.Event<MessageHandlingEvent>(BurrowConsumerForTest.ADeliverEventArgs));
+                   .Do(callInfo => handler.HandlingComplete += Raise.Event<MessageHandlingEvent>(eventArg));
 
             var consumer = new PriorityBurrowConsumer(channel, handler, Substitute.For<IRabbitWatcher>(), true, 1);
+            consumer.ConsumerTag = "ConsumerTag";
+            Subscription.OutstandingDeliveryTags["ConsumerTag"] = new List<ulong>();
                                
 
             var sub = Substitute.For<CompositeSubscription>();
-            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });
+            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "ConsumerTag" });
             consumer.Init(queue, sub, 1, Guid.NewGuid().ToString());
 
             // Action
             consumer.Ready();
-            dequeueCount.WaitOne();
-            consumer.PriorityQueue.Enqueue(new GenericPriorityMessage<BasicDeliverEventArgs>(new BasicDeliverEventArgs(), 1));
-            enqueueCount.WaitOne();
+            Assert.IsTrue(dequeueCount.WaitOne(1000));
+            consumer.PriorityQueue.Enqueue(new GenericPriorityMessage<BasicDeliverEventArgs>(eventArg, 1));
+            Assert.IsTrue(enqueueCount.WaitOne(1000));
             
             
 
@@ -94,15 +102,15 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
                 throw new EndOfStreamException();                
             });
             var consumer = new PriorityBurrowConsumer(channel, Substitute.For<IMessageHandler>(), watcher, true, 2);
-
+            consumer.ConsumerTag = "ConsumerTag";
             var sub = Substitute.For<CompositeSubscription>();
-            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });
+            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "ConsumerTag" });
             consumer.Init(queue, sub, 1, Guid.NewGuid().ToString());
             
 
             // Action
             consumer.Ready();
-            count.Wait();
+            Assert.IsTrue(count.Wait(1000));
 
             // Assert
             consumer.Dispose();
@@ -122,9 +130,9 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
                 throw new ThreadStateException();
             });
             var consumer = new PriorityBurrowConsumer(channel, Substitute.For<IMessageHandler>(), watcher, true, 2);
-
+            consumer.ConsumerTag = "ConsumerTag";
             var sub = Substitute.For<CompositeSubscription>();
-            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });
+            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "ConsumerTag" });
             consumer.Init(queue, sub, 1, Guid.NewGuid().ToString());
 
 
@@ -150,9 +158,9 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
                 throw new ThreadInterruptedException();
             });
             var consumer = new PriorityBurrowConsumer(channel, Substitute.For<IMessageHandler>(), watcher, true, 2);
-
+            consumer.ConsumerTag = "ConsumerTag";
             var sub = Substitute.For<CompositeSubscription>();
-            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "Burrow" });
+            sub.AddSubscription(new Subscription(channel) { ConsumerTag = "ConsumerTag" });
             consumer.Init(queue, sub, 1, Guid.NewGuid().ToString());
 
 

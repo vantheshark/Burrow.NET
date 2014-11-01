@@ -42,8 +42,8 @@ namespace Burrow.Tests.Extras.Internal.InMemoryPriorityQueueTests
                 }
                 //Block
             });
-            
-            waitFirstEnqueue.WaitOne();
+            Assert.IsTrue(waitFirstEnqueue.WaitOne(1000));
+
             queue.Dequeue();
             queue.Dequeue();
 

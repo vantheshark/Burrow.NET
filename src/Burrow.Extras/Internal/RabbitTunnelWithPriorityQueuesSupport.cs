@@ -99,14 +99,26 @@ namespace Burrow.Extras.Internal
         public CompositeSubscription Subscribe<T>(PrioritySubscriptionOption<T> subscriptionOption)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
+            Func<IModel, IBasicConsumer> createConsumer = channel => 
+                _priorityConsumerManager.CreateConsumer(channel, 
+                                                        subscriptionOption.SubscriptionName, 
+                                                        subscriptionOption.MessageHandler, 
+                                                        subscriptionOption.BatchSize <= 0 
+                                                                                      ? (ushort)1 
+                                                                                      : subscriptionOption.BatchSize);
             return CreateSubscription<T>(subscriptionOption, createConsumer);
         }
 
         public CompositeSubscription SubscribeAsync<T>(PriorityAsyncSubscriptionOption<T> subscriptionOption)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _priorityConsumerManager.CreateAsyncConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
+            Func<IModel, IBasicConsumer> createConsumer = channel  => 
+                _priorityConsumerManager.CreateAsyncConsumer(channel, 
+                                                             subscriptionOption.SubscriptionName,
+                                                             subscriptionOption.MessageHandler, 
+                                                             subscriptionOption.BatchSize <= 0 
+                                                                                           ? (ushort)1 
+                                                                                           : subscriptionOption.BatchSize);
             return CreateSubscription<T>(subscriptionOption, createConsumer);
         }
 
@@ -206,7 +218,7 @@ namespace Burrow.Extras.Internal
             return (ushort)Math.Min(ushort.MaxValue, prefetchSize);
         }
 
-        private CompositeSubscription CreateSubscription<T>(IPrioritySubscriptionOption subscriptionOption, Func<IModel, string, IBasicConsumer> createConsumer)
+        private CompositeSubscription CreateSubscription<T>(IPrioritySubscriptionOption subscriptionOption, Func<IModel, IBasicConsumer> createConsumer)
         {
             var comparer = TryGetComparer(subscriptionOption.ComparerType);
             var compositeSubscription = new CompositeSubscription();
@@ -245,7 +257,7 @@ namespace Burrow.Extras.Internal
 
                     _createdChannels.Add(channel);
 
-                    var consumer = createConsumer(channel, subscription.ConsumerTag);
+                    var consumer = createConsumer(channel);
                     var priorityConsumer = consumer as PriorityBurrowConsumer;
                     if (priorityConsumer == null)
                     {

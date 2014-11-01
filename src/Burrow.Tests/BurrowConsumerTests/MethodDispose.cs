@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -60,14 +61,15 @@ namespace Burrow.Tests.BurrowConsumerTests
                       }));
 
             var consumer = new BurrowConsumer(model, msgHandler, watcher, true, 3) { ConsumerTag = "ConsumerTag" };
-
+            Subscription.OutstandingDeliveryTags[consumer.ConsumerTag] = new List<ulong>();
             // Action
             // Enqueue only 1 msg
             consumer.Queue.Enqueue(new BasicDeliverEventArgs
             {
-                BasicProperties = Substitute.For<IBasicProperties>()
+                BasicProperties = Substitute.For<IBasicProperties>(),
+                ConsumerTag = "ConsumerTag"
             });
-            waitHandler.WaitOne();
+            Assert.IsTrue(waitHandler.WaitOne(1000));
             consumer.Dispose();
 
 

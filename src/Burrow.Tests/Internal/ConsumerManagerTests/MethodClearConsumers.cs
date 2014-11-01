@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Burrow.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,13 +31,17 @@ namespace Burrow.Tests.Internal.ConsumerManagerTests
 
             var consumerManager = new ConsumerManager(watcher, handlerFactory, Substitute.For<ISerializer>());
             var consumer = consumerManager.CreateConsumer<int>(model, "", x => { }, null);
-
+            (consumer as DefaultBasicConsumer).ConsumerTag = "ConsumerTag";
+            Subscription.OutstandingDeliveryTags["ConsumerTag"] = new List<ulong>();
             //To make it wait when dispose the BurrowConsumer
-            ((QueueingBasicConsumer)consumer).Queue.Enqueue(new BasicDeliverEventArgs());
+            ((QueueingBasicConsumer)consumer).Queue.Enqueue(new BasicDeliverEventArgs
+                                                                {
+                                                                    ConsumerTag = "ConsumerTag"
+                                                                });
             
 
             // Action
-            autoResetEvent.WaitOne();
+            Assert.IsTrue(autoResetEvent.WaitOne(1000));
             consumerManager.ClearConsumers();
 
             // Assert

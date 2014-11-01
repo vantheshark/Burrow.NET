@@ -206,7 +206,6 @@
         </member>
         <member name="M:Burrow.DefaultMessageHandler`1.HandleMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs)">
             <summary>
-            This method creates a background Task to handle the job.
             It will catch all exceptions
             </summary>
             <param name="eventArgs"></param>
@@ -358,14 +357,30 @@
             <param name="autoAck">If set to true, the msg will be acked after processed</param>
             <param name="batchSize"></param>
         </member>
+        <member name="M:Burrow.BurrowConsumer.#ctor(RabbitMQ.Client.IModel,Burrow.IMessageHandler,Burrow.IRabbitWatcher,System.Boolean,System.Int32,System.Boolean)">
+            <summary>
+            Initialize an object of <see cref="T:Burrow.BurrowConsumer"/>
+            </summary>
+            <param name="channel">RabbitMQ.Client channel</param>
+            <param name="messageHandler">An instance of message handler to handle the message from queue</param>
+            <param name="watcher"></param>
+            <param name="autoAck">If set to true, the msg will be acked after processed</param>
+            <param name="batchSize"></param>
+            <param name="startThread">Whether should start the consuming thread straight away</param>
+        </member>
+        <member name="P:Burrow.BurrowConsumer.BatchSize">
+            <summary>
+            The number of threads to process messages, Default is Global.DefaultConsumerBatchSize
+            </summary>
+        </member>
         <member name="P:Burrow.BurrowConsumer._pool">
             <summary>
             Control the sharedqueue to receive enough messages to process in parallel if <see cref="P:Burrow.BurrowConsumer.BatchSize"/> greater than 1
             </summary>
         </member>
-        <member name="P:Burrow.BurrowConsumer.BatchSize">
+        <member name="P:Burrow.BurrowConsumer.IsDisposed">
             <summary>
-            The number of threads to process messages, Default is Global.DefaultConsumerBatchSize
+            Determine whether the object has been disposed
             </summary>
         </member>
         <member name="T:Burrow.IRabbitWatcher">

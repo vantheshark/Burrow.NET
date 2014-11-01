@@ -373,18 +373,34 @@ namespace Burrow
         public Subscription Subscribe<T>(SubscriptionOption<T> subscriptionOption)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
+            Func<IModel, IBasicConsumer> createConsumer = channel => 
+                _consumerManager.CreateConsumer(channel, 
+                                                subscriptionOption.SubscriptionName, 
+                                                subscriptionOption.MessageHandler, 
+                                                subscriptionOption.BatchSize <= 0 
+                                                                             ? (ushort)1
+                                                                             : subscriptionOption.BatchSize);
+
             var queueName = (subscriptionOption.RouteFinder ?? _routeFinder).FindQueueName<T>(subscriptionOption.SubscriptionName);
             var prefetchSize = GetProperPrefetchSize(subscriptionOption.QueuePrefetchSize);
+
             return CreateSubscription(subscriptionOption.SubscriptionName, queueName, createConsumer, prefetchSize);
         }
 
         public Subscription SubscribeAsync<T>(AsyncSubscriptionOption<T> subscriptionOption)
         {
             TryConnectBeforeSubscribing();
-            Func<IModel, string, IBasicConsumer> createConsumer = (channel, consumerTag) => _consumerManager.CreateAsyncConsumer(channel, subscriptionOption.SubscriptionName, subscriptionOption.MessageHandler, subscriptionOption.BatchSize <= 0 ? (ushort)1 : subscriptionOption.BatchSize);
+            Func<IModel, IBasicConsumer> createConsumer = channel => 
+                _consumerManager.CreateAsyncConsumer(channel, 
+                                                     subscriptionOption.SubscriptionName, 
+                                                     subscriptionOption.MessageHandler, 
+                                                     subscriptionOption.BatchSize <= 0 
+                                                                                   ? (ushort)1 
+                                                                                   : subscriptionOption.BatchSize);
+
             var queueName = (subscriptionOption.RouteFinder ?? _routeFinder).FindQueueName<T>(subscriptionOption.SubscriptionName);
             var prefetchSize = GetProperPrefetchSize(subscriptionOption.QueuePrefetchSize);
+
             return CreateSubscription(subscriptionOption.SubscriptionName, queueName, createConsumer, prefetchSize);
         }
 
@@ -480,7 +496,7 @@ namespace Burrow
             }
         }
 
-        private Subscription CreateSubscription(string subscriptionName, string queueName, Func<IModel, string, IBasicConsumer> createConsumer, ushort prefetchSize)
+        private Subscription CreateSubscription(string subscriptionName, string queueName, Func<IModel, IBasicConsumer> createConsumer, ushort prefetchSize)
         {
             var subscription = new Subscription { SubscriptionName = subscriptionName } ;
             var id = Guid.NewGuid();
@@ -501,7 +517,7 @@ namespace Burrow
 
                 _createdChannels.Add(channel);
 
-                var consumer = createConsumer(channel, subscription.ConsumerTag);
+                var consumer = createConsumer(channel);
                 if (consumer is DefaultBasicConsumer)
                 {
                     (consumer as DefaultBasicConsumer).ConsumerTag = subscription.ConsumerTag;

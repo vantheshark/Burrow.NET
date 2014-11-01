@@ -27,7 +27,7 @@ namespace Burrow.Tests.RabbitTunnelTests
 
             // Action
             tunnel.Dispose();
-            countDownEvent.Wait();
+            Assert.IsTrue(countDownEvent.Wait(1000));
 
             // Assert
             // One for the dedicated publish channel and the other for the above subcribe channel
@@ -53,7 +53,7 @@ namespace Burrow.Tests.RabbitTunnelTests
 
             // Action
             tunnel.Dispose();
-            countDownEvent.Wait();
+            Assert.IsTrue(countDownEvent.Wait(1000));
 
             // Assert
             durableConnection.Received(1).Dispose();
@@ -76,7 +76,7 @@ namespace Burrow.Tests.RabbitTunnelTests
 
             // Action
             tunnel.Dispose();
-            countDownEvent.Wait();
+            Assert.IsTrue(countDownEvent.Wait(1000));
 
             // Assert
             durableConnection.Received(1).Dispose();
