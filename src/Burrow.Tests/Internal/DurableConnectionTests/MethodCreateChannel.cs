@@ -3,6 +3,7 @@ using Burrow.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.DurableConnectionTests
@@ -30,8 +31,8 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             connectionFactory.Received().CreateConnection();
         }
 
-        [TestMethod, ExpectedException(typeof(Exception))]
-        public void Should_throw_exception_if_cannot_connect()
+        [TestMethod, ExpectedException(typeof(BrokerUnreachableException))]
+        public void Should_throw_BrokerUnreachableException_if_cannot_connect_during_creating_channel()
         {
             // Arrange
             var retryPolicy = Substitute.For<IRetryPolicy>();

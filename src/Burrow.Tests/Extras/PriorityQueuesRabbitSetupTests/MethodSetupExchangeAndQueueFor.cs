@@ -32,7 +32,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             };
         }
 
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [TestMethod, ExpectedException(typeof(InvalidExchangeTypeException))]
         public void Should_throw_exception_if_try_to_create_not_header_exchange()
         {
             // Arrange

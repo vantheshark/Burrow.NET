@@ -1,5 +1,5 @@
 * 1.0.29 (31 October 2014)
-- Upgrade to RabbitMQ.Client 3.3.4
+- Upgrade to RabbitMQ.Client 3.4.0
 - Ack/Nack in batch
 
 * 1.0.28 (12 July 2014)

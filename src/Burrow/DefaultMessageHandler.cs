@@ -1,12 +1,15 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using System.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Burrow
 {
+    /// <summary>
+    /// Default message handler
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class DefaultMessageHandler<T> : IMessageHandler
     {
         protected readonly string _typeName = Global.DefaultTypeNameSerializer.Serialize(typeof(T));
@@ -19,6 +22,14 @@ namespace Burrow
         public event MessageHandlingEvent HandlingComplete;
         public event MessageWasNotHandledEvent MessageWasNotHandled;
 
+        /// <summary>
+        /// Initialize a DefaultMessageHandler
+        /// </summary>
+        /// <param name="subscriptionName"></param>
+        /// <param name="msgHandlingAction"></param>
+        /// <param name="consumerErrorHandler"></param>
+        /// <param name="messageSerializer"></param>
+        /// <param name="watcher"></param>
         public DefaultMessageHandler(string subscriptionName, 
                                      Action<T, MessageDeliverEventArgs> msgHandlingAction,
                                      IConsumerErrorHandler consumerErrorHandler, 

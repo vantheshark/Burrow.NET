@@ -16,12 +16,12 @@ namespace Burrow.Subscriber
             // If queue "Burrow.Queue.Error" does not exist, try to create it from http://localhost:55672/#/queues
             // Or refer to Burrow.Publisher project to see how to create queue
             
-            //TestSubscribing.Start();
+            TestSubscribing.Start();
             //TestSubscribing.StartAsync(); 
             #endregion
 
             #region -- Run this test to start subscribe from PRIORITY queues --
-            TestSubscribingFromPriorityQueues.Start();
+            //TestSubscribingFromPriorityQueues.Start();
             //TestSubscribingFromPriorityQueues.StartAsync();
             #endregion
 

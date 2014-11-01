@@ -37,7 +37,7 @@ namespace Burrow.Extras
             }
             else
             {
-                throw new Exception("Expect exchange type headers");    
+                throw new InvalidExchangeTypeException("Expect exchange type headers");    
             }
         }
 
@@ -160,6 +160,13 @@ namespace Burrow.Extras
             {
                 base.DeleteQueue<T>(model, queue, queueName);
             }
+        }
+    }
+
+    public class InvalidExchangeTypeException : Exception
+    {
+        public InvalidExchangeTypeException(string message) : base(message)
+        {
         }
     }
 }

@@ -152,6 +152,12 @@
             <param name="subscriptionName"></param>
             <returns></returns>
         </member>
+        <member name="T:Burrow.DefaultMessageHandler`1">
+            <summary>
+            Default message handler
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
         <member name="T:Burrow.IMessageHandler">
             <summary>
             Implement this interface to handle the <see cref="T:RabbitMQ.Client.Events.BasicDeliverEventArgs"/>
@@ -183,6 +189,16 @@
             This can happen in method BeforeHandlingMessage or there is an error in object deserializing
             https://github.com/vanthoainguyen/Burrow.NET/issues/4
             </summary>
+        </member>
+        <member name="M:Burrow.DefaultMessageHandler`1.#ctor(System.String,System.Action{`0,Burrow.MessageDeliverEventArgs},Burrow.IConsumerErrorHandler,Burrow.ISerializer,Burrow.IRabbitWatcher)">
+            <summary>
+            Initialize a DefaultMessageHandler
+            </summary>
+            <param name="subscriptionName"></param>
+            <param name="msgHandlingAction"></param>
+            <param name="consumerErrorHandler"></param>
+            <param name="messageSerializer"></param>
+            <param name="watcher"></param>
         </member>
         <member name="M:Burrow.DefaultMessageHandler`1.BeforeHandlingMessage(RabbitMQ.Client.Events.BasicDeliverEventArgs)">
             <summary>

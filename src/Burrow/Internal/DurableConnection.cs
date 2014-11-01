@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using RabbitMQ.Client;
@@ -192,7 +193,7 @@ namespace Burrow.Internal
             
             if (!IsConnected)
             {
-                throw new Exception("Cannot connect to Rabbit server.");
+                throw new BrokerUnreachableException(new Exception("Cannot connect to Rabbit server."));
             }
 
             var connection = ManagedConnectionFactory.SharedConnections[ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost];
