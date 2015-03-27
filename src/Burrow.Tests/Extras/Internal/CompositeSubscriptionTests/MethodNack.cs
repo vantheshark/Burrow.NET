@@ -1,14 +1,15 @@
 ﻿using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RabbitMQ.Client;
 using NSubstitute;
+using NUnit.Framework;
+using RabbitMQ.Client;
+
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodNack
     {
-        [TestMethod]
+        [Test]
         public void Should_call_Nack_on_nested_subscriptions()
         {
             // Arrange
@@ -32,7 +33,7 @@ namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_call_Nack_on_nested_subscriptions_with_all_delivery_tag()
         {
             // Arrange

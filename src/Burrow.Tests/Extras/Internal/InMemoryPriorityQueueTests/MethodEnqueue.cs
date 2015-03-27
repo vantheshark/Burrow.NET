@@ -2,15 +2,16 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.InMemoryPriorityQueueTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodEnqueue
     {
-        [TestMethod]
+        [Test]
         public void Should_add_item_to_queue_if_not_reach_match_size()
         {
             // Arrange
@@ -23,7 +24,7 @@ namespace Burrow.Tests.Extras.Internal.InMemoryPriorityQueueTests
             Assert.AreEqual(1, queue.Count);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_block_the_adding_thread_if_queue_is_full()
         {
             // Arrange
@@ -52,7 +53,7 @@ namespace Burrow.Tests.Extras.Internal.InMemoryPriorityQueueTests
             queue.Close();
         }
 
-        [TestMethod, ExpectedException(typeof(EndOfStreamException))]
+        [Test, ExpectedException(typeof(EndOfStreamException))]
         public void Should_throw_exception_if_queue_is_closed()
         {
             // Arrange

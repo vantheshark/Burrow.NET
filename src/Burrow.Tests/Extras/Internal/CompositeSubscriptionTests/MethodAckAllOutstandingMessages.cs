@@ -1,15 +1,15 @@
 ﻿using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodAckAllOutstandingMessages
     {
-        [TestMethod]
+        [Test]
         public void Should_call_AckAllOutstandingMessages_on_nested_subscription()
         {
             // Arrange

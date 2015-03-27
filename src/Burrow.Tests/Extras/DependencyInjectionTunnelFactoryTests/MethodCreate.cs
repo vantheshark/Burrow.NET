@@ -1,16 +1,16 @@
 ﻿using System.Reflection;
 using Burrow.Extras;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.DependencyInjectionTunnelFactoryTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCreate
     {
-        [TestMethod]
+        [Test]
         public void Should_use_resolver_to_resolve_tunnel()
         {
             // Arrange
@@ -26,7 +26,7 @@ namespace Burrow.Tests.Extras.DependencyInjectionTunnelFactoryTests
             Assert.IsNotNull(tunnel);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_use_default_implementation_if_cannot_resolve_objects()
         {
             // Arrange
@@ -43,11 +43,11 @@ namespace Burrow.Tests.Extras.DependencyInjectionTunnelFactoryTests
 
             // Assert
             Assert.IsTrue(RabbitTunnel.Factory is DependencyInjectionTunnelFactory);
-            Assert.IsInstanceOfType(tunnel, typeof(RabbitTunnel));
+            Assert.IsInstanceOfType(typeof(RabbitTunnel), tunnel);
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_create_tunnel_with_HaConnection_if_the_connectionString_says_so()
         {
             // Arrange
@@ -65,7 +65,7 @@ namespace Burrow.Tests.Extras.DependencyInjectionTunnelFactoryTests
 
             // Assert
             Assert.IsTrue(RabbitTunnel.Factory is DependencyInjectionTunnelFactory);
-            Assert.IsInstanceOfType(tunnel, typeof(RabbitTunnel));
+            Assert.IsInstanceOfType(typeof(RabbitTunnel), tunnel);
             Assert.IsTrue(fi.GetValue(tunnel) is HaConnection);
         }
     }

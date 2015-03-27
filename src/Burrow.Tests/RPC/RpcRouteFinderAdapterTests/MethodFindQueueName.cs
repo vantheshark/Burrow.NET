@@ -1,17 +1,17 @@
 ﻿using System;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.RpcRouteFinderAdapterTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodFindQueueName
     {
         private IRpcRouteFinder _routeFinder;
 
-        [TestInitializeAttribute]
+        [SetUp]
         public void Init()
         {
             _routeFinder = Substitute.For<IRpcRouteFinder>();
@@ -20,7 +20,7 @@ namespace Burrow.Tests.RPC.RpcRouteFinderAdapterTests
             _routeFinder.UniqueResponseQueue.Returns("ResposeQueue");
         }
 
-        [TestMethod, ExpectedException(typeof(NotSupportedException))]
+        [Test, ExpectedException(typeof(NotSupportedException))]
         public void Should_throw_exception_if_type_is_not_request_nor_response()
         {
             // Arrange
@@ -31,7 +31,7 @@ namespace Burrow.Tests.RPC.RpcRouteFinderAdapterTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_return_valid_string_if_type_is_Request_or_Response()
         {
             // Arrange

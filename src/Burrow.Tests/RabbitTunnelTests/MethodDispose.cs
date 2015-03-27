@@ -2,17 +2,17 @@
 using System.IO;
 using System.Threading;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RabbitTunnelTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodDispose
     {
-        [TestMethod]
+        [Test]
         public void Should_dispose_everything()
         {
             // Arrange
@@ -36,7 +36,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             durableConnection.Received(1).Dispose();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_IOException()
         {
             // Arrange
@@ -59,7 +59,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             durableConnection.Received(1).Dispose();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_any_other_Exception()
         {
             // Arrange

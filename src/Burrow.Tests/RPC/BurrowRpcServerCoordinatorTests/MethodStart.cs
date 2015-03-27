@@ -1,20 +1,19 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodStart
     {
         private ITunnel tunnel;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             tunnel = Substitute.For<ITunnel>();
@@ -22,7 +21,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
             RabbitTunnel.Factory.Create(Arg.Any<string>()).Returns(tunnel);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_create_tunnel_and_set_serializer_and_route_finder()
         {
             // Arrange
@@ -38,7 +37,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
             tunnel.Received(1).SetSerializer(Arg.Any<ISerializer>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_create_exchange_and_auto_delete_request_queue_if_provide_serverId_and_exchange_not_empty()
         {
             // Arrange
@@ -65,7 +64,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
             model.Received(1).QueueBind("ISomeService.serverId.RequestQueue", "ISomeService.Exchange", "ISomeService.serverId.RequestQueue");
         }
 
-        [TestMethod]
+        [Test]
         public void Should_create_durable_request_queue_if_not_provide_server_id()
         {
             // Arrange
@@ -90,7 +89,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
             model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, false, Arg.Any<IDictionary<string, object>>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_create_durable_request_queue_if_provide_server_id_but_exchange_name_is_null()
         {
             // Arrange
@@ -113,7 +112,7 @@ namespace Burrow.Tests.RPC.BurrowRpcServerCoordinatorTests
             model.Received(1).QueueDeclare("ISomeService.serverId.RequestQueue", true, false, false, Arg.Any<IDictionary<string, object>>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_subscribe_to_request_queue()
         {
             // Arrange

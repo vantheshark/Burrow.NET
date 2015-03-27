@@ -4,33 +4,33 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.DurableConnectionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodConnect : DurableConnectionTestHelper
     {
         private readonly AutoResetEvent sync = new AutoResetEvent(true);
 
-        [TestInitialize]
+        [SetUp]
         public void LockThread()
         {
             sync.WaitOne();
             ManagedConnectionFactory.SharedConnections.Clear();
         }
 
-        [TestCleanup]
+        [TearDown]
         public void ReleaseThread()
         {
             sync.Set();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_fire_connected_event_when_connect_successfully()
         {
             // Arrange
@@ -51,7 +51,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             Assert.IsTrue(connectionFactory.Endpoint.Equals(ManagedConnectionFactory.SharedConnections.First().Value.Endpoint));
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_ConnectFailureException()
         {
             // Arrange
@@ -68,7 +68,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             retryPolicy.Received(1).WaitForNextRetry(Arg.Any<Action>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_BrokerUnreachableException()
         {
             // Arrange
@@ -85,7 +85,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             retryPolicy.Received(1).WaitForNextRetry(Arg.Any<Action>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_create_only_one_connection_to_the_same_endpoint()
         {
             // Arrange
@@ -110,7 +110,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_create_only_one_connection_to_the_each_endpoint()
         {
             // Arrange
@@ -139,7 +139,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             Assert.AreEqual(2, ManagedConnectionFactory.SharedConnections.Count);
         }
 
-        [TestMethod]
+        [Test]
         public void Can_create_connections_to_different_endpoints_which_have_the_same_virtualHost()
         {
             // Arrange
@@ -170,7 +170,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             Assert.AreEqual(2, ManagedConnectionFactory.SharedConnections.Count);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_be_notified_about_a_new_established_connection()
         {
             // Arrange
@@ -196,7 +196,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             Assert.IsTrue(connection2Connected);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_only_be_notified_about_a_new_established_connection_that_has_the_same_endpoint_and_virtual_host()
         {
             // Arrange

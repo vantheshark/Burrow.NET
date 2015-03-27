@@ -1,17 +1,18 @@
 ﻿using System;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RabbitTunnelTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodOpenTunnel
     {
-        [TestMethod]
+        [Test]
         public void Should_close_dedicatedPublishChannel()
         {
             // Arrange

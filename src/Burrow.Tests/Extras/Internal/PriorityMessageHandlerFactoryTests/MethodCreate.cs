@@ -1,13 +1,14 @@
 ﻿using Burrow.Extras.Internal;
+using NUnit.Framework;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 
 namespace Burrow.Tests.Extras.Internal.PriorityMessageHandlerFactoryTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCreate
     {
-        [TestMethod]
+        [Test]
         public void Should_return_PriorityMessageHandler()
         {
             // Arrange
@@ -19,7 +20,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityMessageHandlerFactoryTests
             var handler = factory.Create<Customer>("supscriptionName",  (x, y) => { });
 
             // Assert
-            Assert.IsInstanceOfType(handler, typeof(PriorityMessageHandler<Customer>));
+            Assert.IsInstanceOfType(typeof(PriorityMessageHandler<Customer>), handler);
         }
     }
 }

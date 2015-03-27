@@ -1,16 +1,16 @@
 ﻿using Burrow.Extras;
 using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodTryAckOrNAck
     {
-        [TestMethod, ExpectedException(typeof(SubscriptionNotFoundException))]
+        [Test, ExpectedException(typeof(SubscriptionNotFoundException))]
         public void Should_throw_SubscriptionNotFoundException_if_subscription_not_found()
         {
             // Arrange

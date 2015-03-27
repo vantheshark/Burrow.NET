@@ -1,17 +1,16 @@
-﻿using System;
-using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Burrow.Internal;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.DurableConnectionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCreateChannel : DurableConnectionTestHelper
     {
-        [TestMethod]
+        [Test]
         public void Should_try_to_connection_first_if_not_connected()
         {
             // Arrange
@@ -31,7 +30,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             connectionFactory.Received().CreateConnection();
         }
 
-        [TestMethod, ExpectedException(typeof(BrokerUnreachableException))]
+        [Test, ExpectedException(typeof(BrokerUnreachableException))]
         public void Should_throw_BrokerUnreachableException_if_cannot_connect_during_creating_channel()
         {
             // Arrange

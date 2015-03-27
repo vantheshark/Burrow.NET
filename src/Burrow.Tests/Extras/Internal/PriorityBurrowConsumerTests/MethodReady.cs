@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Burrow.Extras.Internal;
-using Burrow.Tests.BurrowConsumerTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodReady
     {
         static MethodReady()
@@ -20,7 +19,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             Global.ConsumerDisposeTimeoutInSeconds = 1;
         }
 
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_subscription_is_null()
         {
             // Arrange
@@ -31,7 +30,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             consumer.Ready();
         }
 
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_PriorityQueue_is_null()
         {
             // Arrange
@@ -45,7 +44,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             consumer.Ready();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_start_a_thread_to_dequeue_on_priority_queue()
         {
             // Arrange
@@ -89,7 +88,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             consumer.Dispose();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_EndOfStreamException()
         {
             // Arrange
@@ -116,7 +115,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             consumer.Dispose();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_ThreadStateException()
         {
             // Arrange
@@ -144,7 +143,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             consumer.Dispose();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_ThreadInterruptedException()
         {
             // Arrange

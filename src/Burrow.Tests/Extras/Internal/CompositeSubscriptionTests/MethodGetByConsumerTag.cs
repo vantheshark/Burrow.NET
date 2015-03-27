@@ -1,12 +1,13 @@
 ﻿using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodGetByConsumerTag
     {
-        [TestMethod]
+        [Test]
         public void Should_return_subscription_by_consumer_tag()
         {
             // Arrange

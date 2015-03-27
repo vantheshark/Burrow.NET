@@ -252,7 +252,7 @@ namespace Burrow
             }
         }
 
-        private IModel _dedicatedPublishingChannel;
+        private volatile IModel _dedicatedPublishingChannel;
         public IModel DedicatedPublishingChannel 
         { 
             get
@@ -462,6 +462,11 @@ namespace Burrow
         private volatile List<Timer> _createdTimer = new List<Timer>(); 
         protected virtual void TryReconnect(IModel disconnectedChannel, Guid id, ShutdownEventArgs eventArgs)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             _createdChannels.Remove(disconnectedChannel);
             if (eventArgs.ReplyCode == 406 && eventArgs.ReplyText.StartsWith("PRECONDITION_FAILED - unknown delivery tag "))
             {

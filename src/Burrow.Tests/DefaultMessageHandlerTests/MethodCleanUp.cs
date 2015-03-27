@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Threading;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.DefaultMessageHandlerTests
 {
 
-    [TestClass]
+    [TestFixture]
     public class MethodCleanUp
     {
-        [TestMethod]
+        [Test]
         public void Should_catch_all_exception()
         {
             // Arrange
@@ -35,7 +35,7 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_fire_event_MessageWasNotHandled_if_msg_was_not_handled()
         {
             // Arrange
@@ -58,7 +58,7 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
             watcher.DidNotReceive().ErrorFormat(Arg.Is<string>(e => e == "There is an error when trying to fire MessageWasNotDelivered event"), Arg.Any<object[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_all_exception_when_firing_event_MessageWasNotHandled()
         {
             // Arrange

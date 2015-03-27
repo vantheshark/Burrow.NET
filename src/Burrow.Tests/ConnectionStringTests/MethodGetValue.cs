@@ -1,13 +1,14 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.ConnectionStringTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodGetValue
     {
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_try_to_get_value_not_in_connectionstring()
         {
             // Arrange
@@ -17,7 +18,7 @@ namespace Burrow.Tests.ConnectionStringTests
             con.GetValue("port");
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_value_provided_in_connectionstring()
         {
             // Arrange
@@ -32,7 +33,7 @@ namespace Burrow.Tests.ConnectionStringTests
             Assert.AreEqual(5672, con.Port);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_value_provided_in_connectionstring_using_caseinsensitive_key()
         {
             // Arrange
@@ -45,7 +46,7 @@ namespace Burrow.Tests.ConnectionStringTests
             Assert.AreEqual("UAT", virtualHost);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_proper_host_and_port_if_provided_in_the_host_section()
         {
             var con = new ConnectionString("host=localhost:5673;username=guest;password=guest");
@@ -53,14 +54,14 @@ namespace Burrow.Tests.ConnectionStringTests
             Assert.AreEqual("localhost", con.Host);
         }
 
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_provided_key_is_null()
         {
             var con = new ConnectionString("host=localhost:5673;username=guest;password=guest");
             con.GetValue(null);
         }
 
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void When_get_with_default_value_should_throw_exception_if_provided_key_is_null()
         {
             var con = new ConnectionString("host=localhost:5673;username=guest;password=guest");

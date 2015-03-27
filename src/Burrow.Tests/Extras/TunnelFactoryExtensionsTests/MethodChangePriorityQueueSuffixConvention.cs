@@ -1,15 +1,16 @@
 ﻿using System;
 using Burrow.Extras;
 using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.TunnelFactoryExtensionsTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodChangePriorityQueueSuffixConvention
     {
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_setting_null_value()
         {
             // Arrange
@@ -19,11 +20,11 @@ namespace Burrow.Tests.Extras.TunnelFactoryExtensionsTests
             tunnel.ChangePriorityQueueSuffixConvention(null);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_change_the_suffix_to_new_value()
         {
             // Arrange
-            var newSuffixConvention = NSubstitute.Substitute.For<IPriorityQueueSuffix>();
+            var newSuffixConvention = Substitute.For<IPriorityQueueSuffix>();
             ITunnelWithPrioritySupport tunnel = null;
 
             // Action

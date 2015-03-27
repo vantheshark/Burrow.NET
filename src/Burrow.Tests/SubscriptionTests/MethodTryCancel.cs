@@ -1,16 +1,17 @@
 ﻿using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.SubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodTryCancel
     {
-        [TestMethod]
+        [Test]
         public void Should_catch_AlreadyClosedException_and_IOException()
         {
             var channel = Substitute.For<IModel>();

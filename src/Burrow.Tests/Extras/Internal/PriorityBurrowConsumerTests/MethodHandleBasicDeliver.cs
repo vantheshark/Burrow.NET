@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Threading;
 using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodHandleBasicDeliver
     {
-        [TestMethod]
+        [Test]
         public void Should_put_msg_to_queue()
         {
             // Arrange

@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodSend
     {
         private ITunnel tunnel;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             tunnel = Substitute.For<ITunnel>();
@@ -22,7 +21,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             Global.DefaultWatcher = Substitute.For<IRabbitWatcher>();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_publish_request_with_address()
         {
             // Arrange
@@ -52,7 +51,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             tunnel.Received(1).Publish(Arg.Any<RpcRequest>(), "RequestQueue");
         }
 
-        [TestMethod, ExpectedException(typeof(TimeoutException))]
+        [Test, ExpectedException(typeof(TimeoutException))]
         public void Should_throw_exeception_if_timeout()
         {
             // Arrange

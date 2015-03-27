@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodPublish
     {
-        [TestMethod]
+        [Test]
         public void Should_use_route_finder_to_find_routing_key_then_publish_serialized_msg()
         {
             // Arrange
@@ -38,7 +38,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             newChannel.Received().BasicPublish(Arg.Any<string>(), Arg.Any<string>(), Arg.Is<IBasicProperties>(arg => arg.Headers["Priority"].ToString() == "10"), Arg.Any<byte[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_overwrite_the_priority_if_customer_headers_has_Priority_value_set()
         {
             // Arrange
@@ -68,7 +68,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
                                                 Arg.Any<byte[]>());
         }
 
-        [TestMethod, ExpectedException(typeof(Exception), "Publish failed. No channel to rabbit server established.")]
+        [Test, ExpectedException(ExpectedException = typeof(Exception), ExpectedMessage = "Publish failed: 'No channel to rabbit server established.'")]
         public void Should_throw_exception_if_dedicated_publish_channel_is_not_created_properly()
         {
             // Arrange
@@ -89,7 +89,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             tunnel.Publish("Muahaha", 10);
         }
 
-        [TestMethod, ExpectedException(typeof(Exception), "Publish failed. No channel to rabbit server established.")]
+        [Test, ExpectedException(ExpectedException = typeof(Exception), ExpectedMessage = "Publish failed: 'No channel to rabbit server established.'")]
         public void Should_throw_exception_if_dedicated_publish_channel_is_not_connected()
         {
             // Arrange
@@ -111,7 +111,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             tunnel.Publish("Muahaha", 10);
         }
 
-        [TestMethod, ExpectedException(typeof(Exception), "Publish failed: 'Test message'")]
+        [Test, ExpectedException(ExpectedException = typeof(Exception), ExpectedMessage = "Publish failed: 'Test message'")]
         public void Should_throw_exception_if_publish_failed()
         {
             // Arrange

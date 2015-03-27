@@ -1,17 +1,17 @@
 ﻿using System;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.DurableConnectionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodSharedConnectionShutdown : DurableConnectionTestHelper
     {
-        [TestMethod]
+        [Test]
         public void Should_be_called_if_App_is_closed_by_user()
         {
             // Arrange
@@ -32,7 +32,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             retryPolicy.DidNotReceive().WaitForNextRetry(Arg.Any<Action>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_try_reconnect_by_retryPolicy_if_Connection_Shutdown_event_was_fired()
         {
             // Arrange

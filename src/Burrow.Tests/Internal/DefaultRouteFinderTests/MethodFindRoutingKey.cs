@@ -1,14 +1,14 @@
-﻿using Burrow.Internal;
+﻿using Burrow.Internal;using NUnit.Framework;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.DefaultRouteFinderTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodFindRoutingKey
     {
-        [TestMethod]
+        [Test]
         public void Should_return_name_of_message_type()
         {
             // Arrange

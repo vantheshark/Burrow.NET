@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.RpcClientInterceptorTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodIntercept
     {
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_response_is_null()
         {
             // Arrange
@@ -24,7 +24,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
             service.Get(1, 200, out totalCount);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_set_time_to_live_in_the_request()
         {
             // Arrange
@@ -48,7 +48,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
             Assert.AreEqual("out string", outValue);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_set_out_value_and_return_value()
         {
             // Arrange
@@ -72,7 +72,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
             Assert.AreEqual(1000, totalCount);
         }
 
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_missing_out_value_in_response_object()
         {
             // Arrange
@@ -90,7 +90,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
             service.Get(1, 200, out totalCount);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_send_async_if_method_is_async()
         {
             // Arrange
@@ -108,7 +108,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
             coordinator.Received(1).SendAsync(Arg.Is<RpcRequest>(arg => arg.UtcExpiryTime == null));
         }
 
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_resonse_has_exception()
         {
             // Arrange
@@ -126,7 +126,7 @@ namespace Burrow.Tests.RPC.RpcClientInterceptorTests
             service.TryParse(out outValue);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_update_byref_param_if_any()
         {
             // Arrange

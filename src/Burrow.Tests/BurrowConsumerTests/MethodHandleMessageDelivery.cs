@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.BurrowConsumerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodHandleMessageDelivery
     {
-        [TestMethod]
+        [Test]
         public void When_called_should_execute_methods_on_message_handler()
         {
             // Arrange
@@ -48,7 +48,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             consumer.Dispose();
         }
 
-        [TestMethod]
+        [Test]
         public void When_called_should_dispose_if_the_message_handler_throws_exception()
         {
             var waitHandler = new ManualResetEvent(false);
@@ -77,7 +77,9 @@ namespace Burrow.Tests.BurrowConsumerTests
 
             // Assert
             watcher.Received(1).Error(Arg.Any<Exception>());
-            Assert.IsTrue(consumer.IsDisposed);
+            Assert.IsTrue(consumer.Status != ConsumerStatus.Active);
+            
+            Subscription.OutstandingDeliveryTags[consumer.ConsumerTag].Clear(); // To kill the while loop
         }
     }
 }

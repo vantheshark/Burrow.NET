@@ -1,15 +1,16 @@
 ﻿using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RabbitTunnelTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodSubscribe
     {
-        [TestMethod]
+        [Test]
         public void Should_create_subscriptions_to_queues()
         {
             // Arrange
@@ -26,7 +27,7 @@ namespace Burrow.Tests.RabbitTunnelTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_return_subscription()
         {
             // Arrange
@@ -40,10 +41,10 @@ namespace Burrow.Tests.RabbitTunnelTests
             // Assert
             newChannel.Received().BasicQos(0, (ushort)Global.PreFetchSize, false);
             newChannel.Received().BasicConsume("Queue", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());
-            Assert.IsInstanceOfType(subs, typeof(Subscription));
+            Assert.IsInstanceOfType(typeof(Subscription), subs);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_be_able_to_subscribe_with_provided_options()
         {
             // Arrange
@@ -69,7 +70,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.Received().BasicConsume("QueueByCustomRouteFinder", false, Arg.Is<string>(x => x.StartsWith("subscriptionName-")), Arg.Any<IBasicConsumer>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_warn_if_prefetch_size_is_too_large()
         {
             // Arrange

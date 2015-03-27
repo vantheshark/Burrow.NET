@@ -1,13 +1,14 @@
 ﻿using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.DefaultFanoutRpcRequestRouteFinderTests
 {
-    [TestClass]
+    [TestFixture]
     public class PropertyRequestExchangeType
     {
-        [TestMethod]
+        [Test]
         public void Should_always_be_fanout()
         {
             // Arrange

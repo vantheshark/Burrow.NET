@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Threading;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.DefaultMessageHandlerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodHandleMessage
     {
-        [TestMethod]
+        [Test]
         public void Should_fire_event_HandlingComplete()
         {
             // Arrange
@@ -32,7 +32,7 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_handle_error_if_the_task_failed()
         {
             // Arrange
@@ -51,7 +51,7 @@ namespace Burrow.Tests.DefaultMessageHandlerTests
             
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_any_exception()
         {
             // Arrange

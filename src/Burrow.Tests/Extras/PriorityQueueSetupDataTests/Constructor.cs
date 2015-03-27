@@ -1,13 +1,14 @@
 ﻿using Burrow.Extras;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.PriorityQueueSetupDataTests
 {
-    [TestClass]
+    [TestFixture]
     public class Constructor
     {
-        [TestMethod]
+        [Test]
         public void Should_initialize_obj_with_MaxPriorityLevel()
         {
             // Arrange & Action

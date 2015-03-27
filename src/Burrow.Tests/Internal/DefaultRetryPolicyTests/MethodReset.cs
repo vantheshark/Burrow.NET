@@ -1,14 +1,14 @@
 ﻿using System.Threading;
-using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Burrow.Internal;using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.DefaultRetryPolicyTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodReset
     {
-        [TestMethod]
+        [Test]
         public void Should_reset_delay_time_to_0()
         {
             // Arrange

@@ -1,15 +1,16 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RabbitTunnelTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodSetSerializer
     {
-        [TestMethod]
+        [Test]
         public void Should_notify_all_registered_observers()
         {
             var newChannel = Substitute.For<IModel>();

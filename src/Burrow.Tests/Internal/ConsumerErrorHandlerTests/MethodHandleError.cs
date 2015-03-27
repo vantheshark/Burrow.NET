@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using Burrow.Internal;
 using Burrow.Tests.Internal.DurableConnectionTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -12,10 +10,10 @@ using RabbitMQ.Client.Exceptions;
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodHandleError : DurableConnectionTestHelper
     {
-        [TestMethod]
+        [Test]
         public void Should_create_exchange_queue_and_put_error_to_queue ()
         {
             // Arrange
@@ -35,7 +33,7 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
             model.Received().BasicPublish(Arg.Any<string>(), string.Empty, basicProperies, Arg.Any<byte[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_BrokerUnreachableException()
         {
             // Arrange
@@ -53,7 +51,7 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
             watcher.Received().ErrorFormat(Arg.Any<string>(), Arg.Any<object[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException()
         {
             // Arrange
@@ -70,7 +68,7 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
             watcher.Received().ErrorFormat(Arg.Any<string>(), Arg.Any<object[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_other_exceptions()
         {
             // Arrange
@@ -87,7 +85,7 @@ namespace Burrow.Tests.Internal.ConsumerErrorHandlerTests
             watcher.Received().ErrorFormat(Arg.Any<string>(), Arg.Any<object[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_ConnectFailureException_exceptions()
         {
             // Arrange

@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.TypeNameSerializerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodSerialize
     {
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_type_is_null()
         {
             // Arrange
@@ -22,7 +19,7 @@ namespace Burrow.Tests.Internal.TypeNameSerializerTests
             serializer.Serialize(null);
         }
 
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_type_fullName_is_null()
         {
             // Arrange

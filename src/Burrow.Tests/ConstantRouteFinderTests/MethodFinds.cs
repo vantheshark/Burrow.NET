@@ -1,12 +1,13 @@
 ﻿using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 namespace Burrow.Tests.ConstantRouteFinderTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodFinds
     {
-        [TestMethod]
+        [Test]
 // ReSharper disable InconsistentNaming
         public void Should_return_provided_exchange_name()
 // ReSharper restore InconsistentNaming

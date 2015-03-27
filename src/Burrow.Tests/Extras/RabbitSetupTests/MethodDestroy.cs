@@ -1,20 +1,20 @@
 ﻿using System;
 using Burrow.Extras;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.RabbitSetupTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodDestroy
     {
         private IRouteFinder _routeFinder = Substitute.For<IRouteFinder>();
         private RouteSetupData _routeSetupData;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _routeFinder.FindExchangeName<Customer>().Returns("Exchange.Customer");
@@ -29,7 +29,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
                                  };
         }
         
-        [TestMethod]
+        [Test]
         public void Should_destroy_exchange_queues()
         {
             // Arrange
@@ -44,7 +44,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             model.Received().ExchangeDelete("Exchange.Customer");            
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_error_if_cannot_delete_queue()
         {
             // Arrange
@@ -62,7 +62,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             model.Received().ExchangeDelete("Exchange.Customer");
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_error_if_cannot_delete_exchange()
         {
             // Arrange
@@ -77,7 +77,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.DestroyRoute<Customer>(_routeSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_when_trying_to_delete_none_exist_queue()
         {
             // Arrange
@@ -92,7 +92,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.DestroyRoute<Customer>(_routeSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_and_log_error_when_trying_to_delete_queue()
         {
             // Arrange
@@ -107,7 +107,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.DestroyRoute<Customer>(_routeSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_when_trying_to_delete_none_exist_exchange()
         {
             // Arrange
@@ -122,7 +122,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.DestroyRoute<Customer>(_routeSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_and_log_error_when_trying_to_delete_exchange()
         {
             // Arrange

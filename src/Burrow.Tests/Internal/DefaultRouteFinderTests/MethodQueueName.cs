@@ -1,14 +1,14 @@
-﻿using Burrow.Internal;
+﻿using Burrow.Internal;using NUnit.Framework;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.DefaultRouteFinderTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodQueueName
     {
-        [TestMethod]
+        [Test]
         public void Should_return_burrow_queue_name()
         {
             // Arrange
@@ -21,7 +21,7 @@ namespace Burrow.Tests.Internal.DefaultRouteFinderTests
             Assert.AreEqual("Burrow.Queue.Customer", keyName);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_burrow_queue_name_with_subscription_if_provided()
         {
             // Arrange

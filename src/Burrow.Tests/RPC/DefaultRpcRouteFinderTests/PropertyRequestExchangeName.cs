@@ -1,13 +1,14 @@
 ﻿using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.DefaultRpcRouteFinderTests
 {
-    [TestClass]
+    [TestFixture]
     public class PropertyRequestExchangeName
     {
-        [TestMethod]
+        [Test]
         public void Should_always_return_empty_string()
         {
             // Arrange

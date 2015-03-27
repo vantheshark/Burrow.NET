@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Threading;
 using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodInit
     {
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_subscription_is_null()
         {
             // Arrange
@@ -24,7 +23,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             consumer.Init(queue, null, 1, "sem");
         }
 
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_PriorityQueue_is_null()
         {
             // Arrange
@@ -36,7 +35,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             consumer.Init(null, new CompositeSubscription(), 1, "sem");
         }
 
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_semaphore_name_is_null()
         {
             // Arrange
@@ -48,7 +47,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
             consumer.Init(queue, new CompositeSubscription(), 1, null);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_delete_all_existing_msgs_that_have_same_priority()
         {
             // Arrange

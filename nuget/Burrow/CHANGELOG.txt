@@ -1,3 +1,6 @@
+* 1.0.30 (26 March 2015)
+- Fix https://github.com/vanthoainguyen/Burrow.NET/issues/19. The DurableConnection didn't unsubcribe to the event when dispose
+
 * 1.0.29 (31 October 2014)
 - Upgrade to RabbitMQ.Client 3.4.0
 - Ack/Nack in batch

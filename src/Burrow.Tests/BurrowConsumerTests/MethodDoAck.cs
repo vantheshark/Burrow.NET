@@ -2,8 +2,8 @@
 using System.IO;
 using System.Threading;
 using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -11,10 +11,10 @@ using RabbitMQ.Client.Exceptions;
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.BurrowConsumerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodDoAck
     {
-        [TestMethod]
+        [Test]
         public void Should_do_nothing_if_not_connected()
         {
             // Arrange
@@ -31,7 +31,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             consumer.Dispose();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_do_nothing_if_already_disposed()
         {
             // Arrange
@@ -52,7 +52,7 @@ namespace Burrow.Tests.BurrowConsumerTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_catch_AlreadyClosedException()
         {
             // Arrange
@@ -74,7 +74,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             consumer.Dispose();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_IOException()
         {
             // Arrange
@@ -96,7 +96,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             consumer.Dispose();
         }
 
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_other_Exceptions()
         {
             // Arrange

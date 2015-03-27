@@ -2,17 +2,17 @@
 using Burrow.Extras;
 using Burrow.Extras.Internal;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodGetMessageCount
     {
-        [TestMethod]
+        [Test]
         public void Should_return_the_messagecount()
         {
             // Arrange
@@ -34,10 +34,10 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             });
 
             // Assert
-            Assert.AreEqual((uint)500, count);
+            Assert.AreEqual(500, count);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_all_exception()
         {
             // Arrange
@@ -61,7 +61,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             });
 
             // Assert
-            Assert.AreEqual((uint)0, count);
+            Assert.AreEqual(0, count);
             newChannel.Received(1).QueueDeclarePassive(Arg.Any<string>());
         }
     }

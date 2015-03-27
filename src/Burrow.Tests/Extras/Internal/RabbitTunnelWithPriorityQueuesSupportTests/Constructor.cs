@@ -1,15 +1,14 @@
 ﻿using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using RabbitMQ.Client;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTests
 {
-    [TestClass]
+    [TestFixture]
     public class Constructor
     {
-        [TestMethod]
+        [Test]
         public void Can_construct_with_provided_route_finder_and_durable_connection()
         {
             // Arrange

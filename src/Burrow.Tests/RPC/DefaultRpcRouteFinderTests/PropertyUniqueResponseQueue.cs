@@ -1,13 +1,14 @@
 ﻿using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.DefaultRpcRouteFinderTests
 {
-    [TestClass]
+    [TestFixture]
     public class PropertyUniqueResponseQueue
     {
-        [TestMethod]
+        [Test]
         public void Should_return_name_with_type()
         {
             // Arrange
@@ -20,7 +21,7 @@ namespace Burrow.Tests.RPC.DefaultRpcRouteFinderTests
             Assert.AreEqual("Burrow.Queue.Rpc.ISomeService.Responses", responseQueue);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_name_with_type_and_client_name()
         {
             // Arrange

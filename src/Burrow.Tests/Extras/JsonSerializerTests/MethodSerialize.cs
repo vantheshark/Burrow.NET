@@ -1,12 +1,12 @@
 ﻿using Burrow.Extras;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace Burrow.Tests.Extras.JsonSerializerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodSerialize
     {
-        [TestMethod]
+        [Test]
 // ReSharper disable InconsistentNaming
         public void Can_serialize_object()
 // ReSharper restore InconsistentNaming

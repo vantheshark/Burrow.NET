@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Burrow.Extras</id>
-    <version>1.0.28</version>
+    <version>1.0.30</version>
     <authors>Van Thoai Nguyen</authors>
     <owners>Van Thoai Nguyen</owners>
     <licenseUrl>http://sam.zoy.org/wtfpl/COPYING</licenseUrl>
@@ -12,10 +12,10 @@
 	<summary>Burrow.Extras provides extra utilities for Burrow.NET such as supporting publishing to priority queues</summary>    
 	<description>Burrow.Extras provide DependencyInjection TunnelFactory, JsonSerializer and RabbitSetup which help to create Exchanges and Queues programmatically. YOU DON'T NEED TO DOWNLOAD BURROW.RPC IF YOU DON'T USE RPC IN YOUR CODE.</description>
     <releaseNotes>https://github.com/vanthoainguyen/Burrow.NET/blob/master/nuget/Burrow/CHANGELOG.txt</releaseNotes>
-    <copyright>Copyright 2014</copyright>
+    <copyright>Copyright 2015</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP Burrow.Extras</tags>
     <dependencies>		
-		<dependency id="Burrow.NET" version="1.0.29" />
+		<dependency id="Burrow.NET" version="1.0.30" />
 		<dependency id="Newtonsoft.Json" version="5.0.6" />
     </dependencies>
   </metadata>

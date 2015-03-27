@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.Globalization;
 using Burrow.Extras;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodSetupExchangeAndQueueFor
     {
         private IRouteFinder _routeFinder = Substitute.For<IRouteFinder>();
         private RouteSetupData _priorityRouteSetupData;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _routeFinder.FindExchangeName<Customer>().Returns("Exchange.Customer");
@@ -32,7 +32,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             };
         }
 
-        [TestMethod, ExpectedException(typeof(InvalidExchangeTypeException))]
+        [Test, ExpectedException(typeof(InvalidExchangeTypeException))]
         public void Should_throw_exception_if_try_to_create_not_header_exchange()
         {
             // Arrange
@@ -50,7 +50,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_create_normal_queue_if_not_providing_PriorityQueueSetupData()
         {
             // Arrange
@@ -76,7 +76,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer", normalRouteSetupData.OptionalBindingData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_create_Priority_queue_if_provide_PriorityQueueSetupData()
         {
             // Arrange
@@ -104,7 +104,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_excepton_if_cannot_create_PRIORITY_queues()
         {
             // Arrange
@@ -126,7 +126,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             model.Received().QueueBind("Queue.Customer_Priority3", "Exchange.Customer", "Customer", Arg.Is<IDictionary<string, object>>(x => eval(x, 3)));
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_excepton_if_cannot_bind_PRIORITY_queues()
         {
             // Arrange
@@ -140,7 +140,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             setup.CreateRoute<Customer>(_priorityRouteSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_when_trying_to_create_an_exist_queue_but_configuration_not_match()
         {
             // Arrange
@@ -155,7 +155,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             setup.CreateRoute<Customer>(_priorityRouteSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_and_log_error_when_trying_to_create_a_queue()
         {
             // Arrange

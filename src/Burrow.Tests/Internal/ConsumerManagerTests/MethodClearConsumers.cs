@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using System.Threading;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.ConsumerManagerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodClearConsumers
     {
-        [TestMethod]
+        [Test]
         public void Should_catch_all_exception_when_dispose_consumers()
         {
             // Arrange

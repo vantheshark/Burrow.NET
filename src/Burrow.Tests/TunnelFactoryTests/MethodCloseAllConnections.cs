@@ -1,16 +1,16 @@
 ﻿using Burrow.Internal;
 using Burrow.Tests.Internal.DurableConnectionTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.TunnelFactoryTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCloseAllConnections
     {
-        [TestMethod]
+        [Test]
         public void Should_close_and_dispose_all_SharedConnections()
         {
             var retryPolicy = Substitute.For<IRetryPolicy>();

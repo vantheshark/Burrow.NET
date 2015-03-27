@@ -1,14 +1,14 @@
 ﻿using System.Linq;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 namespace Burrow.Tests.Internal.DurableConnectionTests
 {
     public class DurableConnectionTestHelper
     {
-        [TestCleanup]
+        [TearDown]
         public void CleanUp()
         {
             ManagedConnectionFactory.SharedConnections.Values.ToList().ForEach(c =>

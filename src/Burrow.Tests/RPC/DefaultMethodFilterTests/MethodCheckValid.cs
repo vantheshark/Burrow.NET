@@ -2,15 +2,16 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.DefaultMethodFilterTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCheckValid
     {
-        [TestMethod]
+        [Test]
         public void Should_do_nothing_if_method_is_not_async()
         {
             // Arrange
@@ -21,7 +22,7 @@ namespace Burrow.Tests.RPC.DefaultMethodFilterTests
             filter.CheckValid(new DynamicMethod("", typeof(int), null, true), null, false);
         }
 
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_method_is_async_and_has_return_type()
         {
             MethodInfo info = new DynamicMethod("", typeof(int), null, true);
@@ -33,7 +34,7 @@ namespace Burrow.Tests.RPC.DefaultMethodFilterTests
             filter.CheckValid(info, null, true);
         }
 
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_method_is_async_and_has_out_param()
         {
             DefaultMethodFilter.CheckedMethodCaches.Clear();
@@ -47,7 +48,7 @@ namespace Burrow.Tests.RPC.DefaultMethodFilterTests
             filter.CheckValid(method, null, true);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_exception_if_method_is_async_and_has_ref_param()
         {
             var type = typeof(ISomeService);
@@ -60,7 +61,7 @@ namespace Burrow.Tests.RPC.DefaultMethodFilterTests
             filter.CheckValid(method, null, true);
         }
 
-        [TestMethod, ExpectedException(typeof(NotSupportedException))]
+        [Test, ExpectedException(typeof(NotSupportedException))]
         public void Should_throw_exception_if_method_has_delegate_param()
         {
             var type = typeof(ISomeService);
@@ -74,7 +75,7 @@ namespace Burrow.Tests.RPC.DefaultMethodFilterTests
             filter.CheckValid(method, null, true);
         }
 
-        [TestMethod, ExpectedException(typeof(NotSupportedException))]
+        [Test, ExpectedException(typeof(NotSupportedException))]
         public void Should_throw_exception_if_method_is_property_accessor()
         {
             var type = typeof(ISomeService);

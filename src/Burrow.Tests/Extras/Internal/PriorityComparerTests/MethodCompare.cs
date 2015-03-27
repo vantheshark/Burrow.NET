@@ -1,13 +1,14 @@
 ﻿using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.PriorityComparerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCompare
     {
-        [TestMethod]
+        [Test]
         public void Should_return_1_if_object_on_the_left_has_higher_priority_value()
         {
             // Arrange
@@ -19,7 +20,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityComparerTests
             Assert.AreEqual(1, comparer.Compare(m2, m1));
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_minus_1_if_object_on_the_left_has_lower_priority_value()
         {
             // Arrange
@@ -31,7 +32,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityComparerTests
             Assert.AreEqual(-1, comparer.Compare(m2, m1));
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_1_if_object_on_the_left_is_older_than_the_other_one()
         {
             // Arrange
@@ -44,7 +45,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityComparerTests
             Assert.AreEqual(1, comparer.Compare(m1, m2));
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_minus_1_if_object_on_the_left_is_younger_than_the_other_one()
         {
             // Arrange
@@ -57,7 +58,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityComparerTests
             Assert.AreEqual(-1, comparer.Compare(m2, m1));
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_0_for_other_case()
         {
             // Arrange

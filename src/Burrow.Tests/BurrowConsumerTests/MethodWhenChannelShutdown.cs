@@ -1,15 +1,16 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.BurrowConsumerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodWhenChannelShutdown
     {
-        [TestMethod]
+        [Test]
         public void Should_be_executed_when_the_channel_is_shutdown()
         {
             // Arrange

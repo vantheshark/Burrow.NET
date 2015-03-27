@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
 {
-    [TestClass]
+    [TestFixture]
     public class Constructor
     {
         private ITunnel tunnel;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             tunnel = Substitute.For<ITunnel>();
@@ -21,7 +21,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             RabbitTunnel.Factory.Create(Arg.Any<string>()).Returns(tunnel);
         }
 
-        [TestMethod]
+        [Test]
         public void Can_provide_null_route_finder()
         {
             // Arrange
@@ -34,7 +34,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             tunnel.Received(1).SetRouteFinder(Arg.Is<IRouteFinder>(arg => arg is RpcRouteFinderAdapter));
         }
 
-        [TestMethod]
+        [Test]
         public void Should_set_default_serializer()
         {
             // Arrange
@@ -51,7 +51,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             Global.DefaultSerializer = oldSerializer;
         }
 
-        [TestMethod]
+        [Test]
         public void Should_create_request_and_response_queues_if_provided_true_param()
         {
             // Arrange
@@ -64,7 +64,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             InternalDependencies.RpcQueueHelper.Received(1).CreateQueues(Arg.Any<string>(), Arg.Any<Action<IModel>>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_create_request_and_response_queue_by_default()
         {
             // Arrange

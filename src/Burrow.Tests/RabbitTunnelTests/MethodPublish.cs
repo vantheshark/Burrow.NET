@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RabbitTunnelTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodPublish
     {
-        [TestMethod]
+        [Test]
         public void Should_use_route_finder_to_find_routing_key_then_publish_serialized_msg()
         {
             // Arrange
@@ -36,7 +36,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.Received().BasicPublish(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IBasicProperties>(), Arg.Any<byte[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_use_topic_route_finder_to_find_routing_key_if_provided()
         {
             // Arrange
@@ -64,7 +64,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.Received(2).BasicPublish(Arg.Any<string>(), "This.Is.A.Topic", Arg.Any<IBasicProperties>(), Arg.Any<byte[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_be_able_to_publish_with_routingKey()
         {
             // Arrange
@@ -90,7 +90,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.Received().BasicPublish(Arg.Any<string>(), "RoutingKey", Arg.Is<IBasicProperties>(p => p.Headers.Count == 0), Arg.Any<byte[]>());
         }
 
-		[TestMethod]
+		[Test]
         public void Should_publish_message_to_header_exchange_with_custom_headers_if_provided()
         {
             // Arrange
@@ -119,7 +119,7 @@ namespace Burrow.Tests.RabbitTunnelTests
                                                 Arg.Any<byte[]>());
         }
 
-        [TestMethod, ExpectedException(typeof(Exception), "Publish failed. No channel to rabbit server established.")]
+        [Test, ExpectedException(ExpectedException = typeof(Exception), ExpectedMessage = "Publish failed: 'No channel to rabbit server established.'")]
         public void Should_throw_exception_if_dedicated_publish_channel_is_not_created_properly()
         {
             // Arrange
@@ -130,7 +130,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             tunnel.Publish("Muahaha");
         }
 
-        [TestMethod, ExpectedException(typeof(Exception), "Publish failed. No channel to rabbit server established.")]
+        [Test, ExpectedException(ExpectedException = typeof(Exception), ExpectedMessage = "Publish failed: 'No channel to rabbit server established.'")]
         public void Should_throw_exception_if_dedicated_publish_channel_is_not_connected()
         {
             // Arrange
@@ -141,7 +141,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             tunnel.Publish("Muahaha");
         }
 
-        [TestMethod, ExpectedException(typeof(Exception), "Publish failed: 'Test message'")]
+        [Test, ExpectedException(ExpectedException = typeof(Exception), ExpectedMessage = "Publish failed: 'Test message'")]
         public void Should_throw_exception_if_publish_failed()
         {
             // Arrange
@@ -164,7 +164,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             tunnel.Publish("Muahaha");
         }
 
-        [TestMethod]
+        [Test]
         public void Should_create_dedicated_channel_without_reconnect_if_connection_has_been_connected_before()
         {
             // Arrange

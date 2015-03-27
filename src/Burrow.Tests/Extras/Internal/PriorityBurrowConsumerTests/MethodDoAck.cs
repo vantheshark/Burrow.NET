@@ -1,17 +1,17 @@
 ﻿using System.Threading;
 using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.PriorityBurrowConsumerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodDoAck
     {
-        [TestMethod]
+        [Test]
         public void Should_do_nothing_if_already_disposed()
         {
             // Arrange

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using RabbitMQ.Client;
@@ -29,6 +28,7 @@ namespace Burrow.Internal
 
         protected readonly IRetryPolicy _retryPolicy;
         protected readonly IRabbitWatcher _watcher;
+        protected Action _unsubscribeEvents = () =>{};
 
         /// <summary>
         /// An event that will be fired if Connection established
@@ -55,7 +55,7 @@ namespace Burrow.Internal
 
             
             _connectionFactory = ManagedConnectionFactory.CreateFromConnectionFactory(connectionFactory);
-            ManagedConnectionFactory.ConnectionEstablished += (endpoint, virtualHost) =>
+            ConnectionEstablished handler = (endpoint, virtualHost) =>
             {
                 if (_connectionFactory.Endpoint + _connectionFactory.VirtualHost == endpoint + virtualHost)
                 {
@@ -63,8 +63,11 @@ namespace Burrow.Internal
                     FireConnectedEvent();
                 }
             };
+            ManagedConnectionFactory.ConnectionEstablished += handler;
+            _unsubscribeEvents = () => { ManagedConnectionFactory.ConnectionEstablished -= handler; };
         }
-
+        
+        
         /// <summary>
         /// Try to connect to rabbitmq server, retry if it cann't connect to the broker.
         /// </summary>
@@ -147,12 +150,15 @@ namespace Burrow.Internal
         /// </summary>
         public bool IsConnected
         {
-            get 
+            get
             {
-                return ManagedConnectionFactory.SharedConnections
-                                               .Any(c => c.Key == ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost && 
-                                                         ConnectionFactory.Endpoint.ToString().Equals(c.Value.Endpoint.ToString()) && 
-                                                         c.Value != null && c.Value.IsOpen); 
+                var key = ConnectionFactory.Endpoint + ConnectionFactory.VirtualHost;
+                if (!ManagedConnectionFactory.SharedConnections.ContainsKey(key))
+                {
+                    return false;
+                }
+                var c = ManagedConnectionFactory.SharedConnections[key];
+                return c.IsOpen && c.Endpoint != null && ConnectionFactory.Endpoint.ToString().Equals(c.Endpoint.ToString());
             }
         }
 
@@ -203,6 +209,7 @@ namespace Burrow.Internal
  
         public void Dispose()
         {
+            _unsubscribeEvents();
             //Should not dispose any connections here since other tunnel might use one of them
             //try
             //{

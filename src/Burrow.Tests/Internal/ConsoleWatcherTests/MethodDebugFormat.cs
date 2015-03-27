@@ -1,13 +1,13 @@
 ﻿using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.ConsoleWatcherTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodDebugFormat
     {
-        [TestMethod]
+        [Test]
         public void Should_not_write_if_debug_is_disable()
         {
             // Arrange
@@ -17,7 +17,7 @@ namespace Burrow.Tests.Internal.ConsoleWatcherTests
             watcher.DebugFormat("{Debug}", 1, 2);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_write_if_debug_is_enable()
         {
             // Arrange

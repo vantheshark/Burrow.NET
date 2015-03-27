@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodReceiveResponse
     {
         private ITunnel tunnel;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             tunnel = Substitute.For<ITunnel>();
@@ -21,7 +21,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             Global.DefaultWatcher = Substitute.For<IRabbitWatcher>();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_and_log_warn_msg_if_the_waitHandlers_does_not_contain_requestId()
         {
             // Arrange
@@ -40,7 +40,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             Global.DefaultWatcher.Received(1).WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_set_respones_value_to_wait_handler_and_set_the_wait_handler()
         {
             // Arrange

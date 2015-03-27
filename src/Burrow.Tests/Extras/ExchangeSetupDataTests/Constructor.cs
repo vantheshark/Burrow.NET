@@ -1,13 +1,13 @@
 ﻿using Burrow.Extras;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.ExchangeSetupDataTests
 {
-    [TestClass]
+    [TestFixture]
     public class Constructor
     {
-        [TestMethod]
+        [Test]
         public void Should_set_Durable_true_and_ExchangeType_Direct_by_default()
         {
             // Arrange & Action

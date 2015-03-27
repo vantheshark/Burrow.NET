@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.RpcFactoryTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCreateFanoutServer
     {
         private ITunnel tunnel;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             tunnel = Substitute.For<ITunnel>();
@@ -21,7 +21,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             RabbitTunnel.Factory.Create(Arg.Any<string>()).Returns(tunnel);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_use_DefaultFanoutRpcRequestRouteFinder()
         {
             // Arrange

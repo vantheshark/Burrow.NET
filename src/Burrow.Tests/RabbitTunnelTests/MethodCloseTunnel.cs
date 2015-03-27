@@ -1,16 +1,16 @@
 ﻿using System;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RabbitTunnelTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCloseTunnel
     {
-        [TestMethod]
+        [Test]
         public void Should_resubscribe_to_queues_after_reconnect_successfully()
         {
             // Arrange
@@ -28,7 +28,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             newChannel.Received(4).BasicConsume("Queue", false, Arg.Is<string>(x => x.StartsWith("subscriptionName")), Arg.Any<IBasicConsumer>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_do_nothing_if_disposed()
         {
             // Arrange

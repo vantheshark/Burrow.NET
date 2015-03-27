@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncSubscriptionOption.cs" />
+    <Compile Include="ConsumerStatus.cs" />
     <Compile Include="DefaultMessageHandler.cs" />
     <Compile Include="ConnectionString.cs" />
     <Compile Include="DefaultMessageHandlerFactory.cs" />

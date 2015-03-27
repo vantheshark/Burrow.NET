@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Burrow.Tests.Extras.RabbitSetupTests;
 using NSubstitute;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Burrow.Tests.RabbitTunnelTests
 {
@@ -45,7 +46,7 @@ namespace Burrow.Tests.RabbitTunnelTests
         }
 
         public bool? OnBrokerReceivedMessageIsCall;
-        protected override void OnBrokerReceivedMessage(IModel model, RabbitMQ.Client.Events.BasicAckEventArgs args)
+        protected override void OnBrokerReceivedMessage(IModel model, BasicAckEventArgs args)
         {
             OnBrokerReceivedMessageIsCall = true;
         }
@@ -66,14 +67,14 @@ namespace Burrow.Tests.RabbitTunnelTests
         }
 
         public bool? OnBrokerRejectedMessageIsCall;
-        protected override void OnBrokerRejectedMessage(IModel model, RabbitMQ.Client.Events.BasicNackEventArgs args)
+        protected override void OnBrokerRejectedMessage(IModel model, BasicNackEventArgs args)
         {
             OnBrokerRejectedMessageIsCall = true;
         }
 
 
         public bool? OnMessageIsUnroutedIsCall;
-        protected override void OnMessageIsUnrouted(IModel model, RabbitMQ.Client.Events.BasicReturnEventArgs args)
+        protected override void OnMessageIsUnrouted(IModel model, BasicReturnEventArgs args)
         {
             OnMessageIsUnroutedIsCall = true;
         }

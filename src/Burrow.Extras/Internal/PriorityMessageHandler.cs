@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using RabbitMQ.Client.Events;
 
 namespace Burrow.Extras.Internal

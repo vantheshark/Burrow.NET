@@ -1,16 +1,16 @@
 ﻿using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodSendAsync
     {
         private ITunnel tunnel;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             tunnel = Substitute.For<ITunnel>();
@@ -19,7 +19,7 @@ namespace Burrow.Tests.RPC.BurrowRpcClientCoordinatorTests
             Global.DefaultWatcher = Substitute.For<IRabbitWatcher>();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_publish_request_without_address()
         {
             // Arrange

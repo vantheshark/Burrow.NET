@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 namespace Burrow.Tests.Internal.BasicPropertiesWrapperTests
 {
-    [TestClass]
+    [TestFixture]
     public class Constructor
     {
-        [TestMethod]
+        [Test]
 // ReSharper disable InconsistentNaming
         public void Should_wrap_a_IBasicProperties_instance()
 // ReSharper restore InconsistentNaming

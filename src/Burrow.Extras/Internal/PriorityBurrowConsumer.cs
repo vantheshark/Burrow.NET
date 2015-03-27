@@ -122,7 +122,7 @@ namespace Burrow.Extras.Internal
 
         internal protected override void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
         {
-            if (_disposed)
+            if (IsDisposed)
             {
                 return;
             }

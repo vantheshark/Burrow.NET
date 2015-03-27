@@ -1,20 +1,19 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.RpcFactoryTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCreateServer
     {
         private ITunnel tunnel;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             tunnel = Substitute.For<ITunnel>();
@@ -23,7 +22,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             InternalDependencies.RpcQueueHelper = Substitute.For<IRpcQueueHelper>();
         }
 
-        [TestMethod]
+        [Test]
         public void Can_accept_null_params()
         {
             // Action
@@ -33,7 +32,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             Assert.IsNotNull(server);
         }
 
-        [TestMethod]
+        [Test]
         public void Can_provide_request_queue_name()
         {
             // Action
@@ -43,7 +42,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             Assert.IsNotNull(server);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_use_DefaulRpcRouteFinder_if_not_provide_serverId()
         {
             // Arrange
@@ -65,7 +64,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             tunnel.Received(1).SubscribeAsync(typeof(ISomeService).Name, Arg.Any<Action<RpcRequest>>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_use_DefaulRpcRouteFinder_and_declare_durable_request_queue()
         {
             // Arrange
@@ -86,7 +85,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             tunnel.Received(1).SubscribeAsync("ServerId", Arg.Any<Action<RpcRequest>>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_use_DefaulRpcRouteFinder_and_create_durable_queue_even_if_not_provide_serverId()
         {
             // Arrange

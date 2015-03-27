@@ -111,7 +111,7 @@ namespace Burrow
                         handler = HandleMessageDeliveryInSeperatedThread;
                     }
 
-                    while (!_disposed && !_channelShutdown)
+                    while (_status == ConsumerStatus.Active && !_channelShutdown)
                     {
                         WaitAndHandleMessageDelivery(handler);
                     }
@@ -163,7 +163,7 @@ namespace Burrow
 #else
                     _pool.WaitOne();
 #endif
-					if (!_disposed)
+					if (_status == ConsumerStatus.Active)
                     {
                         deliverEventArgs = Dequeue();
                     }
@@ -206,7 +206,7 @@ namespace Burrow
         {
             try
             {
-                if (!_autoAck && !_disposed)
+                if (!_autoAck && !IsDisposed)
                 {
                     DoAck(eventArgs, this);
                 }
@@ -222,7 +222,7 @@ namespace Burrow
         {
             try
             {
-                if (_autoAck && !_disposed)
+                if (_autoAck && !IsDisposed)
                 {
 #if DEBUG
                     _watcher.DebugFormat("7. A task to execute the provided callback with DTag: {0} by CTag: {1} has been finished, now ack message", eventArgs.DeliveryTag, eventArgs.ConsumerTag);
@@ -291,7 +291,7 @@ namespace Burrow
 
         internal protected virtual void DoAck(BasicDeliverEventArgs basicDeliverEventArgs, IBasicConsumer subscriptionInfo)
         {
-            if (_disposed)
+            if (IsDisposed)
             {
                 return;
             }
@@ -299,23 +299,28 @@ namespace Burrow
             Subscription.TryAckOrNack(basicDeliverEventArgs.ConsumerTag, true, subscriptionInfo.Model, basicDeliverEventArgs.DeliveryTag, false, false, _watcher);
         }
 
-        protected volatile bool _disposed;
+        protected volatile ConsumerStatus _status = ConsumerStatus.Active;
 
         /// <summary>
         /// Determine whether the object has been disposed
         /// </summary>
-        public bool IsDisposed
+        public ConsumerStatus Status
         {
-            get { return _disposed; }
+            get { return _status; }
+        }
+
+        protected bool IsDisposed
+        {
+            get { return _status == ConsumerStatus.Disposed; }
         }
 
         public virtual void Dispose()
         {
-            if (_disposed)
+            if (IsDisposed)
             {
                 return;
             }
-            _disposed = true;
+            _status = ConsumerStatus.Disposing;
 
             //NOTE: Wait all current running tasks to finish and after that dispose the objects
             DateTime timeOut = DateTime.Now.AddSeconds(Global.ConsumerDisposeTimeoutInSeconds);
@@ -325,7 +330,7 @@ namespace Burrow
                 _watcher.InfoFormat("Wait for {0} messages in progress", MessageInProgressCount());
                 Thread.Sleep(1000);
             }
-
+            _status = ConsumerStatus.Disposed;
             _pool.Dispose();
             CloseQueue();
         }

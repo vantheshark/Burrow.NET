@@ -1,15 +1,15 @@
 ﻿using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodAckAllUpTo
     {
-        [TestMethod]
+        [Test]
         public void Should_ack_with_provided_delivery_tag_with_multiple_flag()
         {
             // Arrange

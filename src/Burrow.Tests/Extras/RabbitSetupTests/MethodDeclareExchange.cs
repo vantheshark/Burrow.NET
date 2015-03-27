@@ -1,19 +1,18 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using Burrow.Extras;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.RabbitSetupTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodDeclareExchange
     {
-        [TestMethod]
+        [Test]
         public void Should_not_create_exchange_and_write_warning_log_if_exchangeName_is_null_or_empty()
         {
             // Arrange
@@ -28,7 +27,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.Watcher.Received(1).WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException()
         {
             // Arrange
@@ -48,7 +47,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.Watcher.Received(1).ErrorFormat(Arg.Any<string>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_and_write_errorLog()
         {
             // Arrange
@@ -68,7 +67,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.Watcher.Received(1).Error(Arg.Any<Exception>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_all_other_error()
         {
             // Arrange

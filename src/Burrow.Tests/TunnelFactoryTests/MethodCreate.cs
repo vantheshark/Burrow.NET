@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Reflection;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.TunnelFactoryTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCreate
     {
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_exception_if_cannot_find_RMQ_connection_string()
         {
             RabbitTunnel.Factory = new TunnelFactory();
@@ -17,7 +18,7 @@ namespace Burrow.Tests.TunnelFactoryTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_be_able_to_create_tunnel_with_provided_values()
         {
             // Arrange
@@ -33,7 +34,7 @@ namespace Burrow.Tests.TunnelFactoryTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_create_ha_connection_if_provide_cuslter_connection_string()
         {
             // Arrange

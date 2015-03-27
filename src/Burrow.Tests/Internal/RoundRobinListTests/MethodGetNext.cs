@@ -1,14 +1,15 @@
 ﻿using Burrow.Internal;
+using NUnit.Framework;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.RoundRobinListTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodGetNext
     {
-        [TestMethod]
+        [Test]
         public void Should_return_default_object_if_list_is_empty()
         {
             // Arrange

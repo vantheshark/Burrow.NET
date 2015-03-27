@@ -1,14 +1,15 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.DefaultTaskCreationOptionProviderTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodGetOptions
     {
-        [TestMethod]
+        [Test]
         public void Should_return_long_running_if_ThreadPool_is_full()
         {
             // Arrange

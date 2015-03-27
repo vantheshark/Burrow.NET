@@ -1,14 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.SubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCancel
     {
-        [TestMethod]
+        [Test]
         public void Should_cancel_the_subscription()
         {
             var channel = Substitute.For<IModel>();

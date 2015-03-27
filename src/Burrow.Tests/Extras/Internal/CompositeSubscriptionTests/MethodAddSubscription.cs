@@ -1,13 +1,14 @@
 ﻿using System;
 using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodAddSubscription
     {
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
 // ReSharper disable InconsistentNaming
         public void Should_throw_exception_if_privided_null_object()
 // ReSharper restore InconsistentNaming

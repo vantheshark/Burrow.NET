@@ -1,17 +1,17 @@
 ﻿using Burrow.Internal;
 using Burrow.Tests.Internal.DurableConnectionTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCreateConnection : DurableConnectionTestHelper
     {
-        [TestMethod]
+        [Test]
         public void Should_save_created_connection()
         {
             // Arrange
@@ -29,9 +29,10 @@ namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
             Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_clear_existing_connection_from_shared_connection_list_if_connection_is_dropped_by_peer()
         {
+            ManagedConnectionFactory.SharedConnections.Clear();
             var connection = Substitute.For<IConnection>();
             connection.IsOpen.Returns(true);
             
@@ -48,7 +49,7 @@ namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
             Assert.AreEqual(0, ManagedConnectionFactory.SharedConnections.Count);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_fire_event_when_new_connection_established()
         {
             var connectedEndpoint = string.Empty;

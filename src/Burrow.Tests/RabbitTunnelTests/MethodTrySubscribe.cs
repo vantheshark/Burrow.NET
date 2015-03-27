@@ -1,15 +1,15 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RabbitTunnelTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodTrySubscribe
     {
-        [TestMethod]
+        [Test]
         public void Should_not_throw_OperationInterruptedException()
         {
             // Arrange
@@ -20,7 +20,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             tunnel.TrySubscribeForTest(() => { throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Peer, 3,"")); });
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_any_other_exceptions()
         {
             // Arrange

@@ -1,22 +1,21 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using Burrow.Extras;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.RabbitSetupTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodSetupExchangeAndQueueFor
     {
         private IRouteFinder _routeFinder = Substitute.For<IRouteFinder>();
         private RouteSetupData _routeSetupData;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _routeFinder.FindExchangeName<Customer>().Returns("Exchange.Customer");
@@ -35,7 +34,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             };
         }
 
-        [TestMethod]
+        [Test]
         public void Should_create_exchange_queues_and_bind_them()
         {
             // Arrange
@@ -51,7 +50,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer", _routeSetupData.OptionalBindingData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_exception_if_cannot_declare_exchange()
         {
             // Arrange
@@ -71,7 +70,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer", _routeSetupData.OptionalBindingData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_exception_if_cannot_declare_queue()
         {
             // Arrange
@@ -90,7 +89,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             model.Received().QueueBind("Queue.Customer", "Exchange.Customer", "Customer", _routeSetupData.OptionalBindingData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_when_trying_to_create_an_exist_queue_but_configuration_not_match()
         {
             // Arrange
@@ -105,7 +104,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.CreateRoute<Customer>(_routeSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_and_log_error_when_trying_to_create_a_queue()
         {
             // Arrange
@@ -120,7 +119,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.CreateRoute<Customer>(_routeSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_exception_if_cannot_bind_queues()
         {
             // Arrange
@@ -136,7 +135,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.CreateRoute<Customer>(_routeSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_when_trying_to_create_an_exist_exchange_but_configuration_not_match()
         {
             // Arrange
@@ -151,7 +150,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.CreateRoute<Customer>(_routeSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_and_log_error_when_trying_to_create_an_exchange()
         {
             // Arrange
@@ -166,7 +165,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
             setup.CreateRoute<Customer>(_routeSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_apply_DeadLetter_params()
         {
             // Arrange

@@ -1,14 +1,14 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.SubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class Constructor
     {
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_use_null_model()
         {
             // Action
@@ -16,7 +16,7 @@ namespace Burrow.Tests.SubscriptionTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_initialize_object_with_provided_IModel()
         {
             // Action

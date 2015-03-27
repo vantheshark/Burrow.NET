@@ -1,17 +1,17 @@
 ﻿using System;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.DefaultMessageHandlerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodHandleError
     {
-        [TestMethod]
+        [Test]
         public void Should_call_error_handler_to_handle_the_error()
         {
             // Arrange

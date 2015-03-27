@@ -1,18 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.BurrowConsumerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodDispose
     {
-        [TestMethod]
+        [Test]
         public void Can_called_many_times()
         {
             // Arrange
@@ -24,7 +24,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             consumer.Dispose();
         }
 
-        [TestMethod]
+        [Test]
         public void Can_wait_until_messageInProcess_down_to_0()
         {
             // Arrange
@@ -69,7 +69,7 @@ namespace Burrow.Tests.BurrowConsumerTests
                 BasicProperties = Substitute.For<IBasicProperties>(),
                 ConsumerTag = "ConsumerTag"
             });
-            Assert.IsTrue(waitHandler.WaitOne(1000));
+            Assert.IsTrue(waitHandler.WaitOne(1500));
             consumer.Dispose();
 
 

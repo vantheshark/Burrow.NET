@@ -1,16 +1,16 @@
 ﻿using System;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
 {
-    [TestClass]
+    [TestFixture]
     public class Constructor
     {
-        [TestMethod]
+        [Test]
         public void Should_copy_all_value_from_privided_factory()
         {
             // Arrange
@@ -32,7 +32,7 @@ namespace Burrow.Tests.Internal.ManagedConnectionFactoryTests
         }
 
 
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_provide_null_connectionString()
         {
             ConnectionString cnn = null;

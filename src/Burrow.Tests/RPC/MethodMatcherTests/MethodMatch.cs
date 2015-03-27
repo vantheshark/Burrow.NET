@@ -1,15 +1,16 @@
 ﻿using System.Reflection;
 using System.Reflection.Emit;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.MethodMatcherTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodMatch
     {
-        [TestMethod]
+        [Test]
         public void Should_return_method_info_if_match()
         {
             // Arrange
@@ -29,7 +30,7 @@ namespace Burrow.Tests.RPC.MethodMatcherTests
             Assert.IsNotNull(method);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_null_if_not_match_anything()
         {
             // Arrange

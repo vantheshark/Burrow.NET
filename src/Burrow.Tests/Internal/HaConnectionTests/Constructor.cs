@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.HaConnectionTests
 {
-    [TestClass]
+    [TestFixture]
     public class Constructor
     {
-        [TestMethod]
+        [Test]
         public void Should_convert_connection_factories_to_managed_connection_factories()
         {
             // Arrange
@@ -37,7 +37,7 @@ namespace Burrow.Tests.Internal.HaConnectionTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_bind_to_ConnectionEstablished_event_and_change_connection_status_if_a_share_connection_established()
         {
             var connection = Substitute.For<IConnection>();
@@ -70,6 +70,45 @@ namespace Burrow.Tests.Internal.HaConnectionTests
             // Assert
             Assert.AreEqual(factory1.HostName, haConnection.ConnectionFactories.Current.HostName);
             Assert.AreEqual(factory1.VirtualHost, haConnection.ConnectionFactories.Current.VirtualHost);
+        }
+
+        [Test]
+        public void Should_subscribe_to_ConnectionEstablished_event()
+        {
+            var connectionFactory = new ManagedConnectionFactory
+            {
+                HostName = "localhost",
+                Port = 5672,
+                VirtualHost = "/",
+                UserName = "vantheshark",
+                Password = "123"
+            };
+            using (var connection = new HaConnection(Substitute.For<IRetryPolicy>(),
+                Substitute.For<IRabbitWatcher>(),
+                new List<ManagedConnectionFactory>
+                {
+                    connectionFactory
+                }))
+            {
+
+                var fired = false;
+                connection.Connected += () => { fired = true; };
+                ManagedConnectionFactory.ConnectionEstablished += (a, b) => { }; //NOTE: To make it not null
+
+
+                var model = Substitute.For<IModel>();
+                model.IsOpen.Returns(true);
+                var c = Substitute.For<IConnection>();
+                c.CreateModel().Returns(model);
+                c.IsOpen.Returns(true);
+                c.Endpoint.Returns(connectionFactory.Endpoint);
+                ManagedConnectionFactory.SharedConnections[connectionFactory.Endpoint + connectionFactory.VirtualHost] = c;
+
+                ManagedConnectionFactory.ConnectionEstablished.Invoke(new AmqpTcpEndpoint("localhost"), "/");
+
+
+                Assert.IsTrue(fired);
+            }
         }
     }
 }

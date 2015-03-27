@@ -1,16 +1,16 @@
 ﻿using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.RpcFactoryTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCreateClient
     {
         private ITunnel tunnel;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             tunnel = Substitute.For<ITunnel>();
@@ -18,7 +18,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             RabbitTunnel.Factory.Create(Arg.Any<string>()).Returns(tunnel);
         }
 
-        [TestMethod]
+        [Test]
         public void Can_accept_null_params()
         {
             // Arrange
@@ -29,7 +29,7 @@ namespace Burrow.Tests.RPC.RpcFactoryTests
             RpcFactory.CreateClient<ISomeService>();
         }
 
-        [TestMethod]
+        [Test]
         public void Can_accept_null_filters()
         {
             // Arrange

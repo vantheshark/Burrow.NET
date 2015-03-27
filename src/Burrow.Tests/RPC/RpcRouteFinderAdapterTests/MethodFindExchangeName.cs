@@ -1,17 +1,17 @@
 ﻿using System;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.RpcRouteFinderAdapterTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodFindExchangeName
     {
         private IRpcRouteFinder _routeFinder;
 
-        [TestInitializeAttribute]
+        [SetUp]
         public void Init()
         {
             _routeFinder = Substitute.For<IRpcRouteFinder>();
@@ -20,7 +20,7 @@ namespace Burrow.Tests.RPC.RpcRouteFinderAdapterTests
             _routeFinder.UniqueResponseQueue.Returns("ResposeQueue");
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_exchange_name_of_rpc_route_finder()
         {
             // Arrange
@@ -33,7 +33,7 @@ namespace Burrow.Tests.RPC.RpcRouteFinderAdapterTests
             Assert.AreEqual("RequestExchange", exchangeName);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_empty_string_if_type_is_RpcResponse()
         {
             // Arrange
@@ -46,7 +46,7 @@ namespace Burrow.Tests.RPC.RpcRouteFinderAdapterTests
             Assert.AreEqual(string.Empty, exchangeName);
         }
 
-        [TestMethod, ExpectedException(typeof(NotSupportedException))]
+        [Test, ExpectedException(typeof(NotSupportedException))]
         public void Should_throw_exception_if_type_is_not_request_nor_response()
         {
             // Arrange

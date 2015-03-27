@@ -1,14 +1,15 @@
 ﻿using System;
 using Burrow.Internal;
+using NUnit.Framework;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.BinarySerializerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodSerialize
     {
-        [TestMethod]
+        [Test]
         public void Can_serialize_object()
         {
             // Arrange
@@ -24,7 +25,7 @@ namespace Burrow.Tests.Internal.BinarySerializerTests
             Assert.AreEqual("Mr", obj.Title);
         }
 
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_msg_is_null()
         {
             // Arrange

@@ -1,14 +1,15 @@
 ﻿using System;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.DefaultMethodFilterTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodIsAsync
     {
-        [TestMethod]
+        [Test]
         public void Should_return_true_if_attributes_are_null()
         {
             // Arrange
@@ -22,7 +23,7 @@ namespace Burrow.Tests.RPC.DefaultMethodFilterTests
 
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_false_if_attributes_not_contain_AsyncAttribute()
         {
             // Arrange
@@ -35,7 +36,7 @@ namespace Burrow.Tests.RPC.DefaultMethodFilterTests
             Assert.IsFalse(result);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_true_if_attributes_contain_AsyncAttribute()
         {
             // Arrange

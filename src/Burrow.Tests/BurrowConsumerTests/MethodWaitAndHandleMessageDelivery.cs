@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
+﻿using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
@@ -8,10 +8,10 @@ namespace Burrow.Tests.BurrowConsumerTests
     /// <summary>
     /// This method is executed automatically from the constructor
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class MethodWaitAndHandleMessageDelivery
     {
-        [TestMethod]
+        [Test]
         public void Should_log_error_if_arrived_message_is_null()
         {
             // Arrange

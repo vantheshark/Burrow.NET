@@ -1,15 +1,16 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RabbitTunnelTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodRaiseConsumerDisconnectedEvent
     {
-        [TestMethod]
+        [Test]
         public void Should_raise_event()
         {
             // Arrange

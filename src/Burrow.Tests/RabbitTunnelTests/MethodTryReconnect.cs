@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RabbitTunnelTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodTryReconnect
     {
-        [TestMethod]
+        [Test]
         public void Should_reconnect_if_user_ack_wrong_delivery_id()
         {
             // Arrange
@@ -43,7 +44,7 @@ namespace Burrow.Tests.RabbitTunnelTests
             
         }
 
-        [TestMethod]
+        [Test]
         public void Should_log_exception_if_cannot_reconnect()
         {
             // Arrange

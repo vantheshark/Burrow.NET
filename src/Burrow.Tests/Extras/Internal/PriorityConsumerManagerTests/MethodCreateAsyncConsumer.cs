@@ -1,11 +1,11 @@
 ﻿using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.PriorityConsumerManagerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCreateAsyncConsumer
     {
         readonly IRabbitWatcher watcher = NSubstitute.Substitute.For<IRabbitWatcher>();
@@ -13,7 +13,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityConsumerManagerTests
         readonly ISerializer serializer = NSubstitute.Substitute.For<ISerializer>();
         readonly IModel channel = NSubstitute.Substitute.For<IModel>();
 
-        [TestMethod]
+        [Test]
         public void Should_return_PriorityBurrowConsumer_object_when_called()
         {
             // Arrange
@@ -23,7 +23,7 @@ namespace Burrow.Tests.Extras.Internal.PriorityConsumerManagerTests
             var consumer2 = consumerManager.CreateAsyncConsumer<string>(channel, "name", (x,y) => { }, 2);
 
             // Assert
-            Assert.IsInstanceOfType(consumer2, typeof(PriorityBurrowConsumer));
+            Assert.IsInstanceOfType(typeof(PriorityBurrowConsumer), consumer2);
         }
 
     }

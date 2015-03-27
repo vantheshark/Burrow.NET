@@ -1,15 +1,16 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using System;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.SubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodNack
     {
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_delivery_tags_is_null()
         {
             var channel = Substitute.For<IModel>();

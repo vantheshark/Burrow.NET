@@ -3,24 +3,24 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.HaConnectionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodConnect 
     {
-        [TestInitialize]
+        [SetUp]
         public void Initialize()
         {
             ManagedConnectionFactory.SharedConnections.Clear();            
         }
 
-        [TestMethod]
+        [Test]
         public void Should_fire_connected_event_when_connect_successfully()
         {
             // Arrange
@@ -45,7 +45,7 @@ namespace Burrow.Tests.Internal.HaConnectionTests
             f1.Received(1).CreateConnection();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_fail_over_to_next_node_if_there_is_ConnectionFailureException()
         {
             // Arrange
@@ -74,7 +74,7 @@ namespace Burrow.Tests.Internal.HaConnectionTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_create_only_one_connection_to_the_each_endpoint()
         {
             // Arrange
@@ -152,7 +152,7 @@ namespace Burrow.Tests.Internal.HaConnectionTests
             return factory;
         }
 
-        [TestMethod]
+        [Test]
         public void Should_be_notified_about_a_new_established_connection()
         {
             // Arrange

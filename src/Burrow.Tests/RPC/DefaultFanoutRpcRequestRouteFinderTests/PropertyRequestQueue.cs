@@ -1,13 +1,14 @@
 ﻿using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.DefaultFanoutRpcRequestRouteFinderTests
 {
-    [TestClass]
+    [TestFixture]
     public class PropertyRequestQueue
     {
-        [TestMethod]
+        [Test]
         public void Should_return_provided_request_queue_if_it_not_null_or_empty()
         {
             // Arrange
@@ -20,7 +21,7 @@ namespace Burrow.Tests.RPC.DefaultFanoutRpcRequestRouteFinderTests
             Assert.AreEqual("RequestQueue", requestQueue);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_base_request_queue_name_if_provided_request_queue_is_null_or_empty()
         {
             // Arrange
@@ -33,7 +34,7 @@ namespace Burrow.Tests.RPC.DefaultFanoutRpcRequestRouteFinderTests
             Assert.AreEqual("Burrow.Queue.Rpc.ISomeService.Requests", requestQueue);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_request_queue_name_with_serverId_if_provided_request_queue_is_null_or_empty()
         {
             // Arrange

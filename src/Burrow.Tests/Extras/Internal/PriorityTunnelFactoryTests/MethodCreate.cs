@@ -2,33 +2,36 @@
 using Burrow.Extras;
 using Burrow.Extras.Internal;
 using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using NUnit.Framework;
+
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.PriorityTunnelFactoryTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodCreate
     {
-        [TestMethod]
+        [Test]
         public void Should_return_RabbitTunnelWithPriorityQueuesSupport_object()
         {
             // Arrange
+            new TunnelFactory(); // To reset default factory
             var factory = new PriorityTunnelFactory();
 
             // Action
             var tunnel = factory.Create("");
 
             // Assert
-            Assert.IsInstanceOfType(tunnel, typeof(RabbitTunnelWithPriorityQueuesSupport));
+            Assert.IsInstanceOfType(typeof(RabbitTunnelWithPriorityQueuesSupport), tunnel);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_use_DependencyInjectionTunnelFactory_to_create_tunnel_if_it_is_default_TunnelFactory()
         {
             // Arrange
             var bak = RabbitTunnel.Factory;
             var factory = new PriorityTunnelFactory();
-            RabbitTunnel.Factory.RegisterResolver(NSubstitute.Substitute.For<IBurrowResolver>());
+            RabbitTunnel.Factory.RegisterResolver(Substitute.For<IBurrowResolver>());
 
             // Action
             var tunnel1 = factory.Create("");
@@ -36,15 +39,16 @@ namespace Burrow.Tests.Extras.Internal.PriorityTunnelFactoryTests
 
             // Assert
             Assert.IsTrue(RabbitTunnel.Factory is DependencyInjectionTunnelFactory);
-            Assert.IsInstanceOfType(tunnel1, typeof(RabbitTunnel));
-            Assert.IsInstanceOfType(tunnel2, typeof(RabbitTunnel));
+            Assert.IsInstanceOfType(typeof(RabbitTunnel), tunnel1);
+            Assert.IsInstanceOfType(typeof(RabbitTunnel), tunnel2);
             RabbitTunnel.Factory = bak;
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_a_tunnel_using_PriorityMessageHandlerFactory()
         {
             // Arrange
+            new TunnelFactory(); // To reset default factory
             var factory = new PriorityTunnelFactory();
 
             // Action
@@ -52,11 +56,11 @@ namespace Burrow.Tests.Extras.Internal.PriorityTunnelFactoryTests
             var consumerManager = (IConsumerManager)typeof(RabbitTunnel).GetField("_consumerManager", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(tunnel);
 
             // Assert
-            Assert.IsInstanceOfType(consumerManager.MessageHandlerFactory, typeof(PriorityMessageHandlerFactory));
+            Assert.IsInstanceOfType(typeof(PriorityMessageHandlerFactory), consumerManager.MessageHandlerFactory);
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_create_ha_connection_if_provide_cuslter_connection_string()
         {
             // Arrange

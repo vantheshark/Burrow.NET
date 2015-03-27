@@ -1,14 +1,16 @@
-﻿using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RabbitMQ.Client;
+﻿using System.Collections.Generic;
+using Burrow.Extras.Internal;
 using NSubstitute;
+using NUnit.Framework;
+using RabbitMQ.Client;
+
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodAck
     {
-        [TestMethod]
+        [Test]
         public void Should_call_ack_on_nested_subscriptions()
         {
             // Arrange
@@ -32,7 +34,7 @@ namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_call_ack_on_nested_subscriptions_with_all_delivery_tag()
         {
             // Arrange
@@ -49,7 +51,10 @@ namespace Burrow.Tests.Extras.Internal.CompositeSubscriptionTests
             subs.AddSubscription(subscription);
 
             // Action
+            Subscription.OutstandingDeliveryTags["ConsumerTag"] = new List<ulong>();
+            Subscription.OutstandingDeliveryTags["ConsumerTag"].AddRange(new ulong[] { 1, 2, 3, 4, 5 });
             subs.Ack("ConsumerTag", new[] { (ulong)1, (ulong)2, (ulong)3, (ulong)4, (ulong)5 });
+            
 
             // Assert
             channel.Received().BasicAck(5, true);

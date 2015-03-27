@@ -1,13 +1,13 @@
 ﻿using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.InMemoryPriorityQueueTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodDeleteAll
     {
-        [TestMethod]
+        [Test]
         public void Should_delete_all_items_match_predicate()
         {
             // Arrange

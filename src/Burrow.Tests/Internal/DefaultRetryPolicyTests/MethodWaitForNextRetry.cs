@@ -1,14 +1,14 @@
 ﻿using System.Threading;
-using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Burrow.Internal;using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.DefaultRetryPolicyTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodWaitForNextRetry
     {
-        [TestMethod]
+        [Test]
         public void Should_wait_and_execute_retry_action()
         {
             // Arrange
@@ -25,7 +25,7 @@ namespace Burrow.Tests.Internal.DefaultRetryPolicyTests
             Assert.IsFalse(policy.IsWaiting);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_double_delay_time_for_next_retry()
         {
             // Arrange
@@ -45,7 +45,7 @@ namespace Burrow.Tests.Internal.DefaultRetryPolicyTests
             Assert.IsFalse(policy.IsWaiting);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_double_delay_time_until_max_delay_value_is_reached()
         {
             // Arrange

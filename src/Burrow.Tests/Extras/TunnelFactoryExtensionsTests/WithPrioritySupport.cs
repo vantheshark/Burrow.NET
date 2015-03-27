@@ -1,30 +1,31 @@
 ﻿using System;
 using Burrow.Extras;
 using Burrow.Extras.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.TunnelFactoryExtensionsTests
 {
-    [TestClass]
+    [TestFixture]
     public class WithPrioritySupport
     {
-        [TestInitialize]
+        [SetUp]
         public void InitTests()
         {
             RabbitTunnel.Factory = new TunnelFactory();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_PriorityTunnelFactory()
         {
             // Arrange & Action
             var tunnelFactory = RabbitTunnel.Factory.WithPrioritySupport();
 
             // Assert
-            Assert.IsInstanceOfType(tunnelFactory, typeof(PriorityTunnelFactory));
+            Assert.IsInstanceOfType(typeof(PriorityTunnelFactory), tunnelFactory);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_same_instance_if_already_a_PriorityTunnelFactory()
         {
             // Arrange & Action
@@ -36,7 +37,7 @@ namespace Burrow.Tests.Extras.TunnelFactoryExtensionsTests
         }
 
 
-        [TestMethod, ExpectedException(typeof(InvalidCastException), "Current tunnel object is supporting priority queues")]
+        [Test, ExpectedException(ExpectedException = typeof(InvalidCastException), ExpectedMessage = "Current tunnel object is not supporting priority queues")]
         public void Should_throw_exception_if_current_factory_is_not_PriorityTunnelFactory()
         {
             // Arrange
@@ -46,7 +47,7 @@ namespace Burrow.Tests.Extras.TunnelFactoryExtensionsTests
             tunnel.WithPrioritySupport();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_return_ITunnelWithPrioritySupport()
         {
             // Arrange
@@ -57,7 +58,7 @@ namespace Burrow.Tests.Extras.TunnelFactoryExtensionsTests
             tunnel = tunnel.WithPrioritySupport();
 
             // Assert
-            Assert.IsInstanceOfType(tunnel, typeof(ITunnelWithPrioritySupport));
+            Assert.IsInstanceOfType(typeof(ITunnelWithPrioritySupport), tunnel);
         }
     }
 }

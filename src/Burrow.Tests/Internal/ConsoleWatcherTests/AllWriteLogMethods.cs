@@ -1,12 +1,12 @@
 ﻿using Burrow.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace Burrow.Tests.Internal.ConsoleWatcherTests
 {
-    [TestClass]
+    [TestFixture]
     public class AllWriteLogMethods
     {
-        [TestMethod]
+        [Test]
 // ReSharper disable InconsistentNaming
         public void Should_catch_all_potential_exceptions()
 // ReSharper restore InconsistentNaming

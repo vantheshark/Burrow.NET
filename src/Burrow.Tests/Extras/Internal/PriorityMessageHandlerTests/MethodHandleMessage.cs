@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using Burrow.Extras.Internal;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.PriorityMessageHandlerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodHandleMessage
     {
-        [TestMethod]
+        [Test]
         public void Should_invoke_the_callback_with_MessageDeliverEventArgs_that_has_PriorityValue()
         {
             // Arrange

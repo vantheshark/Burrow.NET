@@ -25,7 +25,7 @@ namespace Burrow.Internal
         public HaConnection(IRetryPolicy retryPolicy, IRabbitWatcher watcher, IList<ManagedConnectionFactory> connectionFactories) : base(retryPolicy, watcher)
         {        
             _connectionFactories = new RoundRobinList<ConnectionFactory>(connectionFactories);
-            ManagedConnectionFactory.ConnectionEstablished += (endpoint, virtualHost) =>
+            ConnectionEstablished handler = (endpoint, virtualHost) =>
             {
                 if (_connectionFactories.All.Any(f => f.Endpoint + f.VirtualHost == endpoint + virtualHost))
                 {
@@ -48,6 +48,8 @@ namespace Burrow.Internal
                     FireConnectedEvent();
                 }
             };
+            ManagedConnectionFactory.ConnectionEstablished += handler;
+            _unsubscribeEvents = () => { ManagedConnectionFactory.ConnectionEstablished -= handler; };
         }
 
         internal protected override ConnectionFactory ConnectionFactory

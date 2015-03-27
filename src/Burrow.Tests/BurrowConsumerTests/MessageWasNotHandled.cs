@@ -1,16 +1,16 @@
 ﻿using System.Threading;
 using Burrow.Extras;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.BurrowConsumerTests
 {
-    [TestClass]
+    [TestFixture]
     public class MessageWasNotHandled
     {
-        [TestMethod]
+        [Test]
         public void Should_be_executed_when_the_message_was_not_handled()
         {
             // Arrange
@@ -29,7 +29,7 @@ namespace Burrow.Tests.BurrowConsumerTests
             consumer.Dispose();
         }
 
-        [TestMethod]
+        [Test]
         public void Should_handle_all_exception()
         {
             // Arrange

@@ -1,17 +1,18 @@
 ﻿using System;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.SubscriptionTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodTryAckOrNAck
     {
-        [TestMethod]
+        [Test]
         public void Should_do_nothing_if_channel_is_null()
         {
             // Arrange
@@ -24,7 +25,7 @@ namespace Burrow.Tests.SubscriptionTests
             watcher.Received(1).WarnFormat("Trying ack/nack msg but the Channel is null, will not do anything");
         }
 
-        [TestMethod]
+        [Test]
         public void Should_do_nothing_if_channel_is_not_open()
         {
             // Arrange
@@ -38,7 +39,7 @@ namespace Burrow.Tests.SubscriptionTests
             model.DidNotReceive().BasicAck(Arg.Any<ulong>(), Arg.Any<bool>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_AlreadyClosedException()
         {
             // Arrange
@@ -54,7 +55,7 @@ namespace Burrow.Tests.SubscriptionTests
             watcher.Received().WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_IOException()
         {
             // Arrange
@@ -71,7 +72,7 @@ namespace Burrow.Tests.SubscriptionTests
             watcher.Received().WarnFormat(Arg.Any<string>(), Arg.Any<object[]>());
         }
 
-        [TestMethod, ExpectedException(typeof(Exception))]
+        [Test, ExpectedException(typeof(Exception))]
         public void Should_throw_other_Exceptions()
         {
             // Arrange

@@ -1,14 +1,15 @@
 ﻿using System;
 using Burrow.RPC;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
+
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.RPC.RpcRouteFinderAdapterTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodFindRoutingKey
     {
-        [TestMethod, ExpectedException(typeof(NotSupportedException))]
+        [Test, ExpectedException(typeof(NotSupportedException))]
         public void Should_always_throw_exception()
         {
             // Arrange

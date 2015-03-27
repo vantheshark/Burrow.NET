@@ -1,22 +1,22 @@
 ﻿using System;
 using Burrow.Extras;
 using Burrow.Tests.Extras.RabbitSetupTests;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodDestroy
     {
         private IRouteFinder _routeFinder = Substitute.For<IRouteFinder>();
         private RouteSetupData _normalRouteSetupData;
         private RouteSetupData _priorityRouteSetupData;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _routeFinder.FindExchangeName<Customer>().Returns("Exchange.Customer");
@@ -38,7 +38,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             };
         }
 
-        [TestMethod]
+        [Test]
         public void Should_act_as_deleting_normal_queue_if_not_provide_PriorityQueueSetupData()
         {
             // Arrange
@@ -52,7 +52,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             model.Received().QueueDelete("Queue.Customer");
         }
 
-        [TestMethod]
+        [Test]
         public void Should_delete_all_PRIORITY_queues_if_provide_PriorityQueueSetupData()
         {
             // Arrange
@@ -69,7 +69,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             model.Received().QueueDelete("Queue.Customer_Priority3");
         }
 
-        [TestMethod]
+        [Test]
         public void Should_not_throw_exception_if_cannot_delete_PRIORITY_queues()
         {
             // Arrange
@@ -88,7 +88,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             model.Received().QueueDelete("Queue.Customer_Priority3");
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_when_trying_to_delete_none_exist_queue()
         {
             // Arrange
@@ -103,7 +103,7 @@ namespace Burrow.Tests.Extras.PriorityQueuesRabbitSetupTests
             setup.DestroyRoute<Customer>(_priorityRouteSetupData);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_catch_OperationInterruptedException_and_log_error_when_trying_to_delete_queue()
         {
             // Arrange

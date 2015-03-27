@@ -1,14 +1,14 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.BurrowConsumerTests
 {
-    [TestClass]
+    [TestFixture]
     public class Constructor
     {
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_provide_null_channel()
         {
             // Action
@@ -16,7 +16,7 @@ namespace Burrow.Tests.BurrowConsumerTests
                                NSubstitute.Substitute.For<IRabbitWatcher>(), false, 3);
         }
 
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_provide_null_messageHandler()
         {
             // Action
@@ -24,7 +24,7 @@ namespace Burrow.Tests.BurrowConsumerTests
                                NSubstitute.Substitute.For<IRabbitWatcher>(), false, 3);
         }
 
-        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void Should_throw_exception_if_provide_null_watcher()
         {
             // Action
@@ -32,7 +32,7 @@ namespace Burrow.Tests.BurrowConsumerTests
                                null, false, 3);
         }
 
-        [TestMethod, ExpectedException(typeof(ArgumentException))]
+        [Test, ExpectedException(typeof(ArgumentException))]
         public void Should_throw_exception_if_provide_batchSize_less_than_1()
         {
             // Action

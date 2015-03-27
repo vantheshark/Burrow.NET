@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using Burrow.Extras;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NUnit.Framework;
 using RabbitMQ.Client;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.RabbitSetupTests
 {
-    [TestClass]
+    [TestFixture]
     public class MethodBindQueue
     {
-        [TestMethod]
+        [Test]
         public void Should_not_bind_and_write_warning_log_if_exchangeName_is_null_or_empty()
         {
             // Arrange
@@ -28,7 +28,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_bind_with_provided_params()
         {
             // Arrange
@@ -45,7 +45,7 @@ namespace Burrow.Tests.Extras.RabbitSetupTests
         }
 
 
-        [TestMethod]
+        [Test]
         public void Should_catch_all_exception()
         {
             // Arrange
