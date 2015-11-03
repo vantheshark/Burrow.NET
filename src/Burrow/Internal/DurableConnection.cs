@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -16,11 +15,11 @@ namespace Burrow.Internal
         {
             if (retryPolicy == null)
             {
-                throw new ArgumentNullException("retryPolicy");
+                throw new ArgumentNullException(nameof(retryPolicy));
             }
             if (watcher == null)
             {
-                throw new ArgumentNullException("watcher");
+                throw new ArgumentNullException(nameof(watcher));
             }
             _retryPolicy = retryPolicy;
             _watcher = watcher;
@@ -50,7 +49,7 @@ namespace Burrow.Internal
         {
             if (connectionFactory == null)
             {
-                throw new ArgumentNullException("connectionFactory");
+                throw new ArgumentNullException(nameof(connectionFactory));
             }
 
             
@@ -121,24 +120,18 @@ namespace Burrow.Internal
         /// </summary>
         protected void FireConnectedEvent()
         {
-            if (Connected != null)
-            {
-                Connected();
-            }
+            Connected?.Invoke();
         }
 
         protected void FireDisconnectedEvent()
         {
-            if (Disconnected != null)
-            {
-                Disconnected();
-            }
+            Disconnected?.Invoke();
         }
 
-        protected void SharedConnectionShutdown(IConnection connection, ShutdownEventArgs reason)
+        protected void SharedConnectionShutdown(object sender, ShutdownEventArgs reason)
         {
             FireDisconnectedEvent();
-            _watcher.WarnFormat("Disconnected from RabbitMQ Broker '{0}': {1}", connection.Endpoint, reason != null ? reason.ReplyText : "");
+            _watcher.WarnFormat("Disconnected from RabbitMQ Broker '{0}': {1}", ((IConnection)sender).Endpoint, reason != null ? reason.ReplyText : "");
             if (reason != null && reason.ReplyText != "Connection disposed by application" && reason.ReplyText != Subscription.CloseByApplication)
             {
                 _retryPolicy.WaitForNextRetry(Connect);
@@ -162,28 +155,17 @@ namespace Burrow.Internal
             }
         }
 
-        public string HostName
-        {
-            get { return ConnectionFactory.HostName; }
-        }
+        public string HostName => ConnectionFactory.HostName;
 
-        public string VirtualHost
-        {
-            get { return ConnectionFactory.VirtualHost; }
-        }
+        public string VirtualHost => ConnectionFactory.VirtualHost;
 
-        public string UserName
-        {
-            get { return ConnectionFactory.UserName; }
-        }
+        public string UserName => ConnectionFactory.UserName;
 
         /// <summary>
         /// Return current ConnectionFactory
         /// </summary>
-        internal protected virtual ConnectionFactory ConnectionFactory
-        {
-            get { return _connectionFactory; }
-        }
+        internal protected virtual ConnectionFactory ConnectionFactory => _connectionFactory;
+
         private readonly ConnectionFactory _connectionFactory;
 
         /// <summary>

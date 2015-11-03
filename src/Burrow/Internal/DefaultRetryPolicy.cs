@@ -23,12 +23,9 @@ namespace Burrow.Internal
             _delayTime = 0;
         }
 
-        public int DelayTime { get { return _delayTime; } }
+        public int DelayTime => _delayTime;
 
-        public bool IsWaiting
-        {
-            get { return _iswaiting; }
-        }
+        public bool IsWaiting => _iswaiting;
 
         public void WaitForNextRetry(Action retryingAction)
         {

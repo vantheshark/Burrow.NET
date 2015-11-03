@@ -16,8 +16,8 @@ namespace Burrow.Internal
         public string FindQueueName<T>(string subscriptionName)
         {
             return string.IsNullOrEmpty(subscriptionName)
-                ? string.Format("Burrow.Queue.{0}", typeof (T).Name)
-                : string.Format("Burrow.Queue.{0}.{1}", subscriptionName, typeof (T).Name);
+                ? $"Burrow.Queue.{typeof (T).Name}"
+                : $"Burrow.Queue.{subscriptionName}.{typeof (T).Name}";
         }
     }
 }

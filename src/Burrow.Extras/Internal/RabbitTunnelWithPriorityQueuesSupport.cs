@@ -246,10 +246,10 @@ namespace Burrow.Extras.Internal
                         subscription.ConsumerTag = string.Format("{0}-{1}", subscriptionOption.SubscriptionName, Guid.NewGuid());
                     }
                     var channel = _connection.CreateChannel();
-                    channel.ModelShutdown += (c, reason) =>
+                    channel.ModelShutdown += (o, reason) =>
                     {
                         RaiseConsumerDisconnectedEvent(subscription);
-                        TryReconnect(c, id, reason); 
+                        TryReconnect((IModel)o, id, reason); 
                     };
 
                     var prefetchSize = GetProperPrefetchSize(subscriptionOption, priority);

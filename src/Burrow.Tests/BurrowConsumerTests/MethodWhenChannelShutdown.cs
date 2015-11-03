@@ -2,7 +2,6 @@
 using NSubstitute;
 using NUnit.Framework;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.BurrowConsumerTests
@@ -21,7 +20,7 @@ namespace Burrow.Tests.BurrowConsumerTests
                                                      Substitute.For<IRabbitWatcher>(), true, 3) { ConsumerTag = "ConsumerTag" };
 
             // Action
-            model.ModelShutdown += Raise.Event<ModelShutdownEventHandler>(model, new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "Shutdown"));
+            model.ModelShutdown += Raise.EventWith(model, new ShutdownEventArgs(ShutdownInitiator.Peer, 1, "Shutdown"));
             
 
             // Assert

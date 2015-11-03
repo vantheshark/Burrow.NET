@@ -10,7 +10,7 @@ namespace Burrow.Internal
         {
             if (message == null)
             {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             var formatter = new BinaryFormatter();
@@ -28,7 +28,7 @@ namespace Burrow.Internal
         {
             if (bytes == null)
             {
-                throw new ArgumentNullException("bytes");
+                throw new ArgumentNullException(nameof(bytes));
             }
 
             var formatter = new BinaryFormatter();

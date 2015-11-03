@@ -49,7 +49,7 @@ namespace Burrow
         {
             if (channel == null)
             {
-                throw new ArgumentNullException("channel");
+                throw new ArgumentNullException(nameof(channel));
             }
             _channel = channel;
         }
@@ -89,7 +89,7 @@ namespace Burrow
         {
             if (deliveryTags == null)
             {
-                throw new ArgumentNullException("deliveryTags");
+                throw new ArgumentNullException(nameof(deliveryTags));
             }
             var tags = deliveryTags.ToList();
             if (tags.Count == 0)
@@ -163,7 +163,7 @@ namespace Burrow
         {
             if (deliveryTags == null)
             {
-                throw new ArgumentNullException("deliveryTags");
+                throw new ArgumentNullException(nameof(deliveryTags));
             }
             var tags = deliveryTags.ToList();
             if (tags.Count == 0)

@@ -65,23 +65,23 @@ namespace Burrow
         {
             if (channel == null)
             {
-                throw new ArgumentNullException("channel");
+                throw new ArgumentNullException(nameof(channel));
             }
             if (messageHandler == null)
             {
-                throw new ArgumentNullException("messageHandler");
+                throw new ArgumentNullException(nameof(messageHandler));
             }
             if (watcher == null)
             {
-                throw new ArgumentNullException("watcher");
+                throw new ArgumentNullException(nameof(watcher));
             }
 
             if (batchSize < 1)
             {
-                throw new ArgumentException("batchSize must be greater than or equal 1", "batchSize");
+                throw new ArgumentException("batchSize must be greater than or equal 1", nameof(batchSize));
             }
 
-            Model.ModelShutdown += WhenChannelShutdown;
+            Model.ModelShutdown += WhenChannelShutdown; ;
             Model.BasicRecoverAsync(true);
             BatchSize = batchSize;
 
@@ -95,7 +95,7 @@ namespace Burrow
 
             if (startThread)
             {
-                StartConsumerThread(string.Format("Consumer thread: {0}", ConsumerTag));
+                StartConsumerThread($"Consumer thread: {ConsumerTag}");
             }
         }
 
@@ -245,7 +245,7 @@ namespace Burrow
             }
         }
 
-        protected virtual void WhenChannelShutdown(IModel model, ShutdownEventArgs reason)
+        protected virtual void WhenChannelShutdown(object sender, ShutdownEventArgs reason)
         {
             lock (Subscription.OutstandingDeliveryTags)
             {
@@ -304,15 +304,9 @@ namespace Burrow
         /// <summary>
         /// Determine whether the object has been disposed
         /// </summary>
-        public ConsumerStatus Status
-        {
-            get { return _status; }
-        }
+        public ConsumerStatus Status => _status;
 
-        protected bool IsDisposed
-        {
-            get { return _status == ConsumerStatus.Disposed; }
-        }
+        protected bool IsDisposed => _status == ConsumerStatus.Disposed;
 
         public virtual void Dispose()
         {

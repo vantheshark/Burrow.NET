@@ -3,7 +3,6 @@ using Burrow.Internal;
 using NSubstitute;
 using NUnit.Framework;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Internal.DurableConnectionTests
@@ -26,7 +25,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             durableConnection.Connect();
 
             // Action
-            rmqConnection.ConnectionShutdown += Raise.Event<ConnectionShutdownEventHandler>(rmqConnection, new ShutdownEventArgs(ShutdownInitiator.Application, 0, "Connection disposed by application"));
+            rmqConnection.ConnectionShutdown += Raise.EventWith(rmqConnection, new ShutdownEventArgs(ShutdownInitiator.Application, 0, "Connection disposed by application"));
             
             //Assert
             retryPolicy.DidNotReceive().WaitForNextRetry(Arg.Any<Action>());
@@ -48,7 +47,7 @@ namespace Burrow.Tests.Internal.DurableConnectionTests
             Assert.AreEqual(1, ManagedConnectionFactory.SharedConnections.Count);
 
             // Action
-            rmqConnection.ConnectionShutdown += Raise.Event<ConnectionShutdownEventHandler>(rmqConnection, new ShutdownEventArgs(ShutdownInitiator.Application, 0, "Connection dropped for unknow reason ;)"));
+            rmqConnection.ConnectionShutdown += Raise.EventWith(rmqConnection, new ShutdownEventArgs(ShutdownInitiator.Application, 0, "Connection dropped for unknow reason ;)"));
 
             //Assert
             Assert.AreEqual(0, ManagedConnectionFactory.SharedConnections.Count);

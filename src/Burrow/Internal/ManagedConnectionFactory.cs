@@ -56,7 +56,7 @@ namespace Burrow.Internal
         {
             if (connectionString == null)
             {
-                throw new ArgumentNullException("connectionString");
+                throw new ArgumentNullException(nameof(connectionString));
             }
 
             HostName = connectionString.Host;
@@ -116,15 +116,12 @@ namespace Burrow.Internal
                 var key = Endpoint + VirtualHost;
                 SharedConnections[key] = connection;
                 connection.ConnectionShutdown += ConnectionShutdown;
-                
-                if (ConnectionEstablished != null)
-                {
-                    ConnectionEstablished(Endpoint, VirtualHost);
-                }
+
+                ConnectionEstablished?.Invoke(Endpoint, VirtualHost);
             }
         }
 
-        private void ConnectionShutdown(IConnection connection, ShutdownEventArgs reason)
+        private void ConnectionShutdown(object sender, ShutdownEventArgs reason)
         {
             foreach (var c in SharedConnections)
             {

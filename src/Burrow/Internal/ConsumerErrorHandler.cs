@@ -32,15 +32,15 @@ namespace Burrow.Internal
         {
             if (durableConnection == null)
             {
-                throw new ArgumentNullException("durableConnection");
+                throw new ArgumentNullException(nameof(durableConnection));
             }
             if (serializer == null)
             {
-                throw new ArgumentNullException("serializer");
+                throw new ArgumentNullException(nameof(serializer));
             }
             if (watcher == null)
             {
-                throw new ArgumentNullException("watcher");
+                throw new ArgumentNullException(nameof(watcher));
             }
 
             _durableConnection = durableConnection;
@@ -102,9 +102,9 @@ namespace Burrow.Internal
         {
             return
                 "Please check connection string and that the RabbitMQ Service is running at the specified endpoint.\n" +
-                string.Format("\tHostname: '{0}'\n", durableConnection.HostName) +
-                string.Format("\tVirtualHost: '{0}'\n", durableConnection.VirtualHost) +
-                string.Format("\tUserName: '{0}'\n", durableConnection.UserName) +
+                $"\tHostname: '{durableConnection.HostName}'\n" +
+                $"\tVirtualHost: '{durableConnection.VirtualHost}'\n" +
+                $"\tUserName: '{durableConnection.UserName}'\n" +
                 "Failed to write error message to error queue";
         }
 
@@ -144,7 +144,7 @@ namespace Burrow.Internal
                 // thrown if the broker connection is broken during declare or publish.
                 _watcher.ErrorFormat(
                     "ConsumerErrorHandler: Broker connection was closed while attempting to publish Error message.\n" +
-                    string.Format("Message was: '{0}'\n", interruptedException.Message) +
+                    $"Message was: '{interruptedException.Message}'\n" +
                     CreateConnectionCheckMessage(_durableConnection));
             }
             catch (Exception unexpecctedException)

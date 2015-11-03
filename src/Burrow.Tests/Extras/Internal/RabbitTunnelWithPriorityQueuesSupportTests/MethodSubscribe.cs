@@ -6,7 +6,6 @@ using Burrow.Tests.Extras.RabbitSetupTests;
 using NSubstitute;
 using NUnit.Framework;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 // ReSharper disable InconsistentNaming
 namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTests
@@ -188,7 +187,7 @@ namespace Burrow.Tests.Extras.Internal.RabbitTunnelWithPriorityQueuesSupportTest
             tunnel.Subscribe<Customer>("subscriptionName", 3, (x, y) => { });
             
             // Action
-            newChannel.ModelShutdown += Raise.Event<ModelShutdownEventHandler>(newChannel, new ShutdownEventArgs(ShutdownInitiator.Peer, 0, "Shutdown"));
+            newChannel.ModelShutdown += Raise.EventWith(newChannel, new ShutdownEventArgs(ShutdownInitiator.Peer, 0, "Shutdown"));
 
             // Assert
             Assert.IsTrue(call);

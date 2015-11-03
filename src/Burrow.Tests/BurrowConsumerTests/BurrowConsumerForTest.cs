@@ -33,9 +33,9 @@ namespace Burrow.Tests.BurrowConsumerTests
         }
 
 
-        protected override void WhenChannelShutdown(IModel model, ShutdownEventArgs reason)
+        protected override void WhenChannelShutdown(object sender, ShutdownEventArgs reason)
         {
-            base.WhenChannelShutdown(model, reason);
+            base.WhenChannelShutdown(sender, reason);
             WaitHandler.Set();
         }
 

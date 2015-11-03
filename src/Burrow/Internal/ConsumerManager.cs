@@ -21,15 +21,15 @@ namespace Burrow.Internal
         {
             if (watcher == null)
             {
-                throw new ArgumentNullException("watcher");
+                throw new ArgumentNullException(nameof(watcher));
             }
             if (messageHandlerFactory == null)
             {
-                throw new ArgumentNullException("messageHandlerFactory");
+                throw new ArgumentNullException(nameof(messageHandlerFactory));
             }
             if (serializer == null)
             {
-                throw new ArgumentNullException("serializer");
+                throw new ArgumentNullException(nameof(serializer));
             }
 
             _watcher = watcher;

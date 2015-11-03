@@ -1,6 +1,5 @@
 ﻿using System;
 using Burrow.Tests.Extras.RabbitSetupTests;
-
 using NSubstitute;
 using NUnit.Framework;
 using RabbitMQ.Client;
@@ -23,9 +22,9 @@ namespace Burrow.Tests.RabbitTunnelTests
             
             // Action
             durableConnection.Disconnected += Raise.Event<Action>();
-            newChannel.BasicAcks += Raise.Event<BasicAckEventHandler>(null, null);
-            newChannel.BasicNacks += Raise.Event<BasicNackEventHandler>(null, null);
-            newChannel.BasicReturn += Raise.Event<BasicReturnEventHandler>(null, null); 
+            newChannel.BasicAcks += Raise.EventWith<BasicAckEventArgs>();
+            newChannel.BasicNacks += Raise.EventWith<BasicNackEventArgs>();
+            newChannel.BasicReturn += Raise.EventWith<BasicReturnEventArgs>(); 
 
             // Assert
             Assert.IsNull(tunnel.OnBrokerReceivedMessageIsCall);

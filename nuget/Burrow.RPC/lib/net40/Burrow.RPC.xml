@@ -15,11 +15,6 @@
             </summary>
             <typeparam name="T"></typeparam>
         </member>
-        <member name="T:Burrow.RPC.IRpcClientCoordinator">
-            <summary>
-            Implement this interface to send Request to server
-            </summary>
-        </member>
         <member name="T:Burrow.RPC.IRpcRouteFinder">
             <summary>
             This route finder is created for RPC communication.
@@ -103,6 +98,11 @@
         <member name="T:Burrow.RPC.IMethodMatcher">
             <summary>
             Implement this interface to find a method info from the request which will be used to invoke a method on real instance of the RpcServer
+            </summary>
+        </member>
+        <member name="T:Burrow.RPC.IRpcClientCoordinator">
+            <summary>
+            Implement this interface to send Request to server
             </summary>
         </member>
         <member name="M:Burrow.RPC.RpcFactory.CreateClient``1(Burrow.RPC.IRpcRouteFinder,System.String,Burrow.RPC.IMethodFilter[])">

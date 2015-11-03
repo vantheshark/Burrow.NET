@@ -39,22 +39,22 @@ namespace Burrow
         {
             if (msgHandlingAction == null)
             {
-                throw new ArgumentNullException("msgHandlingAction");
+                throw new ArgumentNullException(nameof(msgHandlingAction));
             }
 
             if (consumerErrorHandler == null)
             {
-                throw new ArgumentNullException("consumerErrorHandler");
+                throw new ArgumentNullException(nameof(consumerErrorHandler));
             }
 
             if (messageSerializer == null)
             {
-                throw new ArgumentNullException("messageSerializer");
+                throw new ArgumentNullException(nameof(messageSerializer));
             }
 
             if (watcher == null)
             {
-                throw new ArgumentNullException("watcher");
+                throw new ArgumentNullException(nameof(watcher));
             }
 
             _subscriptionName = subscriptionName;
@@ -101,18 +101,15 @@ namespace Burrow
 
             var properties = basicDeliverEventArgs.BasicProperties as RabbitMQ.Client.Impl.BasicProperties;
             var propertiesMessage = new StringBuilder();
-            if (properties != null)
-            {
-                properties.AppendPropertyDebugStringTo(propertiesMessage);
-            }
+            properties?.AppendPropertyDebugStringTo(propertiesMessage);
 
             return "Exception thrown by subscription calback.\n" +
-                   string.Format("\tExchange:    '{0}'\n", basicDeliverEventArgs.Exchange) +
-                   string.Format("\tRouting Key: '{0}'\n", basicDeliverEventArgs.RoutingKey) +
-                   string.Format("\tRedelivered: '{0}'\n", basicDeliverEventArgs.Redelivered) +
-                   string.Format(" Message:\n{0}\n", message) +
-                   string.Format(" BasicProperties:\n{0}\n", propertiesMessage) +
-                   string.Format(" Exception:\n{0}\n", exception);
+                   $"\tExchange:    '{basicDeliverEventArgs.Exchange}'\n" +
+                   $"\tRouting Key: '{basicDeliverEventArgs.RoutingKey}'\n" +
+                   $"\tRedelivered: '{basicDeliverEventArgs.Redelivered}'\n" +
+                   $" Message:\n{message}\n" +
+                   $" BasicProperties:\n{propertiesMessage}\n" +
+                   $" Exception:\n{exception}\n";
         }
 
         /// <summary>
@@ -234,7 +231,7 @@ namespace Burrow
             if (properties.Type != _typeName)
             {
                 _watcher.ErrorFormat("Message type is incorrect. Expected '{0}', but was '{1}'", _typeName, properties.Type);
-                throw new Exception(string.Format("Message type is incorrect. Expected '{0}', but was '{1}'", _typeName, properties.Type));
+                throw new Exception($"Message type is incorrect. Expected '{_typeName}', but was '{properties.Type}'");
             }
         }
     }

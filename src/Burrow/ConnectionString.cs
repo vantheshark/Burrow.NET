@@ -23,7 +23,7 @@ namespace Burrow
         {
             if (connectionStringValue == null)
             {
-                throw new ArgumentNullException("connectionStringValue");
+                throw new ArgumentNullException(nameof(connectionStringValue));
             }
 
             var keyValuePairs = connectionStringValue.Split(';');
@@ -34,7 +34,7 @@ namespace Burrow
                 var keyValueParts = keyValuePair.Split('=');
                 if (keyValueParts.Length != 2)
                 {
-                    throw new Exception(string.Format("Invalid connection string element: '{0}' should be 'key=value'", keyValuePair));
+                    throw new Exception($"Invalid connection string element: '{keyValuePair}' should be 'key=value'");
                 }
 
                 _parametersDictionary.Add(keyValueParts[0].ToLower(), keyValueParts[1]);
@@ -88,13 +88,13 @@ namespace Burrow
         {
             if (key == null)
             {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
 
             var lowerKey = key.ToLower();
             if (!_parametersDictionary.ContainsKey(lowerKey))
             {
-                throw new Exception(string.Format("No value with key '{0}' exists", key));
+                throw new Exception($"No value with key '{key}' exists");
             }
             return _parametersDictionary[lowerKey];
         }
@@ -109,7 +109,7 @@ namespace Burrow
         {
             if (key == null)
             {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
             var lowerKey = key.ToLower();
             return _parametersDictionary.ContainsKey(lowerKey) && !string.IsNullOrEmpty(_parametersDictionary[lowerKey])

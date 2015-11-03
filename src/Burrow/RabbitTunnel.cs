@@ -210,10 +210,10 @@ namespace Burrow
         /// Basic.Ack’ed. So, if the "mandatory" or "immediate" are used, the client must also listen for returns
         /// by setting the IModel.BasicReturn handler.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="sender"></param>
         /// <param name="args"></param>
         [ExcludeFromCodeCoverage]
-        protected virtual void OnMessageIsUnrouted(IModel model, RabbitMQ.Client.Events.BasicReturnEventArgs args)
+        protected virtual void OnMessageIsUnrouted(object sender, RabbitMQ.Client.Events.BasicReturnEventArgs args)
         {
         }
 
@@ -221,10 +221,10 @@ namespace Burrow
         /// If a broker rejects a message via the BasicNacks handler, the publisher may assume that the message
         /// was lost or otherwise undeliverable.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="sender"></param>
         /// <param name="args"></param>
         [ExcludeFromCodeCoverage]
-        protected virtual void OnBrokerRejectedMessage(IModel model, RabbitMQ.Client.Events.BasicNackEventArgs args)
+        protected virtual void OnBrokerRejectedMessage(object sender, RabbitMQ.Client.Events.BasicNackEventArgs args)
         {
         }
 
@@ -233,10 +233,10 @@ namespace Burrow
         /// keeping the message on disk and on the target queue until some other application retrieves and
         /// acknowledges the message.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="sender"></param>
         /// <param name="args"></param>
         [ExcludeFromCodeCoverage]
-        protected virtual void OnBrokerReceivedMessage(IModel model, RabbitMQ.Client.Events.BasicAckEventArgs args)
+        protected virtual void OnBrokerReceivedMessage(object sender, RabbitMQ.Client.Events.BasicAckEventArgs args)
         {
         }
 
@@ -244,13 +244,7 @@ namespace Burrow
         /// Bear in mind that the connection may be established before somewhere in the application
         /// Burrow tries to ensure only 1 and 1 connection to server for 1 AppDomain
         /// </summary>
-        public bool IsOpened
-        {
-            get
-            {
-                return _connection != null && _connection.IsConnected;
-            }
-        }
+        public bool IsOpened => _connection != null && _connection.IsConnected;
 
         private volatile IModel _dedicatedPublishingChannel;
         public IModel DedicatedPublishingChannel 
@@ -509,13 +503,13 @@ namespace Burrow
             Action subscriptionAction = () =>
             {
                 subscription.QueueName = queueName;
-                subscription.ConsumerTag = string.Format("{0}-{1}", subscriptionName, Guid.NewGuid());
+                subscription.ConsumerTag = $"{subscriptionName}-{Guid.NewGuid()}";
                 var channel = _connection.CreateChannel();
                 channel.ModelShutdown += (c, reason) => 
                 {
                     if (_disposed) return;
                     RaiseConsumerDisconnectedEvent(subscription);
-                    TryReconnect(c, id, reason); 
+                    TryReconnect((IModel)c, id, reason); 
                 };
 
                 channel.BasicQos(0, prefetchSize, false);

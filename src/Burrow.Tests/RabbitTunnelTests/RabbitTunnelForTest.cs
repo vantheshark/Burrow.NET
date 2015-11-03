@@ -46,7 +46,7 @@ namespace Burrow.Tests.RabbitTunnelTests
         }
 
         public bool? OnBrokerReceivedMessageIsCall;
-        protected override void OnBrokerReceivedMessage(IModel model, BasicAckEventArgs args)
+        protected override void OnBrokerReceivedMessage(object sender, BasicAckEventArgs args)
         {
             OnBrokerReceivedMessageIsCall = true;
         }
@@ -67,14 +67,14 @@ namespace Burrow.Tests.RabbitTunnelTests
         }
 
         public bool? OnBrokerRejectedMessageIsCall;
-        protected override void OnBrokerRejectedMessage(IModel model, BasicNackEventArgs args)
+        protected override void OnBrokerRejectedMessage(object sender, BasicNackEventArgs args)
         {
             OnBrokerRejectedMessageIsCall = true;
         }
 
 
         public bool? OnMessageIsUnroutedIsCall;
-        protected override void OnMessageIsUnrouted(IModel model, BasicReturnEventArgs args)
+        protected override void OnMessageIsUnrouted(object sender, BasicReturnEventArgs args)
         {
             OnMessageIsUnroutedIsCall = true;
         }

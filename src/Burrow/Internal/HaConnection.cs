@@ -52,10 +52,7 @@ namespace Burrow.Internal
             _unsubscribeEvents = () => { ManagedConnectionFactory.ConnectionEstablished -= handler; };
         }
 
-        internal protected override ConnectionFactory ConnectionFactory
-        {
-            get { return _connectionFactories.Current; }
-        }
+        internal protected override ConnectionFactory ConnectionFactory => _connectionFactories.Current;
 
         public override void Connect()
         {
@@ -120,9 +117,6 @@ namespace Burrow.Internal
         }
 
         // For Unit tests >.<
-        internal RoundRobinList<ConnectionFactory> ConnectionFactories
-        {
-            get { return _connectionFactories; }
-        }
+        internal RoundRobinList<ConnectionFactory> ConnectionFactories => _connectionFactories;
     }
 }

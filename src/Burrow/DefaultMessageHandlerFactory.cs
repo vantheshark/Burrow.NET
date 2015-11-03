@@ -13,17 +13,17 @@ namespace Burrow
         {
             if (consumerErrorHandler == null)
             {
-                throw new ArgumentNullException("consumerErrorHandler");
+                throw new ArgumentNullException(nameof(consumerErrorHandler));
             }
 
             if (messageSerializer == null)
             {
-                throw new ArgumentNullException("messageSerializer");
+                throw new ArgumentNullException(nameof(messageSerializer));
             }
 
             if (watcher == null)
             {
-                throw new ArgumentNullException("watcher");
+                throw new ArgumentNullException(nameof(watcher));
             }
 
             _consumerErrorHandler = consumerErrorHandler;
