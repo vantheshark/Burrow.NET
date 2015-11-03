@@ -1,6 +1,10 @@
 ![Burrow](http://i43.tinypic.com/66bsw7.png)
 
-Burrow.NET, Release 1.0.x (since Mar 12, 2012)
+
+##Burrow.NET, Release 1.0.x (since Mar 12, 2012)
+###This project is no longer under active development, that means there won't be any new features. However, I'll fix bugs and minor things such as dependency issues.
+
+
 -----------------------------------------------------------------------
 * https://github.com/vanthoainguyen/Burrow.NET    
 * http://burrow.codeplex.com/
