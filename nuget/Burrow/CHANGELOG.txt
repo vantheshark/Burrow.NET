@@ -1,3 +1,6 @@
+*1.0.32 (04 Apr 2016)
+- Upgrade to RabbitMQ.Client.3.6.1. The package is now using .NET 4.5.1
+
 * 1.0.30 (26 March 2015)
 - Fix https://github.com/vanthoainguyen/Burrow.NET/issues/19. The DurableConnection didn't unsubcribe to the event when dispose
 

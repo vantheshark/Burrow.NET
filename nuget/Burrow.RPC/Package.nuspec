@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Burrow.RPC</id>
-    <version>1.0.31</version>
+    <version>__OLD_VERSION__</version>
     <authors>Van Thoai Nguyen</authors>
     <owners>Van Thoai Nguyen</owners>
     <licenseUrl>http://sam.zoy.org/wtfpl/COPYING</licenseUrl>
@@ -15,7 +15,7 @@
     <copyright>Copyright 2015</copyright>
     <tags>Burrow Burrow.NET RabbitMQ RabbitMQ-client AMQP Burrow.RPC RPC</tags>
     <dependencies>		
-		<dependency id="Burrow.NET" version="1.0.31" />
+		<dependency id="Burrow.NET" version="__OLD_VERSION__" />
         <dependency id="Castle.Core" version="3.3.3" />
     </dependencies>
   </metadata>
